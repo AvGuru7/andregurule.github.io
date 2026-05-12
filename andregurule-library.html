@@ -1,0 +1,1354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Projects Library — Andre Gurule</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Playfair+Display:wght@700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  --cream:       #f7f2e8;
+  --cream2:      #ede6d6;
+  --warm-white:  #faf8f3;
+  --wood-light:  #c8924a;
+  --wood-mid:    #a06c30;
+  --wood-dark:   #7a4e1e;
+  --wood-edge:   #5c3610;
+  --floor-a:     #c49a5a;
+  --floor-b:     #a87840;
+  --gold:        #c89828;
+  --text-dark:   #2a1f0e;
+  --text-mid:    #5a4020;
+  --text-light:  #8a6840;
+  --secret-red:  #cc1a3a;
+
+  /* Fluid spacing tokens — book height increased 250% */
+  --shelf-row-h:       clamp(350px, 50vw, 490px);
+  --book-font:         clamp(8px, 1.4vw, 14px);
+  --dialog-font:       clamp(13px, 1.6vw, 15px);
+  --panel-title-font:  clamp(15px, 2.4vw, 26px);
+}
+
+html, body {
+  width:100%; height:100%;
+  overflow: hidden;
+  background: var(--cream);
+  font-family: 'DM Sans', sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ─── CUSTOM CURSOR (desktop only) ─── */
+@media (pointer:fine) {
+  body { cursor: none; }
+  #cursor {
+    position:fixed; width:14px; height:14px;
+    border:2.5px solid var(--wood-dark); border-radius:50%;
+    pointer-events:none; z-index:9999;
+    transform:translate(-50%,-50%);
+    transition:transform 0.1s, border-color 0.15s;
+  }
+  #cursor.hover { transform:translate(-50%,-50%) scale(1.7); border-color:var(--gold); }
+}
+@media (pointer:coarse) { #cursor { display:none; } }
+
+/* ─── SCENE ─── */
+#scene {
+  position:relative; width:100vw; height:100vh;
+  overflow: hidden;
+  display:flex; flex-direction:column;
+}
+
+/* ─── ROOM LAYERS ─── */
+#wall {
+  position:absolute; top:0; left:0; right:0; bottom:0;
+  background: linear-gradient(180deg, #ede4c8 0%, #ddd0aa 55%, var(--floor-a) 55%, var(--floor-b) 100%);
+  z-index:0;
+}
+/* Parquet overlay */
+#wall::after {
+  content:''; position:absolute; left:0; right:0; bottom:0; top:55%;
+  background:
+    repeating-linear-gradient(90deg, transparent 0, transparent 71px, rgba(0,0,0,0.07) 71px, rgba(0,0,0,0.07) 73px),
+    repeating-linear-gradient(0deg,  transparent 0, transparent 71px, rgba(0,0,0,0.07) 71px, rgba(0,0,0,0.07) 73px);
+}
+
+/* Crown molding */
+#molding {
+  position:absolute; top:0; left:0; right:0;
+  height: clamp(10px, 1.5vh, 18px);
+  background:linear-gradient(180deg,#e0d4b0,#c8b880);
+  border-bottom:2px solid #a89050; z-index:2;
+}
+
+/* Wainscoting */
+#wainscot {
+  position:absolute; top:52%; left:0; right:0;
+  height: clamp(14px, 2.5vh, 32px);
+  background:linear-gradient(90deg,
+    var(--wood-mid) 0%,var(--wood-light) 8%,
+    var(--wood-mid) 16%,var(--wood-light) 50%,
+    var(--wood-mid) 84%,var(--wood-light) 92%,
+    var(--wood-mid) 100%);
+  border-top: clamp(3px,0.5vh,5px) solid var(--wood-edge);
+  border-bottom: clamp(3px,0.5vh,5px) solid var(--wood-edge);
+  box-shadow:0 4px 14px rgba(0,0,0,0.14); z-index:2;
+}
+
+/* Floor reflection */
+#floor-shine {
+  position:absolute; top:55%; left:0; right:0;
+  height: clamp(40px,8vh,80px);
+  background:linear-gradient(180deg,rgba(255,255,255,0.13) 0%,transparent 100%);
+  z-index:1; pointer-events:none;
+}
+
+/* ─── WINDOWS ─── */
+.win {
+  position:absolute; top:4%; z-index:3;
+  width: clamp(60px, 9vw, 110px);
+  height: clamp(90px, 16vh, 180px);
+  background:linear-gradient(180deg,#b8dcf8 0%,#d8eefc 100%);
+  border: clamp(3px,0.5vw,6px) solid var(--wood-mid);
+  border-radius:2px 2px 0 0;
+  box-shadow:inset 0 0 25px rgba(180,220,255,0.45), 3px 5px 18px rgba(0,0,0,0.1);
+  overflow:hidden;
+}
+.win::before {
+  content:''; position:absolute; top:0; left:50%; width:5px; height:100%;
+  background:var(--wood-mid); transform:translateX(-50%);
+}
+.win::after {
+  content:''; position:absolute; left:0; right:0; height:5px; top:38%;
+  background:var(--wood-mid);
+}
+.win-cloud {
+  position:absolute; background:rgba(255,255,255,0.5); border-radius:20px;
+  animation:cloud-drift linear infinite;
+}
+@keyframes cloud-drift { from{left:-40%} to{left:130%} }
+#win-l { left:2.5%; }
+#win-r { right:2.5%; }
+
+/* Sunbeams */
+.beam {
+  position:absolute; top:4%;
+  width: clamp(50px, 10vw, 140px);
+  height:80%; pointer-events:none;
+  background:linear-gradient(180deg,#fffbd0 0%,transparent 72%);
+  opacity:0.09; z-index:1;
+}
+#beam-l { left:2.5%; transform:skewX(13deg); transform-origin:top left; }
+#beam-r { right:2.5%; transform:skewX(-13deg); transform-origin:top right; }
+
+/* Curtains */
+.curtain {
+  position:absolute; top:2%; z-index:4;
+  width: clamp(14px, 2.2vw, 28px);
+  height: clamp(95px, 18vh, 200px);
+  border-radius:2px;
+}
+.curtain::after { /* gold tassel */
+  content:''; position:absolute; bottom:-8px; left:10%; right:10%; height:8px;
+  background:var(--gold); border-radius:0 0 3px 3px;
+}
+#c-ll { left:2.5%; background:linear-gradient(90deg,#c04030,#e05848); }
+#c-lr { left:calc(2.5% + clamp(60px,9vw,110px) - clamp(14px,2.2vw,28px));
+        background:linear-gradient(270deg,#c04030,#e05848); }
+#c-rl { right:calc(2.5% + clamp(60px,9vw,110px) - clamp(14px,2.2vw,28px));
+        background:linear-gradient(90deg,#c04030,#e05848); }
+#c-rr { right:2.5%; background:linear-gradient(270deg,#c04030,#e05848); }
+
+/* ─── SIGN ─── */
+#sign {
+  position:absolute; top:clamp(4px,1vh,12px); left:50%; transform:translateX(-50%);
+  text-align:center; z-index:10; white-space:nowrap;
+}
+#sign h1 {
+  font-family:'Playfair Display',serif;
+  font-size:clamp(12px,2.2vw,28px);
+  color:var(--text-dark); letter-spacing:0.05em; line-height:1.2;
+}
+#sign .sub {
+  font-family:'Press Start 2P',monospace;
+  font-size:clamp(3.5px,0.55vw,7px);
+  color:var(--gold); letter-spacing:0.14em; margin-top:4px;
+}
+
+/* ─── SHELF WRAPPER ─── */
+#shelf-wrap {
+  position:absolute; z-index:10;
+  left:50%; transform:translateX(-50%);
+  /* Sit near top so tall books fill the room height */
+  top: clamp(38px, 5vh, 60px);
+  width: clamp(280px, 88vw, 1200px);
+}
+
+/* Cabinet */
+#shelf-cabinet {
+  position:relative;
+  background:var(--wood-mid);
+  border: clamp(4px,0.6vw,7px) solid var(--wood-edge);
+  border-radius:4px 4px 0 0;
+  padding: clamp(8px,1.2vw,14px) clamp(12px,2vw,28px) 0;
+  box-shadow:0 8px 32px rgba(0,0,0,0.2), inset 0 3px 0 var(--wood-light), inset 0 -5px 0 var(--wood-edge);
+}
+
+/* Crown */
+#shelf-crown {
+  position:absolute; top:clamp(-14px,-2vh,-10px); left:-8px; right:-8px;
+  height:clamp(12px,2vh,20px);
+  background:var(--wood-light);
+  border:clamp(3px,0.4vw,5px) solid var(--wood-edge); border-bottom:none;
+  border-radius:3px 3px 0 0;
+}
+#shelf-crown::after {
+  content:''; position:absolute; bottom:2px; left:8px; right:8px; height:3px;
+  background:var(--gold); opacity:0.45; border-radius:2px;
+}
+
+/* Pillars */
+.shelf-pillar {
+  position:absolute; top:clamp(-14px,-2vh,-10px); bottom:0;
+  width:clamp(14px,1.8vw,26px);
+  background:var(--wood-dark);
+  border:clamp(2px,0.3vw,4px) solid var(--wood-edge); border-radius:2px; z-index:4;
+}
+.shelf-pillar.left  { left:clamp(-18px,-2.2vw,-14px); }
+.shelf-pillar.right { right:clamp(-18px,-2.2vw,-14px); }
+
+/* Shelf rows */
+.shelf-row {
+  position:relative;
+  display:flex; align-items:flex-end;
+  gap: clamp(2px,0.35vw,5px);
+  padding: clamp(6px,0.8vw,10px) clamp(4px,0.5vw,8px) 0;
+  min-height: var(--shelf-row-h);
+  /* horizontal scroll on small screens */
+  overflow-x: auto; overflow-y: visible;
+  scrollbar-width: thin;
+  scrollbar-color: var(--wood-light) transparent;
+  /* Extra bottom padding so hover-lift isn't clipped */
+  padding-bottom: 0;
+}
+.shelf-row::-webkit-scrollbar { height:4px; }
+.shelf-row::-webkit-scrollbar-thumb { background:var(--wood-light); border-radius:2px; }
+
+/* Shelf plank */
+.shelf-plank {
+  position:absolute; bottom:0; left:-8px; right:-8px;
+  height:clamp(10px,1.4vh,16px);
+  background:var(--wood-light);
+  border-top: clamp(2px,0.3vh,3px) solid #e8b868;
+  border-bottom: clamp(3px,0.4vh,5px) solid var(--wood-edge);
+  box-shadow:0 4px 10px rgba(0,0,0,0.18); z-index:2;
+}
+
+/* Row labels */
+.row-label {
+  position:absolute; right:clamp(-20px,-2vw,-14px); top:50%; transform:translateY(-50%);
+  font-family:'Press Start 2P',monospace;
+  font-size:clamp(3.5px,0.5vw,6px);
+  color:var(--wood-light); writing-mode:vertical-rl;
+  letter-spacing:2px; opacity:0.7; white-space:nowrap;
+}
+
+/* Base */
+#shelf-base {
+  height:clamp(14px,1.8vh,22px);
+  background:var(--wood-dark);
+  border-top:clamp(3px,0.4vh,5px) solid var(--wood-edge);
+  box-shadow:0 6px 18px rgba(0,0,0,0.22);
+  border-radius:0 0 3px 3px;
+}
+
+/* ─── BOOKS ─── */
+.book {
+  position:relative; flex-shrink:0;
+  border-radius:3px 1px 1px 3px;
+  cursor:pointer;
+  transition:transform 0.22s cubic-bezier(.34,1.56,.64,1), box-shadow 0.2s;
+  display:flex; align-items:center; justify-content:center;
+  /* Use CSS custom props so JS can set fluid sizes */
+  width:  var(--bw, 56px);
+  height: var(--bh, 145px);
+  box-shadow:
+    clamp(2px,0.3vw,3px) 0 0 rgba(0,0,0,0.38),
+    inset clamp(3px,0.4vw,4px) 0 0 rgba(255,255,255,0.18),
+    inset -2px 0 0 rgba(0,0,0,0.28);
+  /* Don't clip hover-lift */
+  overflow: visible;
+}
+.book::before {
+  content:''; position:absolute; left:5px; top:10px; bottom:10px; width:2px;
+  background:rgba(255,255,255,0.12); border-radius:1px;
+}
+@media (pointer:fine) {
+  .book:hover {
+    transform:translateY(clamp(-30px,-4vh,-22px)) scale(1.04);
+    box-shadow:4px 0 0 rgba(0,0,0,0.38), inset 4px 0 0 rgba(255,255,255,0.18),
+               0 clamp(20px,3vh,36px) 36px rgba(0,0,0,0.3);
+    z-index:30;
+  }
+}
+@media (pointer:coarse) {
+  .book:active { transform:translateY(-10px) scale(1.04); z-index:30; }
+}
+.book-inner {
+  display:flex; align-items:center; justify-content:center;
+  width:100%; height:100%; padding:8px 6px; overflow:hidden;
+}
+.book-title-text {
+  font-family:'Press Start 2P',monospace;
+  font-size: var(--book-font);
+  color:rgba(255,255,255,0.93);
+  writing-mode:vertical-rl; text-orientation:mixed; transform:rotate(180deg);
+  text-shadow:1px 1px 0 rgba(0,0,0,0.55);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  max-height:90%; line-height:1.3; letter-spacing:0.4px;
+}
+.book.filler { cursor:default; }
+.book.filler:hover, .book.filler:active { transform:none; box-shadow:2px 0 0 rgba(0,0,0,0.38); }
+
+.bookmark {
+  position:absolute; top:-8px; right:8px;
+  width:clamp(7px,1vw,11px); height:clamp(16px,2.5vh,24px);
+  clip-path:polygon(0 0,100% 0,100% 78%,50% 100%,0 78%); z-index:3;
+}
+
+/* Secret book */
+.book.secret { animation:s-glow 2.4s ease-in-out infinite; }
+.book.secret .book-title-text { color:#ffb0b8; }
+@keyframes s-glow {
+  0%,100%{box-shadow:3px 0 0 rgba(0,0,0,0.38),0 0 8px rgba(204,26,58,0.35)}
+  50%    {box-shadow:3px 0 0 rgba(0,0,0,0.38),0 0 24px rgba(255,30,70,0.9),0 0 48px rgba(255,30,70,0.22)}
+}
+.book.locked { filter:saturate(0.45) brightness(0.72); }
+
+/* ─── NPC ─── */
+#npc-wrap {
+  position:absolute; z-index:20;
+  bottom: clamp(34%, 36%, 40%);
+  right: clamp(12px, 6vw, 80px);
+  display:flex; flex-direction:column; align-items:center;
+  cursor:pointer; touch-action:manipulation;
+  transition:transform 0.15s;
+}
+#npc-wrap:hover { transform:scale(1.07); }
+#npc-wrap:active { transform:scale(0.97); }
+#npc-canvas {
+  display:block; image-rendering:pixelated;
+  width: clamp(54px,7vw,88px);
+  height: clamp(68px,9vw,110px);
+  filter:drop-shadow(0 6px 12px rgba(0,0,0,0.18));
+}
+#npc-bubble {
+  background:#fff; border:2px solid var(--wood-mid);
+  border-radius:10px 10px 10px 2px;
+  padding: clamp(4px,0.6vh,7px) clamp(8px,1vw,12px);
+  font-family:'Press Start 2P',monospace;
+  font-size:clamp(4.5px,0.65vw,7px);
+  color:var(--text-dark); white-space:nowrap; margin-bottom:6px;
+  box-shadow:0 3px 10px rgba(0,0,0,0.1);
+  animation:npc-float 2.6s ease-in-out infinite;
+}
+@keyframes npc-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+
+/* ─── DIALOG ─── */
+#dialog {
+  position:fixed;
+  bottom: clamp(10px,2vh,24px);
+  left:50%; transform:translateX(-50%);
+  width: min(720px, 92vw);
+  background:var(--warm-white);
+  border:3px solid var(--wood-mid); border-radius:10px;
+  box-shadow:0 14px 50px rgba(0,0,0,0.28);
+  z-index:500; display:none; overflow:hidden;
+  max-height: 55vh; /* prevent overflow on short screens */
+}
+#dialog-hdr {
+  display:flex; align-items:center; gap:clamp(8px,1.5vw,14px);
+  padding:clamp(10px,1.5vh,14px) clamp(14px,2vw,20px) clamp(8px,1vh,12px);
+  background:var(--cream2); border-bottom:2px solid var(--wood-light);
+}
+#dialog-portrait {
+  width:clamp(36px,5vw,50px); height:clamp(36px,5vw,50px);
+  border-radius:50%; border:3px solid var(--wood-mid);
+  image-rendering:pixelated; flex-shrink:0;
+}
+#dialog-name  { font-family:'Playfair Display',serif; font-size:clamp(13px,1.8vw,17px); color:var(--text-dark); font-weight:700; }
+#dialog-role  { font-family:'DM Sans',sans-serif; font-size:clamp(10px,1.2vw,12px); color:var(--text-light); margin-top:2px; }
+#dialog-x {
+  margin-left:auto; background:none; border:2px solid var(--wood-light);
+  color:var(--text-mid); font-family:'Press Start 2P',monospace;
+  font-size:clamp(5px,0.8vw,7px); padding:clamp(4px,0.6vh,6px) clamp(6px,0.8vw,9px);
+  cursor:pointer; border-radius:3px; touch-action:manipulation;
+}
+#dialog-x:hover { background:var(--cream2); border-color:var(--wood-mid); }
+#dialog-body {
+  padding:clamp(12px,1.8vh,18px) clamp(14px,2vw,22px) clamp(8px,1vh,12px);
+  font-family:'DM Sans',sans-serif; font-size:var(--dialog-font);
+  color:var(--text-dark); line-height:1.72; min-height:60px; white-space:pre-wrap;
+  overflow-y:auto; max-height:clamp(80px,15vh,160px);
+}
+#dialog-acts {
+  padding:0 clamp(14px,2vw,22px) clamp(12px,1.8vh,18px);
+  display:flex; gap:clamp(6px,1vw,10px); flex-wrap:wrap;
+}
+
+/* ─── SHARED BUTTON ─── */
+.d-btn {
+  font-family:'Press Start 2P',monospace;
+  font-size:clamp(5.5px,0.75vw,7px);
+  padding:clamp(8px,1.2vh,10px) clamp(10px,1.3vw,15px);
+  border:2px solid var(--wood-mid); border-radius:4px;
+  background:var(--cream2); color:var(--text-dark);
+  cursor:pointer; line-height:1.5; touch-action:manipulation;
+  transition:background 0.1s,color 0.1s;
+}
+.d-btn:hover, .d-btn:active { background:var(--wood-mid); color:#fff; }
+.d-btn.primary { background:var(--wood-mid); color:#fff; border-color:var(--wood-dark); }
+.d-btn.primary:hover { background:var(--wood-dark); }
+.d-btn.red { border-color:var(--secret-red); color:var(--secret-red); background:#fff5f6; }
+.d-btn.red:hover, .d-btn.red:active { background:var(--secret-red); color:#fff; }
+
+/* ─── BOOK PANEL ─── */
+#book-panel {
+  position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
+  width: min(740px, 94vw);
+  max-height:88vh;
+  background:var(--warm-white);
+  border:3px solid var(--wood-mid); border-radius:10px;
+  box-shadow:0 20px 60px rgba(0,0,0,0.32);
+  z-index:600; display:none; flex-direction:column; overflow:hidden;
+}
+#bp-top { display:flex; }
+#bp-spine { width:clamp(16px,2vw,26px); flex-shrink:0; border-radius:7px 0 0 0; }
+#bp-hdr {
+  flex:1; padding:clamp(14px,2vh,20px) clamp(16px,2vw,22px) clamp(12px,1.5vh,16px);
+  background:var(--cream2); border-bottom:2px solid var(--wood-light);
+  display:flex; align-items:flex-start; justify-content:space-between; gap:10px;
+}
+#bp-title    { font-family:'Playfair Display',serif; font-size:var(--panel-title-font); color:var(--text-dark); font-weight:700; }
+#bp-subtitle { font-family:'DM Sans',sans-serif; font-size:clamp(11px,1.3vw,13px); color:var(--text-light); margin-top:4px; }
+#bp-close {
+  background:none; border:2px solid var(--wood-light); color:var(--text-mid);
+  font-family:'Press Start 2P',monospace; font-size:clamp(5px,0.8vw,7px);
+  padding:clamp(4px,0.6vh,6px) clamp(6px,0.8vw,9px);
+  cursor:pointer; border-radius:3px; flex-shrink:0; touch-action:manipulation;
+}
+#bp-close:hover { border-color:var(--wood-mid); color:var(--text-dark); }
+#bp-body  { padding:clamp(16px,2.5vh,22px) clamp(16px,2.5vw,26px); overflow-y:auto; flex:1; }
+#bp-desc  {
+  font-family:'DM Sans',sans-serif; font-size:clamp(13px,1.5vw,15px);
+  color:var(--text-dark); line-height:1.78; margin-bottom:18px;
+}
+.tag-row  { display:flex; flex-wrap:wrap; gap:clamp(5px,0.8vw,8px); margin-bottom:18px; }
+.tech-tag {
+  font-family:'Press Start 2P',monospace; font-size:clamp(5.5px,0.7vw,7px);
+  padding:clamp(4px,0.6vh,6px) clamp(7px,0.9vw,10px);
+  border-radius:3px; border:1.5px solid;
+}
+#bp-footer { padding:0 clamp(16px,2.5vw,26px) clamp(16px,2.5vh,22px); display:flex; gap:10px; flex-wrap:wrap; }
+
+/* ─── SECRET PANEL ─── */
+#secret-panel {
+  position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
+  width:min(600px,92vw);
+  background:#fff; border:3px solid var(--secret-red); border-radius:10px;
+  box-shadow:0 0 70px rgba(204,26,58,0.2),0 22px 50px rgba(0,0,0,0.26);
+  z-index:700; display:none;
+  padding:clamp(18px,3vh,30px) clamp(16px,3vw,30px) clamp(14px,2vh,24px);
+  max-height:90vh; overflow-y:auto;
+}
+#sp-title {
+  font-family:'Press Start 2P',monospace; font-size:clamp(7px,1.1vw,10px);
+  color:var(--secret-red); text-align:center; margin-bottom:clamp(12px,2vh,20px);
+  animation:blink 0.9s step-end infinite;
+}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+#sp-riddle {
+  font-family:'Playfair Display',serif; font-size:clamp(14px,1.8vw,17px);
+  color:var(--text-dark); font-style:italic; line-height:1.72;
+  margin-bottom:clamp(14px,2vh,22px);
+  padding:clamp(12px,1.8vh,18px) clamp(14px,2vw,20px);
+  background:#fff8f9; border-left:5px solid var(--secret-red); border-radius:0 6px 6px 0;
+}
+#sp-label {
+  font-family:'Press Start 2P',monospace; font-size:clamp(5.5px,0.75vw,7px);
+  color:var(--text-mid); margin-bottom:8px;
+}
+#sp-input {
+  width:100%; background:#fff8f9; border:2px solid var(--secret-red); border-radius:4px;
+  color:var(--secret-red); font-family:'Press Start 2P',monospace;
+  font-size:clamp(8px,1.1vw,11px);
+  padding:clamp(10px,1.5vh,13px) clamp(10px,1.5vw,15px);
+  margin-bottom:10px; outline:none; letter-spacing:2px;
+  transition:box-shadow 0.2s;
+}
+#sp-input:focus { box-shadow:0 0 0 3px rgba(204,26,58,0.14); }
+#sp-feedback {
+  font-family:'DM Sans',sans-serif; font-size:clamp(12px,1.4vw,14px);
+  font-weight:500; min-height:22px; margin-bottom:12px; text-align:center;
+}
+.sp-btns { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+
+/* ─── OVERLAY ─── */
+#overlay {
+  position:fixed; inset:0;
+  background:rgba(42,31,14,0.52);
+  backdrop-filter:blur(3px);
+  z-index:400; display:none;
+}
+
+/* ─── HUD ─── */
+#hud {
+  position:fixed; top:clamp(8px,1.5vh,14px); left:clamp(8px,1.5vw,14px);
+  z-index:300;
+  background:rgba(250,248,243,0.93);
+  border:2px solid var(--wood-light); border-radius:6px;
+  padding:clamp(6px,1vh,9px) clamp(10px,1.5vw,16px);
+  box-shadow:0 2px 12px rgba(0,0,0,0.1);
+}
+#hud a {
+  font-family:'Press Start 2P',monospace;
+  font-size:clamp(4.5px,0.65vw,6px);
+  color:var(--text-mid); text-decoration:none; display:block; line-height:2.2;
+  touch-action:manipulation;
+}
+#hud a:hover { color:var(--text-dark); }
+#hud-lbl {
+  font-family:'Press Start 2P',monospace;
+  font-size:clamp(4.5px,0.65vw,6px);
+  color:var(--gold); line-height:2;
+}
+
+/* ─── SCROLL HINT (mobile) ─── */
+#scroll-hint {
+  display:none;
+  position:absolute; bottom:clamp(2px,1vh,6px); left:50%; transform:translateX(-50%);
+  font-family:'Press Start 2P',monospace; font-size:5px; color:var(--gold);
+  white-space:nowrap; opacity:0.8; z-index:15; pointer-events:none;
+  animation:blink 1.5s step-end infinite;
+}
+@media (pointer:coarse) { #scroll-hint { display:block; } }
+
+/* ─── DUST MOTES ─── */
+.mote {
+  position:absolute; border-radius:50%;
+  background:rgba(255,240,180,0.72); pointer-events:none;
+  animation:mote-drift linear infinite;
+}
+@keyframes mote-drift{
+  0%  {transform:translate(0,0) scale(1);opacity:0}
+  15% {opacity:1} 85%{opacity:0.5}
+  100%{transform:translate(var(--mx),var(--my)) scale(0.3);opacity:0}
+}
+
+::-webkit-scrollbar{width:5px;height:4px}
+::-webkit-scrollbar-track{background:var(--cream2)}
+::-webkit-scrollbar-thumb{background:var(--wood-light);border-radius:3px}
+
+/* ── NES CONTROLLER ── */
+#nes-controller{
+  position:fixed;bottom:clamp(10px,2.5vh,20px);left:50%;transform:translateX(-50%);
+  z-index:300;display:none;flex-direction:column;align-items:center;gap:8px;
+}
+@media(pointer:coarse){#nes-controller{display:flex;}}
+@media(max-width:600px){#nes-controller{display:flex;}}
+
+#lib-ctrl-body{
+  position:relative;
+  width:clamp(240px,60vw,340px);height:clamp(80px,20vw,112px);
+  background:linear-gradient(175deg,#3e3e46 0%,#2e2e34 50%,#1e1e24 100%);
+  border-radius:clamp(22px,5.5vw,34px) clamp(22px,5.5vw,34px) clamp(30px,7.5vw,46px) clamp(30px,7.5vw,46px);
+  border:2.5px solid #555;
+  box-shadow:0 clamp(5px,1.2vh,9px) clamp(18px,4.5vw,30px) rgba(0,0,0,0.75),inset 0 1px 0 rgba(255,255,255,0.08),inset 0 -2px 0 rgba(0,0,0,0.45);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 clamp(14px,3.5vw,22px);
+}
+#lib-ctrl-body::before,#lib-ctrl-body::after{
+  content:'';position:absolute;bottom:-4px;
+  width:clamp(28px,7vw,40px);height:clamp(12px,3.2vw,18px);
+  background:#222;border-radius:0 0 10px 10px;border:2px solid #444;
+}
+#lib-ctrl-body::before{left:clamp(16px,4vw,26px);}
+#lib-ctrl-body::after{right:clamp(16px,4vw,26px);}
+
+#lib-dpad{position:relative;width:clamp(72px,18vw,102px);height:clamp(72px,18vw,102px);flex-shrink:0;}
+.ldh,.ldv{position:absolute;background:linear-gradient(180deg,#4c4c56,#38383f);border:2.5px solid #1a1a20;border-radius:3px;}
+.ldh{left:0;right:0;top:33.3%;bottom:33.3%;box-shadow:inset 0 2px 0 rgba(255,255,255,0.09),inset 0 -2px 0 rgba(0,0,0,0.4);}
+.ldv{top:0;bottom:0;left:33.3%;right:33.3%;box-shadow:inset 2px 0 0 rgba(255,255,255,0.09),inset -2px 0 0 rgba(0,0,0,0.4);}
+.ldc{position:absolute;left:33.3%;right:33.3%;top:33.3%;bottom:33.3%;background:#3c3c44;border-radius:2px;z-index:2;}
+.ldb{position:absolute;z-index:3;display:flex;align-items:center;justify-content:center;cursor:pointer;user-select:none;touch-action:none;-webkit-tap-highlight-color:transparent;}
+#lbu{top:0;left:33.3%;right:33.3%;height:33.3%;}#lbu::after{content:'▲';}
+#lbd{bottom:0;left:33.3%;right:33.3%;height:33.3%;}#lbd::after{content:'▼';}
+#lbl{left:0;top:33.3%;bottom:33.3%;width:33.3%;}#lbl::after{content:'◀';}
+#lbr{right:0;top:33.3%;bottom:33.3%;width:33.3%;}#lbr::after{content:'▶';}
+.ldb::after{font-family:'Press Start 2P',monospace;font-size:clamp(7px,1.7vw,10px);color:rgba(255,255,255,0.3);}
+.ldb.pressing::after{color:#c89828;text-shadow:0 0 7px #c89828;}
+
+#lib-center{
+  display:flex;flex-direction:column;align-items:center;gap:clamp(6px,1.5vw,10px);flex-shrink:0;
+  margin-left:clamp(6px,2vw,14px);margin-right:clamp(0px,1vw,6px);
+}
+#lib-menu-btn-wrap{display:flex;flex-direction:column;align-items:center;}
+#lib-menu-btn{
+  width:clamp(34px,8.5vw,48px);height:clamp(34px,8.5vw,48px);border-radius:50%;
+  background:radial-gradient(circle at 42% 38%,#4a4a54,#26262e);
+  border:2.5px solid #1a1a20;
+  box-shadow:0 3px 0 rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.1),0 0 0 3px rgba(200,152,42,0.15);
+  cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+  display:flex;align-items:center;justify-content:center;
+  transition:transform 0.06s,box-shadow 0.06s;
+}
+#lib-menu-btn:hover{box-shadow:0 3px 0 rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.1),0 0 0 4px rgba(200,152,42,0.38);}
+#lib-menu-btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,0.55);}
+#lib-menu-icon{font-family:'Press Start 2P',monospace;font-size:clamp(4px,1vw,6px);color:rgba(200,152,42,0.85);letter-spacing:0.5px;text-align:center;}
+#lib-menu-lbl{font-family:'Press Start 2P',monospace;font-size:clamp(3px,0.75vw,5px);color:#a06c30;margin-top:3px;}
+
+#lib-ss-row{display:flex;gap:clamp(6px,1.8vw,12px);align-items:center;}
+.lib-ss{
+  width:clamp(28px,7vw,40px);height:clamp(10px,2.4vw,14px);
+  background:linear-gradient(180deg,#3a3a42,#28282e);border:1.5px solid #1a1a20;border-radius:clamp(5px,1.2vw,7px);
+  box-shadow:0 2px 0 rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.07);
+  cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+  transition:transform 0.06s;display:flex;align-items:center;justify-content:center;
+}
+.lib-ss:active{transform:translateY(1px);}
+.lib-ss-lbl{font-family:'Press Start 2P',monospace;font-size:clamp(3px,0.75vw,4.5px);color:#666;margin-top:2px;text-align:center;}
+
+#lib-ab-col{display:flex;flex-direction:column;align-items:center;flex-shrink:0;}
+#lib-ab{display:flex;gap:clamp(7px,1.8vw,11px);align-items:center;transform:rotate(-18deg);}
+.lib-ab-btn{
+  width:clamp(28px,7vw,38px);height:clamp(28px,7vw,38px);border-radius:50%;
+  border:2.5px solid #1a1a20;display:flex;align-items:center;justify-content:center;
+  font-family:'Press Start 2P',monospace;font-size:clamp(7px,1.6vw,9px);
+  cursor:pointer;touch-action:manipulation;user-select:none;-webkit-tap-highlight-color:transparent;
+  background:radial-gradient(circle at 40% 35%,#cc4466,#aa2244);color:rgba(255,255,255,0.85);
+  box-shadow:0 3px 0 rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.15);
+  transition:transform 0.06s,box-shadow 0.06s;
+}
+.lib-ab-btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,0.55);}
+.lib-ab-lbl-row{display:flex;gap:clamp(7px,1.8vw,11px);transform:rotate(-18deg);margin-top:3px;}
+.lib-ab-lbl{font-family:'Press Start 2P',monospace;font-size:clamp(3px,0.65vw,4.5px);color:#555;width:clamp(28px,7vw,38px);text-align:center;}
+
+#lib-ctrl-hint{font-family:'Press Start 2P',monospace;font-size:clamp(4px,0.75vw,5.5px);color:#c89828;text-align:center;opacity:0.8;}
+
+/* ── LIBRARY MENU OVERLAY ── */
+#lib-menu-overlay{
+  position:fixed;inset:0;
+  background:rgba(20,14,6,0.88);backdrop-filter:blur(4px);
+  z-index:500;display:none;align-items:center;justify-content:center;
+}
+#lib-menu-box{
+  background:#faf8f3;border:3px solid var(--wood-mid);border-radius:10px;
+  box-shadow:0 20px 60px rgba(0,0,0,0.35);
+  padding:clamp(20px,4vw,36px) clamp(24px,5vw,44px);
+  min-width:clamp(240px,50vw,400px);position:relative;
+}
+#lib-menu-title{
+  font-family:'Playfair Display',serif;font-size:clamp(16px,2.4vw,24px);
+  color:var(--text-dark);font-weight:700;text-align:center;
+  margin-bottom:clamp(16px,3vh,26px);
+}
+.lib-menu-item{
+  display:flex;align-items:center;gap:12px;width:100%;
+  font-family:'Press Start 2P',monospace;font-size:clamp(7px,1.1vw,9px);
+  color:var(--text-mid);background:transparent;border:none;
+  padding:clamp(9px,1.6vh,14px) clamp(10px,1.8vw,18px);
+  text-align:left;cursor:pointer;text-decoration:none;
+  border-left:3px solid transparent;
+  transition:color 0.1s,border-color 0.1s,background 0.1s;
+  letter-spacing:0.5px;line-height:1.5;touch-action:manipulation;
+}
+.lib-menu-item:hover,.lib-menu-item:active,.lib-menu-item.lm-selected{
+  color:var(--wood-dark);border-left-color:var(--gold);background:rgba(200,152,42,0.07);
+}
+.lib-menu-icon{font-size:12px;width:20px;text-align:center;flex-shrink:0;}
+#lib-menu-divider{height:1px;background:rgba(160,108,48,0.2);margin:clamp(6px,1.2vh,12px) 0;}
+#lib-menu-close-hint{
+  text-align:center;margin-top:clamp(10px,1.8vh,18px);
+  font-family:'Press Start 2P',monospace;font-size:clamp(4.5px,0.7vw,6px);color:var(--text-light);
+}
+.lm-badge{background:var(--cream2);border:1.5px solid var(--wood-light);color:var(--text-mid);padding:1px 5px;border-radius:2px;font-size:inherit;}
+
+/* ─── TABLET ADJUSTMENTS ─── */
+@media (max-width:768px) {
+  :root {
+    --shelf-row-h: clamp(300px,44vw,420px);
+    --book-font:   clamp(7px,1.2vw,11px);
+  }
+  #sign h1 { letter-spacing:0.02em; }
+  #npc-wrap { right:clamp(8px,3vw,20px); bottom:32%; }
+  #shelf-wrap { width:clamp(260px,90vw,680px); }
+}
+
+/* ─── PHONE ADJUSTMENTS ─── */
+@media (max-width:480px) {
+  :root {
+    --shelf-row-h: 320px;
+    --book-font:   9px;
+    --dialog-font: 13px;
+  }
+  #sign h1 { font-size:13px; }
+  #sign .sub { display:none; }
+  #npc-wrap { right:8px; bottom:30%; }
+  .row-label { display:none; }
+  #shelf-wrap { width:96vw; top:52px; }
+  .book { min-width:44px !important; }
+}
+</style>
+</head>
+<body>
+
+<div id="cursor"></div>
+
+<div id="scene">
+  <div id="wall"></div>
+  <div id="molding"></div>
+  <div id="wainscot"></div>
+  <div id="floor-shine"></div>
+
+  <!-- Windows -->
+  <div class="win" id="win-l">
+    <div class="win-cloud" style="width:38px;height:14px;top:20%;animation-duration:22s;"></div>
+    <div class="win-cloud" style="width:26px;height:10px;top:45%;animation-duration:30s;animation-delay:-9s;"></div>
+  </div>
+  <div class="win" id="win-r">
+    <div class="win-cloud" style="width:34px;height:13px;top:24%;animation-duration:26s;animation-delay:-4s;"></div>
+    <div class="win-cloud" style="width:22px;height:9px;top:52%;animation-duration:34s;"></div>
+  </div>
+  <div class="beam" id="beam-l"></div>
+  <div class="beam" id="beam-r"></div>
+
+  <!-- Curtains -->
+  <div class="curtain" id="c-ll"></div>
+  <div class="curtain" id="c-lr"></div>
+  <div class="curtain" id="c-rl"></div>
+  <div class="curtain" id="c-rr"></div>
+
+  <!-- Sign -->
+  <div id="sign">
+    <h1>Projects Guild Library</h1>
+    <div class="sub">⬥ ANDRE GURULE &nbsp;·&nbsp; PORTFOLIO ⬥</div>
+  </div>
+
+  <!-- Bookshelf -->
+  <div id="shelf-wrap">
+    <div id="shelf-cabinet">
+      <div id="shelf-crown"></div>
+      <div class="shelf-pillar left"></div>
+      <div class="shelf-pillar right"></div>
+      <div class="shelf-row" id="row1">
+        <div class="shelf-plank"></div>
+        <span class="row-label">PROJECTS</span>
+      </div>
+    </div>
+    <div id="shelf-base"></div>
+    <div id="scroll-hint">◀ SWIPE TO BROWSE ▶</div>
+  </div>
+
+  <!-- NPC Librarian -->
+  <div id="npc-wrap" onclick="openLibrarian('intro')">
+    <div id="npc-bubble">💬 TALK TO ME!</div>
+    <canvas id="npc-canvas" width="70" height="88"></canvas>
+  </div>
+</div>
+
+<!-- HUD -->
+<div id="hud">
+  <a href="andregurule-rpg-home.html">◀ WORLD MAP</a>
+  <div id="hud-lbl">⚔ PROJECTS LIBRARY</div>
+</div>
+
+<!-- Overlay -->
+<div id="overlay" onclick="closeAll()"></div>
+
+<!-- Dialog -->
+<div id="dialog">
+  <div id="dialog-hdr">
+    <canvas id="dialog-portrait" width="50" height="50"></canvas>
+    <div>
+      <div id="dialog-name">Mirabel</div>
+      <div id="dialog-role">Head Librarian · Projects Guild</div>
+    </div>
+    <button id="dialog-x" onclick="closeDialog()">[ X ]</button>
+  </div>
+  <div id="dialog-body"></div>
+  <div id="dialog-acts"></div>
+</div>
+
+<!-- Book Panel -->
+<div id="book-panel">
+  <div id="bp-top">
+    <div id="bp-spine"></div>
+    <div id="bp-hdr">
+      <div><div id="bp-title"></div><div id="bp-subtitle"></div></div>
+      <button id="bp-close" onclick="closeBookPanel()">[ X ]</button>
+    </div>
+  </div>
+  <div id="bp-body">
+    <div id="bp-desc"></div>
+    <div class="tag-row" id="bp-tags"></div>
+  </div>
+  <div id="bp-footer"></div>
+</div>
+
+<!-- Secret Panel -->
+<div id="secret-panel">
+  <div id="sp-title">⚠ FILE: G-14 CLASSIFIED ⚠</div>
+  <div id="sp-riddle">
+    "I am always in front of you,<br>
+    but can never be seen.<br>
+    I guide every project,<br>
+    every line, every dream."<br><br>
+    — Mirabel, Head Librarian
+  </div>
+  <div id="sp-label">ENTER PASSPHRASE:</div>
+  <input id="sp-input" type="text" placeholder="YOUR ANSWER HERE..."
+         maxlength="30" spellcheck="false" autocomplete="off" inputmode="text"/>
+  <div id="sp-feedback"></div>
+  <div class="sp-btns">
+    <button class="d-btn red" onclick="checkSecret()">[ SUBMIT ]</button>
+    <button class="d-btn"     onclick="closeSecret()">[ CANCEL ]</button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════
+//  PROJECTS  — update with real content
+// ═══════════════════════════════
+const PROJECTS = [
+  { id:'proj1', row:1,
+    title:'Portfolio World', subtitle:'Full-Stack Developer  ·  2025',
+    desc:'The very world you are exploring right now. An interactive 16-bit RPG-style personal portfolio built with vanilla HTML, CSS, and JavaScript. Features a user-controlled character, explorable zones, and an NPC-driven narrative.',
+    tags:['HTML5','CSS3','JavaScript','Game Design','UX'],
+    color:'#2a5ed0', dark:'#14317a', link:'#' },
+  { id:'proj2', row:1,
+    title:'Data Pipeline', subtitle:'Data Engineer  ·  2024',
+    desc:'Automated ETL pipeline ingesting and transforming data from multiple APIs into a centralized data warehouse. Reduced manual reporting time by 80% and enabled real-time dashboards for non-technical stakeholders.',
+    tags:['Python','SQL','Apache Airflow','AWS','PostgreSQL'],
+    color:'#22a060', dark:'#115030', link:'#' },
+  { id:'proj3', row:1,
+    title:'Mobile App', subtitle:'React Native Dev  ·  2024',
+    desc:'Cross-platform mobile app for tracking outdoor adventure routes. Integrates GPS mapping, photo journaling, and social sharing. Published on iOS and Android with 500+ active users.',
+    tags:['React Native','TypeScript','Firebase','Maps API'],
+    color:'#d85020', dark:'#7a2808', link:'#' },
+  { id:'proj4', row:1,
+    title:'Analytics Dashboard', subtitle:'Frontend Dev  ·  2023',
+    desc:'Executive analytics dashboard for a mid-size company visualizing KPIs in real time. Designed for non-technical stakeholders with an emphasis on clarity and accessibility.',
+    tags:['React','D3.js','REST API','Figma','CSS'],
+    color:'#8030b8', dark:'#481868', link:'#' },
+  { id:'proj5', row:1,
+    title:'API Gateway', subtitle:'Backend Dev  ·  2023',
+    desc:'RESTful API gateway handling authentication, rate-limiting, and routing for a suite of microservices. Improved average response time by 40% through caching and load-balancing.',
+    tags:['Node.js','Express','Redis','Docker','AWS Lambda'],
+    color:'#b87818', dark:'#6a4008', link:'#' },
+  { id:'proj6', row:2,
+    title:'Automation Bot', subtitle:'Python Dev  ·  2022',
+    desc:'Workflow automation bot that monitors Slack, triages support tickets, and routes them with NLP classification. Saved the operations team ~15 hours per week.',
+    tags:['Python','Slack API','NLP','Automation'],
+    color:'#1488b8', dark:'#085068', link:'#' },
+  { id:'proj7', row:2,
+    title:'E-Commerce Platform', subtitle:'Full-Stack Dev  ·  2022',
+    desc:'End-to-end e-commerce platform for a local small business with Stripe payments and inventory tracking. Tripled the client\'s online revenue within six months of launch.',
+    tags:['Next.js','Stripe','MongoDB','Tailwind CSS'],
+    color:'#b02858', dark:'#681030', link:'#' },
+  { id:'proj8', row:2,
+    title:'ML Classifier', subtitle:'ML Engineer  ·  2022',
+    desc:'Multi-label text classification model for categorizing customer feedback into product areas. Achieved 91% accuracy and was integrated into the product analytics pipeline.',
+    tags:['Python','scikit-learn','NLP','Pandas','TF-IDF'],
+    color:'#308038', dark:'#184018', link:'#' },
+  { id:'secret',
+    title:'G-14 CLASSIFIED', subtitle:'???  ·  REDACTED',
+    desc:'ACCESS DENIED. This file is encrypted. Speak to the Head Librarian for guidance.',
+    tags:['CLASSIFIED'],
+    color:'#cc1a3a', dark:'#7a0010', link:null, secret:true },
+];
+
+const TAG_COLORS = {
+  'HTML5':'#c83010','CSS3':'#1840a0','JavaScript':'#908000','Python':'#1e4890',
+  'React':'#1078a0','TypeScript':'#1040b0','SQL':'#684000','Node.js':'#286010',
+  'Docker':'#0658a0','AWS':'#9a5010','Firebase':'#a02800','MongoDB':'#286010',
+  'Stripe':'#402890','Next.js':'#181818','Tailwind CSS':'#0a6480',
+  'D3.js':'#a83000','Figma':'#901890','NLP':'#505090','Automation':'#186050',
+  'UX':'#705000','Game Design':'#504070','CLASSIFIED':'#cc1a3a',
+  'Apache Airflow':'#007090','Redis':'#901010','Express':'#303030',
+  'AWS Lambda':'#9a5010','Maps API':'#205090','REST API':'#604090',
+  'scikit-learn':'#e08020','Pandas':'#103060','TF-IDF':'#404080',
+  'Slack API':'#3a1060','default':'#505030'
+};
+
+const FILLERS = [
+  '#7a4828','#2a4a6a','#3a5a2a','#5a2a6a','#6a5a20',
+  '#1a4a5a','#6a2028','#2a2a5a','#4a3a20','#1a3a4a',
+  '#5a3018','#304858','#6a4030','#2a5040',
+];
+
+let secretUnlocked = false;
+let clueGiven      = false;
+
+// ── Compute fluid book dimensions ──
+function bookSize() {
+  // Book dimensions — 250% of original heights
+  const vw = window.innerWidth;
+  const bw = Math.round(Math.max(55, Math.min(110, vw * 0.085)));
+  const bh = Math.round(Math.max(300, Math.min(413, vw * 0.30)));
+  return { bw, bh };
+}
+
+function makeFiller() {
+  const { bh } = bookSize();
+  const el = document.createElement('div');
+  el.className = 'book filler';
+  const w = Math.round(Math.max(16, Math.min(36, window.innerWidth * 0.022)));
+  const h = Math.round(bh * (0.72 + Math.random() * 0.26));
+  el.style.setProperty('--bw', w+'px');
+  el.style.setProperty('--bh', h+'px');
+  el.style.background = FILLERS[Math.floor(Math.random()*FILLERS.length)];
+  return el;
+}
+
+function makeBook(proj) {
+  const { bw, bh } = bookSize();
+  const el = document.createElement('div');
+  el.className = 'book' + (proj.secret?' secret':'') + (proj.secret&&!secretUnlocked?' locked':'');
+  el.style.setProperty('--bw', bw+'px');
+  el.style.setProperty('--bh', bh+'px');
+  el.style.background = `linear-gradient(90deg,${proj.dark} 0%,${proj.color} 28%,${proj.color} 100%)`;
+  el.dataset.id = proj.id;
+
+  if (!proj.secret && Math.random() > 0.55) {
+    const bm = document.createElement('div');
+    bm.className = 'bookmark';
+    bm.style.background = FILLERS[Math.floor(Math.random()*FILLERS.length)];
+    el.appendChild(bm);
+  }
+  const inner = document.createElement('div');
+  inner.className = 'book-inner';
+  const titleEl = document.createElement('div');
+  titleEl.className = 'book-title-text';
+  // Font scales up with bigger books
+  titleEl.style.setProperty('--book-font', Math.max(8, Math.min(14, window.innerWidth * 0.013))+'px');
+  titleEl.textContent = proj.title;
+  inner.appendChild(titleEl);
+  el.appendChild(inner);
+
+  el.addEventListener('click', () => selectBook(proj));
+  el.addEventListener('mouseenter', () => document.getElementById('cursor').classList.add('hover'));
+  el.addEventListener('mouseleave',  () => document.getElementById('cursor').classList.remove('hover'));
+  return el;
+}
+
+function buildShelves() {
+  // Single shelf row — reset safely
+  const row = document.getElementById('row1');
+  const plank = row.querySelector('.shelf-plank').cloneNode(true);
+  const label = row.querySelector('.row-label').cloneNode(true);
+  row.innerHTML = '';
+  row.appendChild(plank);
+  row.appendChild(label);
+
+  // All projects on one shelf
+  row.appendChild(makeFiller()); row.appendChild(makeFiller());
+  PROJECTS.forEach(p => {
+    row.appendChild(makeBook(p));
+    row.appendChild(makeFiller());
+  });
+  row.appendChild(makeFiller());
+}
+
+// ── BOOK SELECTION ──
+function selectBook(proj) {
+  if (proj.secret && !secretUnlocked) {
+    if (!clueGiven) { openLibrarian('no_clue'); return; }
+    openSecretPrompt(); return;
+  }
+  showBookPanel(proj);
+}
+
+function showBookPanel(proj) {
+  document.getElementById('overlay').style.display = 'block';
+  document.getElementById('book-panel').style.display = 'flex';
+  document.getElementById('bp-spine').style.background = `linear-gradient(180deg,${proj.dark},${proj.color})`;
+  document.getElementById('bp-title').textContent    = proj.title;
+  document.getElementById('bp-subtitle').textContent = proj.subtitle;
+  document.getElementById('bp-desc').textContent     = proj.desc;
+
+  const tagsEl = document.getElementById('bp-tags');
+  tagsEl.innerHTML = '';
+  proj.tags.forEach(t => {
+    const tag = document.createElement('div');
+    tag.className = 'tech-tag';
+    const c = TAG_COLORS[t] || TAG_COLORS['default'];
+    tag.style.color = c; tag.style.borderColor = c+'55'; tag.style.background = c+'14';
+    tag.textContent = t; tagsEl.appendChild(tag);
+  });
+
+  const footer = document.getElementById('bp-footer');
+  footer.innerHTML = '';
+  if (proj.link && proj.link !== '#') {
+    const a = document.createElement('a');
+    a.className='d-btn primary'; a.href=proj.link; a.target='_blank';
+    a.textContent='[ VIEW PROJECT ]'; footer.appendChild(a);
+  }
+  const cb = document.createElement('button');
+  cb.className='d-btn'; cb.textContent='[ CLOSE ]'; cb.onclick=closeBookPanel;
+  footer.appendChild(cb);
+}
+
+function closeBookPanel() {
+  document.getElementById('book-panel').style.display='none';
+  document.getElementById('overlay').style.display='none';
+}
+
+// ── SECRET ──
+function openSecretPrompt() {
+  document.getElementById('secret-panel').style.display='block';
+  document.getElementById('overlay').style.display='block';
+  document.getElementById('sp-input').value='';
+  document.getElementById('sp-feedback').textContent='';
+  setTimeout(()=>document.getElementById('sp-input').focus(),80);
+}
+
+function checkSecret() {
+  const val = document.getElementById('sp-input').value.trim().toLowerCase();
+  const fb  = document.getElementById('sp-feedback');
+  if (['future','the future'].includes(val)) {
+    fb.style.color='#1a8040'; fb.textContent='✓ ACCESS GRANTED. WELCOME, AGENT.';
+    secretUnlocked = true;
+    setTimeout(()=>{ closeSecret(); revealSecret(); }, 1100);
+  } else {
+    fb.style.color='#cc1a3a'; fb.textContent='✗ INCORRECT PASSPHRASE. TRY AGAIN.';
+  }
+}
+
+function revealSecret() {
+  document.querySelectorAll('.book[data-id="secret"]').forEach(el=>{
+    el.classList.remove('locked');
+    el.style.animation='none';
+    el.style.boxShadow='0 0 30px rgba(255,30,70,0.7), 3px 0 0 rgba(0,0,0,0.35)';
+  });
+  const proj = PROJECTS.find(p=>p.id==='secret');
+  proj.title='G-14 CLASSIFIED'; proj.subtitle='Secret Project  ·  Ask Andre';
+  proj.desc='Congratulations, Agent. Clearance granted.\n\nThis is where Andre\'s most ambitious passion project lives — a blend of technology, creativity, and adventure. The full details are available upon direct inquiry.\n\nYou\'ve proven yourself worthy of a real conversation. Reach out via LinkedIn or email.';
+  proj.tags=['TOP SECRET','Passion Project','Ask Andre'];
+  setTimeout(()=>showBookPanel(proj),450);
+}
+
+function closeSecret() {
+  document.getElementById('secret-panel').style.display='none';
+  document.getElementById('overlay').style.display='none';
+}
+
+document.getElementById('sp-input').addEventListener('keydown', e=>{
+  if(e.key==='Enter') checkSecret();
+  if(e.key==='Escape') closeSecret();
+});
+
+// ── NPC DIALOGS ──
+const DIALOGS = {
+  intro:{
+    text:'Welcome to the Projects Guild Library!\n\nEach book on the shelf is one of Andre\'s projects. Hover over a book spine to lift it — then click (or tap) to read the full record inside.\n\nI\'m Mirabel, the Head Librarian. How can I help you today?',
+    acts:[
+      {l:'How do I browse the shelf?',    n:'howto'},
+      {l:'Any secrets in here?',          n:'secret_hint'},
+      {l:'Thanks — I\'ll look around!',   n:null},
+    ]
+  },
+  howto:{
+    text:'Each colored spine is a project. Hover (or tap) to see it rise, then click to open the full project tome.\n\nOn mobile, swipe sideways to browse the full shelf — there are more books than fit on screen!\n\nThe top row holds Andre\'s most recent work. The bottom holds the classics.',
+    acts:[
+      {l:'What\'s that glowing red book?', n:'secret_hint'},
+      {l:'Got it — thanks!',               n:null},
+    ]
+  },
+  secret_hint:{
+    text:'Ah... the G-14 file. *adjusts reading glasses*\n\nThat tome is encrypted. But knowledge should never be fully locked away. Here is your clue:\n\n"I am always in front of you, but can never be seen. I guide every project, every line, every dream."\n\nSolve it, then click the red book.',
+    acts:[
+      {l:'I think I know the answer!', n:'try_secret', ac:'clue'},
+      {l:'I need time to think...',    n:null,          ac:'clue'},
+    ]
+  },
+  try_secret:{
+    text:'Very well, Agent. Return to the G-14 tome on the lower shelf and enter your passphrase.\n\nGood luck.',
+    acts:[{l:'I\'m ready.', n:null}]
+  },
+  no_clue:{
+    text:'*Mirabel steps in front of the red book*\n\nNot so fast! That file requires clearance. Ask me about the library\'s secrets first — then we\'ll see.',
+    acts:[
+      {l:'Tell me about the secrets.', n:'secret_hint'},
+      {l:'Very well...',               n:null},
+    ]
+  },
+};
+
+function openLibrarian(key='intro') { showDialog(key); }
+
+function showDialog(key) {
+  const d = DIALOGS[key]; if(!d){ closeDialog(); return; }
+  document.getElementById('dialog').style.display='block';
+  document.getElementById('overlay').style.display='block';
+  typeText(document.getElementById('dialog-body'), d.text);
+  const acts = document.getElementById('dialog-acts');
+  acts.innerHTML='';
+  d.acts.forEach(a=>{
+    const btn = document.createElement('button');
+    btn.className='d-btn'; btn.textContent=a.l;
+    btn.onclick=()=>{ if(a.ac==='clue') clueGiven=true; a.n?showDialog(a.n):closeDialog(); };
+    acts.appendChild(btn);
+  });
+}
+
+function closeDialog(){ document.getElementById('dialog').style.display='none'; document.getElementById('overlay').style.display='none'; }
+function closeAll(){ closeDialog(); closeBookPanel(); closeSecret(); }
+
+function typeText(el, text){ el.textContent=''; let i=0; const iv=setInterval(()=>{ el.textContent+=text[i++]; if(i>=text.length)clearInterval(iv); },12); }
+
+// ── DRAW NPC (Mirabel) ──
+function drawNPC() {
+  const c=document.getElementById('npc-canvas'), ctx=c.getContext('2d');
+  ctx.imageSmoothingEnabled=false; ctx.clearRect(0,0,70,88);
+  // Skirt
+  ctx.fillStyle='#8b4513';
+  for(let i=0;i<5;i++) ctx.fillRect(10+i*2,52+i*3,50-i*4,36-i*3);
+  // Cardigan
+  ctx.fillStyle='#a0522d'; ctx.fillRect(18,40,34,26);
+  ctx.fillStyle='#b86030'; ctx.fillRect(18,40,7,20);
+  ctx.fillStyle='#fff8f0'; ctx.fillRect(28,40,14,8);
+  ctx.fillStyle='#f0c040'; ctx.fillRect(33,44,4,4);
+  // Arms + hands
+  ctx.fillStyle='#a0522d'; ctx.fillRect(6,42,12,22); ctx.fillRect(52,42,12,22);
+  ctx.fillStyle='#f5c5a3'; ctx.fillRect(6,62,11,7); ctx.fillRect(53,62,11,7);
+  // Book
+  ctx.fillStyle='#2a5ed0'; ctx.fillRect(0,48,16,20);
+  ctx.fillStyle='#14317a'; ctx.fillRect(0,48,3,20);
+  ctx.fillStyle='rgba(255,255,255,0.4)'; ctx.fillRect(4,51,10,2); ctx.fillRect(4,55,10,2);
+  // Head + neck
+  ctx.fillStyle='#f5c5a3'; ctx.fillRect(22,14,26,26); ctx.fillRect(31,38,8,6);
+  // Hair
+  ctx.fillStyle='#8b3a1a'; ctx.fillRect(20,12,30,12); ctx.fillRect(20,12,7,22); ctx.fillRect(43,12,7,22);
+  ctx.fillStyle='#a04020'; ctx.fillRect(26,6,18,8); ctx.fillRect(28,4,14,6);
+  ctx.fillStyle='#f0c040'; ctx.fillRect(33,5,4,10);
+  // Glasses
+  ctx.fillStyle='#8b6914'; ctx.fillRect(22,26,10,1); ctx.fillRect(38,26,10,1); ctx.fillRect(32,26,6,1);
+  ctx.strokeStyle='#8b6914'; ctx.lineWidth=1.5; ctx.strokeRect(22,23,10,7); ctx.strokeRect(38,23,10,7);
+  ctx.fillStyle='#3a2010'; ctx.fillRect(24,25,6,4); ctx.fillRect(40,25,6,4);
+  // Cheeks + smile
+  ctx.fillStyle='rgba(220,100,80,0.3)';
+  ctx.beginPath(); ctx.ellipse(26,32,5,4,0,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(44,32,5,4,0,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#c08060'; ctx.fillRect(29,35,12,2); ctx.fillRect(27,33,2,2); ctx.fillRect(41,33,2,2);
+  ctx.fillStyle='#fffaf0'; ctx.fillRect(20,26,4,4); ctx.fillRect(46,26,4,4);
+  // Portrait
+  const p=document.getElementById('dialog-portrait'), pCtx=p.getContext('2d');
+  pCtx.imageSmoothingEnabled=false; pCtx.clearRect(0,0,50,50);
+  pCtx.drawImage(c,8,8,54,68,0,0,50,50);
+}
+
+// ── DUST MOTES ──
+function spawnMote() {
+  const m=document.createElement('div'); m.className='mote';
+  const sz=2+Math.random()*3.5; m.style.width=sz+'px'; m.style.height=sz+'px';
+  m.style.left=(10+Math.random()*80)+'%'; m.style.top=(8+Math.random()*50)+'%';
+  const angle=Math.random()*Math.PI*2, dist=35+Math.random()*80;
+  m.style.setProperty('--mx',Math.cos(angle)*dist+'px');
+  m.style.setProperty('--my',-50-Math.random()*90+'px');
+  m.style.animationDuration=(5+Math.random()*8)+'s';
+  m.style.animationDelay=(Math.random()*3)+'s';
+  document.getElementById('scene').appendChild(m);
+  setTimeout(()=>m.remove(),13000);
+}
+
+// ── CURSOR ──
+document.addEventListener('mousemove', e=>{
+  const c=document.getElementById('cursor');
+  if(c){ c.style.left=e.clientX+'px'; c.style.top=e.clientY+'px'; }
+});
+document.getElementById('npc-wrap').addEventListener('mouseenter',()=>document.getElementById('cursor')?.classList.add('hover'));
+document.getElementById('npc-wrap').addEventListener('mouseleave',()=>document.getElementById('cursor')?.classList.remove('hover'));
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeAll(); });
+
+// ── RESIZE: rebuild shelf sizes ──
+let resizeTimer;
+window.addEventListener('resize',()=>{
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(buildShelves, 250);
+});
+
+// ── INIT ──
+buildShelves();
+drawNPC();
+setInterval(spawnMote, 700);
+</script>
+<!-- Library Menu Overlay -->
+<div id="lib-menu-overlay">
+  <div id="lib-menu-box">
+    <div id="lib-menu-title">Navigation</div>
+    <a class="lib-menu-item lm-selected" href="andregurule-rpg-home.html">
+      <span class="lib-menu-icon">🗺</span> WORLD MAP
+    </a>
+    <a class="lib-menu-item" href="andregurule-library.html">
+      <span class="lib-menu-icon">⚔</span> PROJECTS GUILD
+    </a>
+    <a class="lib-menu-item" href="https://www.andregurule.com/about" target="_blank">
+      <span class="lib-menu-icon">📖</span> MY STORY
+    </a>
+    <a class="lib-menu-item" href="https://www.andregurule.com/hobbies" target="_blank">
+      <span class="lib-menu-icon">🏕</span> HOBBIES
+    </a>
+    <a class="lib-menu-item" href="https://www.andregurule.com/blog" target="_blank">
+      <span class="lib-menu-icon">📜</span> BLOG
+    </a>
+    <div id="lib-menu-divider"></div>
+    <a class="lib-menu-item" href="https://linkedin.com/in/andregurule" target="_blank">
+      <span class="lib-menu-icon">💼</span> LINKEDIN
+    </a>
+    <div id="lib-menu-close-hint">
+      <span class="lm-badge">B</span> or <span class="lm-badge">MENU</span> to close
+      &nbsp;·&nbsp; <span class="lm-badge">↑↓</span> navigate
+      &nbsp;·&nbsp; <span class="lm-badge">A</span> select
+    </div>
+  </div>
+</div>
+
+<!-- NES Controller -->
+<div id="nes-controller">
+  <div id="lib-ctrl-body">
+    <div id="lib-dpad">
+      <div class="ldh"></div><div class="ldv"></div><div class="ldc"></div>
+      <div class="ldb" id="lbu" data-dir="up"></div>
+      <div class="ldb" id="lbd" data-dir="down"></div>
+      <div class="ldb" id="lbl" data-dir="left"></div>
+      <div class="ldb" id="lbr" data-dir="right"></div>
+    </div>
+    <div id="lib-center">
+      <div id="lib-menu-btn-wrap">
+        <div id="lib-menu-btn" onclick="libToggleMenu()">
+          <div id="lib-menu-icon">MENU</div>
+        </div>
+        <div id="lib-menu-lbl">MENU</div>
+      </div>
+      <div id="lib-ss-row">
+        <div style="display:flex;flex-direction:column;align-items:center;">
+          <div class="lib-ss" id="lib-select"></div>
+          <div class="lib-ss-lbl">SELECT</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;">
+          <div class="lib-ss" id="lib-start" onclick="libHandleA()"></div>
+          <div class="lib-ss-lbl">START</div>
+        </div>
+      </div>
+    </div>
+    <div id="lib-ab-col">
+      <div id="lib-ab">
+        <div class="lib-ab-btn" id="lib-btn-b" onclick="libHandleB()">B</div>
+        <div class="lib-ab-btn" id="lib-btn-a" onclick="libHandleA()">A</div>
+      </div>
+      <div class="lib-ab-lbl-row">
+        <div class="lib-ab-lbl">BACK</div>
+        <div class="lib-ab-lbl">SELECT</div>
+      </div>
+    </div>
+  </div>
+  <div id="lib-ctrl-hint">A=OPEN BOOK · B=CLOSE · MENU=NAVIGATE</div>
+</div>
+
+<script>
+// ── LIBRARY CONTROLLER LOGIC ──
+let libMenuOpen = false;
+let libMenuItems = [];
+let libMenuIdx = 0;
+
+function libHandleA() {
+  if (libMenuOpen) { libMenuSelectCurrent(); return; }
+  // A = open nearest book panel if overlay is showing, else no-op
+  const bookPanel = document.getElementById('book-panel');
+  const secretPanel = document.getElementById('secret-panel');
+  const dialog = document.getElementById('dialog');
+  if (bookPanel.style.display === 'flex') { closeBookPanel(); return; }
+  if (secretPanel.style.display === 'block') { checkSecret(); return; }
+  if (dialog.style.display === 'block') { closeDialog(); return; }
+}
+
+function libHandleB() {
+  if (libMenuOpen) { libCloseMenu(); return; }
+  closeAll();
+}
+
+function libToggleMenu() {
+  libMenuOpen ? libCloseMenu() : libOpenMenu();
+}
+
+function libOpenMenu() {
+  libMenuOpen = true;
+  const overlay = document.getElementById('lib-menu-overlay');
+  overlay.style.display = 'flex';
+  libMenuItems = Array.from(document.querySelectorAll('.lib-menu-item'));
+  libMenuIdx = 1; // default to Projects Guild (current page)
+  libUpdateMenuCursor();
+  document.getElementById('lib-menu-btn').style.boxShadow =
+    '0 3px 0 rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.1),0 0 0 5px rgba(200,152,42,0.5)';
+}
+
+function libCloseMenu() {
+  libMenuOpen = false;
+  document.getElementById('lib-menu-overlay').style.display = 'none';
+  document.getElementById('lib-menu-btn').style.boxShadow = '';
+}
+
+function libUpdateMenuCursor() {
+  libMenuItems.forEach((item, i) => {
+    item.classList.toggle('lm-selected', i === libMenuIdx);
+    const old = item.querySelector('.lm-cursor');
+    if (old) old.remove();
+    if (i === libMenuIdx) {
+      const span = document.createElement('span');
+      span.className = 'lm-cursor';
+      span.textContent = '▶ ';
+      span.style.color = '#c89828';
+      item.insertBefore(span, item.children[1]);
+    }
+  });
+}
+
+function libMenuSelectCurrent() {
+  if (libMenuItems[libMenuIdx]) libMenuItems[libMenuIdx].click();
+}
+
+// D-pad for scrolling shelf rows on mobile
+const libDpadDirs = { up: false, down: false, left: false, right: false };
+
+document.querySelectorAll('.ldb').forEach(btn => {
+  const dir = btn.dataset.dir;
+  const on = e => { e.preventDefault(); libDpadDirs[dir] = true; btn.classList.add('pressing'); };
+  const off = e => { e.preventDefault(); libDpadDirs[dir] = false; btn.classList.remove('pressing'); };
+  btn.addEventListener('touchstart', on, { passive: false });
+  btn.addEventListener('touchend', off, { passive: false });
+  btn.addEventListener('touchcancel', off, { passive: false });
+  btn.addEventListener('mousedown', on);
+  btn.addEventListener('mouseup', off);
+  btn.addEventListener('mouseleave', off);
+});
+
+// Keyboard additions for library
+document.addEventListener('keydown', e => {
+  if (libMenuOpen) {
+    if (e.key === 'ArrowUp' || e.key === 'w') { libMenuIdx = Math.max(0, libMenuIdx - 1); libUpdateMenuCursor(); e.preventDefault(); return; }
+    if (e.key === 'ArrowDown' || e.key === 's') { libMenuIdx = Math.min(libMenuItems.length - 1, libMenuIdx + 1); libUpdateMenuCursor(); e.preventDefault(); return; }
+    if (e.key === 'Enter' || e.key === ' ') { libMenuSelectCurrent(); e.preventDefault(); return; }
+    if (e.key === 'Escape' || e.key === 'b' || e.key === 'B') { libCloseMenu(); return; }
+    return;
+  }
+  if (e.key === 'm' || e.key === 'M') libToggleMenu();
+});
+
+// Close menu on overlay background click
+document.getElementById('lib-menu-overlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('lib-menu-overlay')) libCloseMenu();
+});
+</script>
+</body>
+</html>
