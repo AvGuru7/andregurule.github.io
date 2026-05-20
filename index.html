@@ -44,16 +44,17 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
 
 /* ── ZONE LABEL ── */
 #zone-label{
-  position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+  position:fixed;bottom:clamp(155px,22vh,200px);left:50%;transform:translateX(-50%);
   font-size:clamp(8px,1.8vw,13px);color:var(--gold);
   text-shadow:0 0 16px rgba(240,192,64,0.8);
   z-index:50;pointer-events:none;opacity:0;transition:opacity 0.3s;
   text-align:center;padding:0 12px;
+  top:auto;
 }
 
 /* ── DIALOG ── */
 #dialog-box{
-  position:fixed;bottom:clamp(82px,17vh,140px);left:50%;transform:translateX(-50%);
+  position:fixed;bottom:clamp(160px,24vh,210px);left:50%;transform:translateX(-50%);
   width:min(640px,92vw);
   background:var(--ui-bg);border:4px solid var(--gold);
   padding:clamp(13px,2.2vh,20px) clamp(14px,2.5vw,22px);
@@ -150,24 +151,22 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
 @media(pointer:coarse){#cursor{display:none;}}
 
 /* ══════════════════════════════════════════
-   NES CONTROLLER
+   NES CONTROLLER — always visible
 ══════════════════════════════════════════ */
 #nes-controller{
   position:fixed;
   bottom:clamp(10px,2.5vh,22px);
   left:50%;transform:translateX(-50%);
   z-index:300;
-  display:none;
+  display:flex;
   flex-direction:column;align-items:center;gap:8px;
 }
-@media(pointer:coarse){#nes-controller{display:flex;}}
-@media(max-width:600px){#nes-controller{display:flex;}}
 
 /* Controller body */
 #controller-body{
   position:relative;
-  width:clamp(240px,60vw,340px);
-  height:clamp(80px,20vw,112px);
+  width:clamp(240px,42vw,320px);
+  height:clamp(80px,14vw,108px);
   background:linear-gradient(175deg,#3e3e46 0%,var(--ctrl-body) 50%,#1e1e24 100%);
   border-radius:clamp(22px,5.5vw,34px) clamp(22px,5.5vw,34px) clamp(30px,7.5vw,46px) clamp(30px,7.5vw,46px);
   border:2.5px solid #555;
@@ -176,7 +175,6 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
     inset 0 1px 0 rgba(255,255,255,0.08),
     inset 0 -2px 0 rgba(0,0,0,0.45);
   display:flex;align-items:center;
-  /* Three columns: dpad | center | ab */
   justify-content:space-between;
   padding:0 clamp(14px,3.5vw,22px);
   gap:0;
@@ -371,7 +369,7 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
 <!-- HUD -->
 <div id="hud">
   <div id="hud-name">ANDRE GURULE</div>
-  <div id="hud-title">Learning<br>& Development</div>
+  <div id="hud-title">Welcome!<br>Please look around.</div>
 </div>
 
 <!-- Minimap -->
@@ -476,7 +474,7 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
     </div>
 
   </div>
-  <div id="ctrl-hint">ARROWS/WASD · A=ENTER · B=BACK · MENU=NAV</div>
+  <div id="ctrl-hint">D-PAD / ARROW KEYS · A=ENTER · B=BACK · MENU=NAV</div>
 </div>
 
 <script>
@@ -484,7 +482,7 @@ const TILE=48,WORLD_W=32,WORLD_H=24;
 const PW=WORLD_W*TILE,PH=WORLD_H*TILE;
 let gameStarted=false;
 let camX=0,camY=0;
-let playerX=16*TILE,playerY=12*TILE;
+let playerX=16*TILE,playerY=9*TILE;
 let facing='down',moving=false,frame=0,frameTimer=0;
 const FRAME_RATE=8;
 let dialogOpen=false,menuOpen=false,activeZone=null,zoneLabelTimer=0;
@@ -793,19 +791,48 @@ document.addEventListener('keyup',e=>{
 });
 
 // ── D-PAD TOUCH / MOUSE ──
+// Called immediately so buttons work as soon as page loads
 function setupDpad(){
   document.querySelectorAll('.dpad-btn').forEach(btn=>{
     const dir=btn.dataset.dir;
-    const on=e=>{e.preventDefault();keys[dir]=true;btn.classList.add('pressing');};
-    const off=e=>{e.preventDefault();keys[dir]=false;btn.classList.remove('pressing');};
-    btn.addEventListener('touchstart',on,{passive:false});
-    btn.addEventListener('touchend',off,{passive:false});
-    btn.addEventListener('touchcancel',off,{passive:false});
-    btn.addEventListener('mousedown',on);
-    btn.addEventListener('mouseup',off);
-    btn.addEventListener('mouseleave',off);
+
+    // Touch — mobile/tablet
+    btn.addEventListener('touchstart',e=>{
+      e.preventDefault();
+      keys[dir]=true;
+      btn.classList.add('pressing');
+    },{passive:false});
+    btn.addEventListener('touchend',e=>{
+      e.preventDefault();
+      keys[dir]=false;
+      btn.classList.remove('pressing');
+    },{passive:false});
+    btn.addEventListener('touchcancel',e=>{
+      e.preventDefault();
+      keys[dir]=false;
+      btn.classList.remove('pressing');
+    },{passive:false});
+
+    // Mouse — desktop: press on mousedown
+    btn.addEventListener('mousedown',e=>{
+      e.preventDefault();
+      keys[dir]=true;
+      btn.classList.add('pressing');
+    });
+  });
+
+  // Single global mouseup releases ALL directions so
+  // moving the cursor off the button never gets stuck
+  document.addEventListener('mouseup',()=>{
+    document.querySelectorAll('.dpad-btn').forEach(btn=>{
+      keys[btn.dataset.dir]=false;
+      btn.classList.remove('pressing');
+    });
   });
 }
+
+// Attach D-pad events straight away — don't wait for startGame
+setupDpad();
 
 // Canvas click = A button behavior
 canvas.addEventListener('click',()=>{if(gameStarted)handleA();});
@@ -817,23 +844,26 @@ document.addEventListener('mousemove',e=>{
 });
 
 function gameLoop(){
-  updatePlayer();updateCamera();
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  drawWorld();drawPlayer();
-  const ppx=playerX-camX,ppy=playerY-camY;
-  const pe=document.getElementById('player');
-  pe.style.left=ppx+'px';pe.style.top=ppy+'px';
-  drawMinimap();
+  if(gameStarted){
+    updatePlayer();updateCamera();
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    drawWorld();drawPlayer();
+    const ppx=playerX-camX,ppy=playerY-camY;
+    const pe=document.getElementById('player');
+    pe.style.left=ppx+'px';pe.style.top=ppy+'px';
+    drawMinimap();
+  }
   requestAnimationFrame(gameLoop);
 }
 
 function startGame(){
   gameStarted=true;
   document.getElementById('loading-screen').style.display='none';
-  playerX=16*TILE;playerY=12*TILE;
-  setupDpad();
-  requestAnimationFrame(gameLoop);
+  playerX=16*TILE;playerY=9*TILE;
 }
+
+// Start the loop immediately so it's ready the moment PRESS START is clicked
+requestAnimationFrame(gameLoop);
 </script>
 </body>
 </html>
