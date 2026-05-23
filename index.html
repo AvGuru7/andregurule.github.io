@@ -54,7 +54,7 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
 
 /* ── DIALOG ── */
 #dialog-box{
-  position:fixed;bottom:clamp(260px,38vh,320px);left:50%;transform:translateX(-50%);
+  position:fixed;bottom:clamp(170px,26vh,220px);left:50%;transform:translateX(-50%);
   width:min(640px,92vw);
   background:var(--ui-bg);border:4px solid var(--gold);
   padding:clamp(13px,2.2vh,20px) clamp(14px,2.5vw,22px);
@@ -166,38 +166,48 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
   border-top:2px solid #2a2040;
 }
 
-/* Controller body */
+/* Controller body — NES flat rectangle style */
 #controller-body{
   position:relative;
-  width:clamp(480px,84vw,640px);
-  height:clamp(160px,28vw,216px);
-  background:linear-gradient(175deg,#3e3e46 0%,var(--ctrl-body) 50%,#1e1e24 100%);
-  border-radius:clamp(44px,11vw,68px) clamp(44px,11vw,68px) clamp(60px,15vw,92px) clamp(60px,15vw,92px);
-  border:2.5px solid #555;
+  width:clamp(480px,75vw,640px);
+  height:clamp(90px,14vw,120px);
+  background:linear-gradient(180deg,#3a3a40 0%,#2e2e34 60%,#252528 100%);
+  /* NES had very slight rounding only on the outer corners */
+  border-radius:6px 6px 10px 10px;
+  border:2px solid #555;
   box-shadow:
-    0 clamp(10px,2.4vh,18px) clamp(36px,9vw,60px) rgba(0,0,0,0.75),
+    0 4px 18px rgba(0,0,0,0.7),
+    0 8px 32px rgba(0,0,0,0.4),
     inset 0 1px 0 rgba(255,255,255,0.08),
-    inset 0 -2px 0 rgba(0,0,0,0.45);
+    inset 0 -2px 0 rgba(0,0,0,0.5);
   display:flex;align-items:center;
   justify-content:space-between;
-  padding:0 clamp(28px,7vw,44px);
+  padding:0 clamp(18px,4vw,28px);
   gap:0;
 }
 
-/* Grip bumps at bottom corners */
-#controller-body::before,#controller-body::after{
-  content:'';position:absolute;bottom:-4px;
-  width:clamp(60px,14vw,84px);height:clamp(28px,7vw,40px);
-  background:#222;border-radius:0 0 10px 10px;border:2px solid #444;
+/* NES-style ridge line across the top of the controller */
+#controller-body::before{
+  content:'';position:absolute;
+  top:10px;left:12px;right:12px;height:2px;
+  background:rgba(255,255,255,0.05);
+  border-radius:1px;
 }
-#controller-body::before{left:clamp(32px,8vw,52px);}
-#controller-body::after {right:clamp(32px,8vw,52px);}
+
+/* NES-style subtle label area in the center bottom */
+#controller-body::after{
+  content:'';position:absolute;
+  bottom:8px;left:50%;transform:translateX(-50%);
+  width:clamp(60px,12vw,90px);height:6px;
+  background:rgba(255,255,255,0.04);
+  border-radius:3px;
+}
 
 /* ── D-PAD ── */
 #dpad{
   position:relative;
-  width:clamp(144px,36vw,204px);
-  height:clamp(144px,36vw,204px);
+  width:clamp(70px,13vw,96px);
+  height:clamp(70px,13vw,96px);
   flex-shrink:0;
 }
 .dpad-h,.dpad-v{
@@ -232,26 +242,26 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
 #btn-down::after {content:'▼';}
 #btn-left::after {content:'◀';}
 #btn-right::after{content:'▶';}
-.dpad-btn::after{font-size:clamp(14px,3.4vw,20px);color:rgba(255,255,255,0.3);}
+.dpad-btn::after{font-size:clamp(8px,1.6vw,12px);color:rgba(255,255,255,0.3);}
 .dpad-btn.pressing::after{color:var(--gold);text-shadow:0 0 7px var(--gold);}
 
 /* ── CENTER SECTION ── */
 #center-section{
   display:flex;flex-direction:column;
-  align-items:center;gap:clamp(12px,3vw,20px);
+  align-items:center;gap:clamp(6px,1.2vw,10px);
   flex-shrink:0;
-  margin-left:clamp(12px,4vw,28px);
-  margin-right:clamp(0px,2vw,12px);
+  margin-left:clamp(8px,2vw,16px);
+  margin-right:clamp(0px,1vw,8px);
 }
 
 /* SELECT / START small oval buttons */
 #select-start-row{
-  display:flex;gap:clamp(12px,3.6vw,24px);align-items:center;
+  display:flex;gap:clamp(8px,1.8vw,14px);align-items:center;
 }
 .ss-btn{
-  width:clamp(56px,14vw,80px);height:clamp(20px,4.8vw,28px);
+  width:clamp(32px,6vw,46px);height:clamp(10px,2vw,14px);
   background:linear-gradient(180deg,#3a3a42,#28282e);
-  border:1.5px solid #1a1a20;border-radius:clamp(10px,2.4vw,14px);
+  border:1.5px solid #1a1a20;border-radius:clamp(5px,1vw,7px);
   box-shadow:0 2px 0 rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.07);
   cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;
   display:flex;align-items:center;justify-content:center;
@@ -260,8 +270,8 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
 .ss-btn:active,.ss-btn.pressed{transform:translateY(1px);box-shadow:none;}
 .ss-label{
   font-family:'Press Start 2P',monospace;
-  font-size:clamp(7px,1.7vw,10px);
-  color:#666;letter-spacing:0.5px;margin-top:clamp(4px,1vh,8px);
+  font-size:clamp(4px,0.8vw,6px);
+  color:#666;letter-spacing:0.5px;margin-top:clamp(2px,0.5vh,4px);
   text-align:center;
 }
 
@@ -271,7 +281,7 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
   position:relative;
 }
 #menu-btn{
-  width:clamp(68px,17vw,96px);height:clamp(68px,17vw,96px);
+  width:clamp(36px,6.5vw,50px);height:clamp(36px,6.5vw,50px);
   border-radius:50%;
   background:radial-gradient(circle at 42% 38%,#4a4a54,#26262e);
   border:2.5px solid #1a1a20;
@@ -287,27 +297,27 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
 #menu-btn:active,#menu-btn.pressed{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,0.55);}
 #menu-btn-icon{
   font-family:'Press Start 2P',monospace;
-  font-size:clamp(10px,2.4vw,14px);color:rgba(240,192,64,0.85);
+  font-size:clamp(5px,0.9vw,7px);color:rgba(240,192,64,0.85);
   letter-spacing:0.5px;line-height:1.3;text-align:center;
 }
 #menu-btn-label{
   font-family:'Press Start 2P',monospace;
-  font-size:clamp(7px,1.7vw,10px);color:var(--gold2);
-  margin-top:6px;letter-spacing:0.5px;
+  font-size:clamp(4px,0.7vw,5px);color:var(--gold2);
+  margin-top:4px;letter-spacing:0.5px;
 }
 
 /* ── A / B BUTTONS ── */
 #ab-buttons{
-  display:flex;gap:clamp(14px,3.6vw,22px);align-items:center;flex-shrink:0;
+  display:flex;gap:clamp(8px,1.8vw,14px);align-items:center;flex-shrink:0;
   transform:rotate(-18deg);
 }
 .ab-btn{
-  width:clamp(56px,14vw,76px);height:clamp(56px,14vw,76px);
+  width:clamp(36px,6.5vw,50px);height:clamp(36px,6.5vw,50px);
   border-radius:50%;border:2.5px solid #1a1a20;
   display:flex;align-items:center;justify-content:center;
-  font-family:'Press Start 2P',monospace;font-size:clamp(14px,3.2vw,18px);
+  font-family:'Press Start 2P',monospace;font-size:clamp(9px,1.6vw,12px);
   cursor:pointer;touch-action:manipulation;user-select:none;
-  box-shadow:0 6px 0 rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.15);
+  box-shadow:0 4px 0 rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.15);
   transition:transform 0.06s,box-shadow 0.06s;
   -webkit-tap-highlight-color:transparent;
 }
@@ -317,14 +327,14 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
 
 /* Button label under A/B */
 .ab-label-row{
-  display:flex;gap:clamp(14px,3.6vw,22px);
+  display:flex;gap:clamp(8px,1.8vw,14px);
   transform:rotate(-18deg);
-  margin-top:clamp(4px,1vh,8px);
+  margin-top:clamp(2px,0.5vh,4px);
 }
 .ab-label{
   font-family:'Press Start 2P',monospace;
-  font-size:clamp(6px,1.4vw,10px);color:#555;
-  width:clamp(56px,14vw,76px);text-align:center;
+  font-size:clamp(4px,0.7vw,5px);color:#555;
+  width:clamp(36px,6.5vw,50px);text-align:center;
 }
 
 /* Wrap ab column */
@@ -333,7 +343,7 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
 /* ── CONTROLLER HINT ── */
 #ctrl-hint{
   font-family:'VT323',monospace;
-  font-size:clamp(12px,2.2vw,16px);
+  font-size:clamp(10px,1.8vw,13px);
   color:var(--gold);text-align:center;opacity:0.75;
 }
 
@@ -369,7 +379,7 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
 <!-- HUD -->
 <div id="hud">
   <div id="hud-name">ANDRE GURULE</div>
-  <div id="hud-title">Welcome!<br>Please excuse the mess.<br>Site under construction.</div>
+  <div id="hud-title">Welcome!<br>Please look around.</div>
 </div>
 
 <!-- Minimap -->
