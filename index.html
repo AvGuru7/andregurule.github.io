@@ -54,7 +54,7 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
 
 /* ── DIALOG ── */
 #dialog-box{
-  position:fixed;bottom:clamp(160px,24vh,210px);left:50%;transform:translateX(-50%);
+  position:fixed;bottom:clamp(260px,38vh,320px);left:50%;transform:translateX(-50%);
   width:min(640px,92vw);
   background:var(--ui-bg);border:4px solid var(--gold);
   padding:clamp(13px,2.2vh,20px) clamp(14px,2.5vw,22px);
@@ -155,45 +155,49 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
 ══════════════════════════════════════════ */
 #nes-controller{
   position:fixed;
-  bottom:clamp(10px,2.5vh,22px);
-  left:50%;transform:translateX(-50%);
+  bottom:0;
+  left:0; right:0;
   z-index:300;
   display:flex;
-  flex-direction:column;align-items:center;gap:8px;
+  flex-direction:column;align-items:center;
+  gap:8px;
+  background:#0d0a18;
+  padding:clamp(8px,1.5vh,16px) 0 clamp(8px,1.5vh,14px);
+  border-top:2px solid #2a2040;
 }
 
 /* Controller body */
 #controller-body{
   position:relative;
-  width:clamp(240px,42vw,320px);
-  height:clamp(80px,14vw,108px);
+  width:clamp(480px,84vw,640px);
+  height:clamp(160px,28vw,216px);
   background:linear-gradient(175deg,#3e3e46 0%,var(--ctrl-body) 50%,#1e1e24 100%);
-  border-radius:clamp(22px,5.5vw,34px) clamp(22px,5.5vw,34px) clamp(30px,7.5vw,46px) clamp(30px,7.5vw,46px);
+  border-radius:clamp(44px,11vw,68px) clamp(44px,11vw,68px) clamp(60px,15vw,92px) clamp(60px,15vw,92px);
   border:2.5px solid #555;
   box-shadow:
-    0 clamp(5px,1.2vh,9px) clamp(18px,4.5vw,30px) rgba(0,0,0,0.75),
+    0 clamp(10px,2.4vh,18px) clamp(36px,9vw,60px) rgba(0,0,0,0.75),
     inset 0 1px 0 rgba(255,255,255,0.08),
     inset 0 -2px 0 rgba(0,0,0,0.45);
   display:flex;align-items:center;
   justify-content:space-between;
-  padding:0 clamp(14px,3.5vw,22px);
+  padding:0 clamp(28px,7vw,44px);
   gap:0;
 }
 
 /* Grip bumps at bottom corners */
 #controller-body::before,#controller-body::after{
   content:'';position:absolute;bottom:-4px;
-  width:clamp(30px,7vw,42px);height:clamp(14px,3.5vw,20px);
+  width:clamp(60px,14vw,84px);height:clamp(28px,7vw,40px);
   background:#222;border-radius:0 0 10px 10px;border:2px solid #444;
 }
-#controller-body::before{left:clamp(16px,4vw,26px);}
-#controller-body::after {right:clamp(16px,4vw,26px);}
+#controller-body::before{left:clamp(32px,8vw,52px);}
+#controller-body::after {right:clamp(32px,8vw,52px);}
 
 /* ── D-PAD ── */
 #dpad{
   position:relative;
-  width:clamp(72px,18vw,102px);
-  height:clamp(72px,18vw,102px);
+  width:clamp(144px,36vw,204px);
+  height:clamp(144px,36vw,204px);
   flex-shrink:0;
 }
 .dpad-h,.dpad-v{
@@ -228,29 +232,26 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
 #btn-down::after {content:'▼';}
 #btn-left::after {content:'◀';}
 #btn-right::after{content:'▶';}
-.dpad-btn::after{font-size:clamp(7px,1.7vw,10px);color:rgba(255,255,255,0.3);}
+.dpad-btn::after{font-size:clamp(14px,3.4vw,20px);color:rgba(255,255,255,0.3);}
 .dpad-btn.pressing::after{color:var(--gold);text-shadow:0 0 7px var(--gold);}
 
-/* ── CENTER SECTION ──
-   Sits between d-pad and A/B — pushed right of center
-   so it's far from the right arrow */
+/* ── CENTER SECTION ── */
 #center-section{
   display:flex;flex-direction:column;
-  align-items:center;gap:clamp(6px,1.5vw,10px);
+  align-items:center;gap:clamp(12px,3vw,20px);
   flex-shrink:0;
-  /* Shift slightly right so Menu is away from D-pad right button */
-  margin-left:clamp(6px,2vw,14px);
-  margin-right:clamp(0px,1vw,6px);
+  margin-left:clamp(12px,4vw,28px);
+  margin-right:clamp(0px,2vw,12px);
 }
 
 /* SELECT / START small oval buttons */
 #select-start-row{
-  display:flex;gap:clamp(6px,1.8vw,12px);align-items:center;
+  display:flex;gap:clamp(12px,3.6vw,24px);align-items:center;
 }
 .ss-btn{
-  width:clamp(28px,7vw,40px);height:clamp(10px,2.4vw,14px);
+  width:clamp(56px,14vw,80px);height:clamp(20px,4.8vw,28px);
   background:linear-gradient(180deg,#3a3a42,#28282e);
-  border:1.5px solid #1a1a20;border-radius:clamp(5px,1.2vw,7px);
+  border:1.5px solid #1a1a20;border-radius:clamp(10px,2.4vw,14px);
   box-shadow:0 2px 0 rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.07);
   cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;
   display:flex;align-items:center;justify-content:center;
@@ -259,18 +260,18 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
 .ss-btn:active,.ss-btn.pressed{transform:translateY(1px);box-shadow:none;}
 .ss-label{
   font-family:'Press Start 2P',monospace;
-  font-size:clamp(3.5px,0.85vw,5px);
-  color:#666;letter-spacing:0.5px;margin-top:clamp(2px,0.5vh,4px);
+  font-size:clamp(7px,1.7vw,10px);
+  color:#666;letter-spacing:0.5px;margin-top:clamp(4px,1vh,8px);
   text-align:center;
 }
 
-/* MENU button — larger, distinct, between SELECT/START */
+/* MENU button */
 #menu-btn-wrap{
   display:flex;flex-direction:column;align-items:center;
   position:relative;
 }
 #menu-btn{
-  width:clamp(34px,8.5vw,48px);height:clamp(34px,8.5vw,48px);
+  width:clamp(68px,17vw,96px);height:clamp(68px,17vw,96px);
   border-radius:50%;
   background:radial-gradient(circle at 42% 38%,#4a4a54,#26262e);
   border:2.5px solid #1a1a20;
@@ -286,45 +287,44 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
 #menu-btn:active,#menu-btn.pressed{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,0.55);}
 #menu-btn-icon{
   font-family:'Press Start 2P',monospace;
-  font-size:clamp(5px,1.2vw,7px);color:rgba(240,192,64,0.85);
+  font-size:clamp(10px,2.4vw,14px);color:rgba(240,192,64,0.85);
   letter-spacing:0.5px;line-height:1.3;text-align:center;
 }
 #menu-btn-label{
   font-family:'Press Start 2P',monospace;
-  font-size:clamp(3.5px,0.85vw,5px);color:var(--gold2);
-  margin-top:3px;letter-spacing:0.5px;
+  font-size:clamp(7px,1.7vw,10px);color:var(--gold2);
+  margin-top:6px;letter-spacing:0.5px;
 }
 
 /* ── A / B BUTTONS ── */
 #ab-buttons{
-  display:flex;gap:clamp(7px,1.8vw,11px);align-items:center;flex-shrink:0;
+  display:flex;gap:clamp(14px,3.6vw,22px);align-items:center;flex-shrink:0;
   transform:rotate(-18deg);
 }
 .ab-btn{
-  width:clamp(28px,7vw,38px);height:clamp(28px,7vw,38px);
+  width:clamp(56px,14vw,76px);height:clamp(56px,14vw,76px);
   border-radius:50%;border:2.5px solid #1a1a20;
   display:flex;align-items:center;justify-content:center;
-  font-family:'Press Start 2P',monospace;font-size:clamp(7px,1.6vw,9px);
+  font-family:'Press Start 2P',monospace;font-size:clamp(14px,3.2vw,18px);
   cursor:pointer;touch-action:manipulation;user-select:none;
-  box-shadow:0 3px 0 rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.15);
+  box-shadow:0 6px 0 rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.15);
   transition:transform 0.06s,box-shadow 0.06s;
   -webkit-tap-highlight-color:transparent;
-  position:relative;
 }
-.ab-btn:active,.ab-btn.pressed{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,0.55);}
+.ab-btn:active,.ab-btn.pressed{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,0.55);}
 #btn-b{background:radial-gradient(circle at 40% 35%,var(--btn-red-hi),var(--btn-red));color:rgba(255,255,255,0.85);}
 #btn-a{background:radial-gradient(circle at 40% 35%,var(--btn-red-hi),var(--btn-red));color:rgba(255,255,255,0.85);}
 
 /* Button label under A/B */
 .ab-label-row{
-  display:flex;gap:clamp(7px,1.8vw,11px);
+  display:flex;gap:clamp(14px,3.6vw,22px);
   transform:rotate(-18deg);
-  margin-top:clamp(2px,0.5vh,4px);
+  margin-top:clamp(4px,1vh,8px);
 }
 .ab-label{
   font-family:'Press Start 2P',monospace;
-  font-size:clamp(3px,0.7vw,5px);color:#555;
-  width:clamp(28px,7vw,38px);text-align:center;
+  font-size:clamp(6px,1.4vw,10px);color:#555;
+  width:clamp(56px,14vw,76px);text-align:center;
 }
 
 /* Wrap ab column */
@@ -369,7 +369,7 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
 <!-- HUD -->
 <div id="hud">
   <div id="hud-name">ANDRE GURULE</div>
-  <div id="hud-title">Welcome!<br>Please excuse the mess.<br>Site under construction.</div>
+  <div id="hud-title">Welcome!<br>Please look around.</div>
 </div>
 
 <!-- Minimap -->
@@ -527,7 +527,19 @@ pCtx.imageSmoothingEnabled=false;
 const minimapCanvas=document.getElementById('minimap-canvas');
 const mCtx=minimapCanvas.getContext('2d');
 
-function resize(){canvas.width=window.innerWidth;canvas.height=window.innerHeight;ctx.imageSmoothingEnabled=false;}
+// Height of the reserved controller zone at the bottom of the screen
+function ctrlHeight(){
+  const ctrl=document.getElementById('nes-controller');
+  if(!ctrl)return 0;
+  // total height including bottom gap
+  return ctrl.offsetHeight + parseInt(getComputedStyle(ctrl).bottom||'0') + 16;
+}
+
+function resize(){
+  canvas.width=window.innerWidth;
+  canvas.height=window.innerHeight - ctrlHeight();
+  ctx.imageSmoothingEnabled=false;
+}
 resize();window.addEventListener('resize',resize);
 
 function pseudoRand(x,y,seed=42){const n=Math.sin(x*127.1+y*311.7+seed*74.3)*43758.5453;return n-Math.floor(n);}
@@ -656,7 +668,8 @@ function drawMinimap(){
 function updateCamera(){
   const W=canvas.width,H=canvas.height;
   let tx=playerX-W/2,ty=playerY-H/2;
-  tx=Math.max(0,Math.min(PW-W,tx));ty=Math.max(0,Math.min(PH-H,ty));
+  tx=Math.max(0,Math.min(PW-W,tx));
+  ty=Math.max(0,Math.min(PH-H,ty));
   camX+=(tx-camX)*0.1;camY+=(ty-camY)*0.1;
 }
 
@@ -864,6 +877,8 @@ function startGame(){
 
 // Start the loop immediately so it's ready the moment PRESS START is clicked
 requestAnimationFrame(gameLoop);
+// Re-measure once fonts/layout settle
+window.addEventListener('load',()=>{ resize(); });
 </script>
 </body>
 </html>
