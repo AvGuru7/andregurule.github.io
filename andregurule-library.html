@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Projects Library — Andre Gurule</title>
+<title>The Hall of Andre's Records — Andre Gurule</title>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Playfair+Display:wght@700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
@@ -785,7 +785,7 @@ html, body {
 
   <!-- Sign -->
   <div id="sign">
-    <h1>Projects Guild Library</h1>
+    <h1>The Hall of Andre's Records</h1>
     <div class="sub">⬥ ANDRE GURULE &nbsp;·&nbsp; PORTFOLIO ⬥</div>
   </div>
 
@@ -830,7 +830,7 @@ html, body {
     <canvas id="dialog-portrait" width="50" height="50"></canvas>
     <div>
       <div id="dialog-name">Dewey</div>
-      <div id="dialog-role">Head Librarian · Projects Guild</div>
+      <div id="dialog-role">Head Librarian · The Hall of Andre's Records</div>
     </div>
     <button id="dialog-x" onclick="closeDialog()">[ X ]</button>
   </div>
@@ -1104,7 +1104,7 @@ document.getElementById('sp-input').addEventListener('keydown', e=>{
 // ── NPC DIALOGS ──
 const DIALOGS = {
   intro:{
-    text:'Welcome to the Projects Guild Library!\n\nEach book on the shelf is one of Andre\'s projects. Hover over a book spine to lift it — then click (or tap) to read the full record inside.\n\nI\'m Dewey, the Head Librarian. How can I help you today?',
+    text:'Welcome to The Hall of Andre\'s Records!\n\nEach book on the shelf is one of Andre\'s projects. Hover over a book spine to lift it — then click (or tap) to read the full record inside.\n\nI\'m Dewey, the Head Librarian. How can I help you today?',
     acts:[
       {l:'How do I browse the shelf?',    n:'howto'},
       {l:'Any secrets in here?',          n:'secret_hint'},
@@ -1258,7 +1258,7 @@ window.addEventListener('resize', positionExitSign);
       <span class="lib-menu-icon">🗺</span> WORLD MAP
     </a>
     <a class="lib-menu-item" href="andregurule-library.html">
-      <span class="lib-menu-icon">⚔</span> PROJECTS GUILD
+      <span class="lib-menu-icon">⚔</span> HALL OF RECORDS
     </a>
     <a class="lib-menu-item" href="https://www.andregurule.com/about" target="_blank">
       <span class="lib-menu-icon">📖</span> MY STORY
@@ -1354,7 +1354,7 @@ function libOpenMenu() {
   const overlay = document.getElementById('lib-menu-overlay');
   overlay.style.display = 'flex';
   libMenuItems = Array.from(document.querySelectorAll('.lib-menu-item'));
-  libMenuIdx = 1; // default to Projects Guild (current page)
+  libMenuIdx = 1; // default to The Hall of Andre's Records (current page)
   libUpdateMenuCursor();
   document.getElementById('lib-menu-btn').style.boxShadow =
     '0 3px 0 rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.1),0 0 0 5px rgba(200,152,42,0.5)';
