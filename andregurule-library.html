@@ -502,26 +502,80 @@ html, body {
   z-index:400; display:none;
 }
 
-/* ─── HUD ─── */
-#hud {
-  position:fixed; top:clamp(8px,1.5vh,14px); left:clamp(8px,1.5vw,14px);
-  z-index:300;
-  background:rgba(250,248,243,0.93);
-  border:2px solid var(--wood-light); border-radius:6px;
-  padding:clamp(6px,1vh,9px) clamp(10px,1.5vw,16px);
-  box-shadow:0 2px 12px rgba(0,0,0,0.1);
+/* ─── EXIT SIGN ─── */
+#exit-sign {
+  position:absolute;
+  z-index:20;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  pointer-events:none;
 }
-#hud a {
-  font-family:'Press Start 2P',monospace;
-  font-size:clamp(4.5px,0.65vw,6px);
-  color:var(--text-mid); text-decoration:none; display:block; line-height:2.2;
-  touch-action:manipulation;
+
+/* Sign face */
+#exit-sign-inner {
+  display:inline-flex;
+  align-items:center;
+  gap:clamp(6px,1vw,12px);
+  background:#0a0a0a;
+  border:clamp(3px,0.4vw,5px) solid #b8882a;
+  border-radius:3px;
+  padding:clamp(8px,1.2vh,14px) clamp(14px,2vw,24px);
+  box-shadow:
+    0 0 0 clamp(1px,0.2vw,2px) #7a5a10,
+    0 0 0 clamp(3px,0.5vw,5px) #d4a030,
+    0 0 0 clamp(4px,0.6vw,6px) #7a5a10,
+    0 4px 16px rgba(0,0,0,0.5);
+  cursor:pointer;
+  pointer-events:all;
+  text-decoration:none;
+  transition:box-shadow 0.2s;
 }
-#hud a:hover { color:var(--text-dark); }
-#hud-lbl {
+#exit-sign-inner:hover {
+  box-shadow:
+    0 0 0 clamp(1px,0.2vw,2px) #7a5a10,
+    0 0 0 clamp(3px,0.5vw,5px) #f0c040,
+    0 0 0 clamp(4px,0.6vw,6px) #7a5a10,
+    0 4px 20px rgba(0,0,0,0.6);
+}
+
+#exit-arrow-left {
   font-family:'Press Start 2P',monospace;
-  font-size:clamp(4.5px,0.65vw,6px);
-  color:var(--gold); line-height:2;
+  font-size:clamp(10px,1.6vw,18px);
+  color:#d4a030;
+  text-shadow:0 0 6px rgba(212,160,48,0.5);
+  animation:exit-pulse 1s ease-in-out infinite;
+}
+@keyframes exit-pulse {
+  0%,100% { transform:translateX(0);   opacity:1;   }
+  50%      { transform:translateX(-4px); opacity:0.5; }
+}
+
+#exit-text {
+  font-family:'Press Start 2P',monospace;
+  font-size:clamp(10px,1.6vw,18px);
+  color:#d4a030;
+  letter-spacing:0.18em;
+  text-shadow:0 0 8px rgba(212,160,48,0.4);
+  line-height:1;
+}
+
+/* Pedestal pole */
+#exit-pole {
+  width:clamp(10px,1.4vw,16px);
+  height:clamp(30px,5vh,55px);
+  background:linear-gradient(90deg,#6a4a10 0%,#c8921a 30%,#e8b830 50%,#c8921a 70%,#6a4a10 100%);
+  border-radius:2px;
+  box-shadow:2px 0 4px rgba(0,0,0,0.3);
+}
+
+/* Pedestal base */
+#exit-base {
+  width:clamp(50px,8vw,90px);
+  height:clamp(8px,1.2vh,14px);
+  background:linear-gradient(180deg,#c8921a 0%,#8a6010 60%,#5a3c08 100%);
+  border-radius:clamp(3px,0.4vw,5px);
+  box-shadow:0 3px 8px rgba(0,0,0,0.4);
 }
 
 /* ─── SCROLL HINT (mobile) ─── */
@@ -757,10 +811,14 @@ html, body {
   </div>
 </div>
 
-<!-- HUD -->
-<div id="hud">
-  <a href="index.html">◀ WORLD MAP</a>
-  <div id="hud-lbl">⚔ PROJECTS LIBRARY</div>
+<!-- Exit Sign on brass pedestal -->
+<div id="exit-sign">
+  <a id="exit-sign-inner" href="index.html">
+    <span id="exit-arrow-left">◀</span>
+    <span id="exit-text">EXIT</span>
+  </a>
+  <div id="exit-pole"></div>
+  <div id="exit-base"></div>
 </div>
 
 <!-- Overlay -->
@@ -771,7 +829,7 @@ html, body {
   <div id="dialog-hdr">
     <canvas id="dialog-portrait" width="50" height="50"></canvas>
     <div>
-      <div id="dialog-name">Mirabel</div>
+      <div id="dialog-name">Dewey</div>
       <div id="dialog-role">Head Librarian · Projects Guild</div>
     </div>
     <button id="dialog-x" onclick="closeDialog()">[ X ]</button>
@@ -804,7 +862,7 @@ html, body {
     but can never be seen.<br>
     I guide every project,<br>
     every line, every dream."<br><br>
-    — Mirabel, Head Librarian
+    — Dewey, Head Librarian
   </div>
   <div id="sp-label">ENTER PASSPHRASE:</div>
   <input id="sp-input" type="text" placeholder="YOUR ANSWER HERE..."
@@ -822,44 +880,39 @@ html, body {
 // ═══════════════════════════════
 const PROJECTS = [
   { id:'proj1', row:1,
-    title:'Portfolio World', subtitle:'Full-Stack Developer  ·  2025',
-    desc:'The very world you are exploring right now. An interactive 16-bit RPG-style personal portfolio built with vanilla HTML, CSS, and JavaScript. Features a user-controlled character, explorable zones, and an NPC-driven narrative.',
-    tags:['HTML5','CSS3','JavaScript','Game Design','UX'],
+    title:'Training Portfolio', subtitle:'Senior Training Specialist',
+    desc:'Throughout my entire adult career, I have been involved in training and adult learning. Since 2021, I have been involved in the ground-up development of training programs for multiple companies.',
+    tags:['LMS','Learning Management System','Learning','Development','Adult Learning'],
     color:'#2a5ed0', dark:'#14317a', link:'#' },
   { id:'proj2', row:1,
-    title:'Data Pipeline', subtitle:'Data Engineer  ·  2024',
-    desc:'Automated ETL pipeline ingesting and transforming data from multiple APIs into a centralized data warehouse. Reduced manual reporting time by 80% and enabled real-time dashboards for non-technical stakeholders.',
-    tags:['Python','SQL','Apache Airflow','AWS','PostgreSQL'],
+    title:'Marketing Video Portfolio', subtitle:'Role  ·  Year',
+    desc:'Description coming soon.',
+    tags:['Tag'],
     color:'#22a060', dark:'#115030', link:'#' },
   { id:'proj3', row:1,
-    title:'Mobile App', subtitle:'React Native Dev  ·  2024',
-    desc:'Cross-platform mobile app for tracking outdoor adventure routes. Integrates GPS mapping, photo journaling, and social sharing. Published on iOS and Android with 500+ active users.',
-    tags:['React Native','TypeScript','Firebase','Maps API'],
+    title:'My Story', subtitle:'Role  ·  Year',
+    desc:'Description coming soon.',
+    tags:['Tag'],
     color:'#d85020', dark:'#7a2808', link:'#' },
   { id:'proj4', row:1,
-    title:'Analytics Dashboard', subtitle:'Frontend Dev  ·  2023',
-    desc:'Executive analytics dashboard for a mid-size company visualizing KPIs in real time. Designed for non-technical stakeholders with an emphasis on clarity and accessibility.',
-    tags:['React','D3.js','REST API','Figma','CSS'],
+    title:'My Reading List', subtitle:'Role  ·  Year',
+    desc:'Description coming soon.',
+    tags:['Tag'],
     color:'#8030b8', dark:'#481868', link:'#' },
   { id:'proj5', row:1,
-    title:'API Gateway', subtitle:'Backend Dev  ·  2023',
-    desc:'RESTful API gateway handling authentication, rate-limiting, and routing for a suite of microservices. Improved average response time by 40% through caching and load-balancing.',
-    tags:['Node.js','Express','Redis','Docker','AWS Lambda'],
+    title:'Personal Videos', subtitle:'Role  ·  Year',
+    desc:'Description coming soon.',
+    tags:['Tag'],
     color:'#b87818', dark:'#6a4008', link:'#' },
   { id:'proj6', row:2,
-    title:'Automation Bot', subtitle:'Python Dev  ·  2022',
-    desc:'Workflow automation bot that monitors Slack, triages support tickets, and routes them with NLP classification. Saved the operations team ~15 hours per week.',
-    tags:['Python','Slack API','NLP','Automation'],
+    title:'Photography', subtitle:'Role  ·  Year',
+    desc:'Description coming soon.',
+    tags:['Tag'],
     color:'#1488b8', dark:'#085068', link:'#' },
   { id:'proj7', row:2,
-    title:'E-Commerce Platform', subtitle:'Full-Stack Dev  ·  2022',
-    desc:'End-to-end e-commerce platform for a local small business with Stripe payments and inventory tracking. Tripled the client\'s online revenue within six months of launch.',
-    tags:['Next.js','Stripe','MongoDB','Tailwind CSS'],
-    color:'#b02858', dark:'#681030', link:'#' },
-  { id:'proj8', row:2,
-    title:'ML Classifier', subtitle:'ML Engineer  ·  2022',
-    desc:'Multi-label text classification model for categorizing customer feedback into product areas. Achieved 91% accuracy and was integrated into the product analytics pipeline.',
-    tags:['Python','scikit-learn','NLP','Pandas','TF-IDF'],
+    title:'Misc.', subtitle:'Role  ·  Year',
+    desc:'Description coming soon.',
+    tags:['Tag'],
     color:'#308038', dark:'#184018', link:'#' },
   { id:'secret',
     title:'G-14 CLASSIFIED', subtitle:'???  ·  REDACTED',
@@ -1051,7 +1104,7 @@ document.getElementById('sp-input').addEventListener('keydown', e=>{
 // ── NPC DIALOGS ──
 const DIALOGS = {
   intro:{
-    text:'Welcome to the Projects Guild Library!\n\nEach book on the shelf is one of Andre\'s projects. Hover over a book spine to lift it — then click (or tap) to read the full record inside.\n\nI\'m Mirabel, the Head Librarian. How can I help you today?',
+    text:'Welcome to the Projects Guild Library!\n\nEach book on the shelf is one of Andre\'s projects. Hover over a book spine to lift it — then click (or tap) to read the full record inside.\n\nI\'m Dewey, the Head Librarian. How can I help you today?',
     acts:[
       {l:'How do I browse the shelf?',    n:'howto'},
       {l:'Any secrets in here?',          n:'secret_hint'},
@@ -1077,7 +1130,7 @@ const DIALOGS = {
     acts:[{l:'I\'m ready.', n:null}]
   },
   no_clue:{
-    text:'*Mirabel steps in front of the red book*\n\nNot so fast! That file requires clearance. Ask me about the library\'s secrets first — then we\'ll see.',
+    text:'*Dewey steps in front of the red book*\n\nNot so fast! That file requires clearance. Ask me about the library\'s secrets first — then we\'ll see.',
     acts:[
       {l:'Tell me about the secrets.', n:'secret_hint'},
       {l:'Very well...',               n:null},
@@ -1107,7 +1160,7 @@ function closeAll(){ closeDialog(); closeBookPanel(); closeSecret(); }
 
 function typeText(el, text){ el.textContent=''; let i=0; const iv=setInterval(()=>{ el.textContent+=text[i++]; if(i>=text.length)clearInterval(iv); },12); }
 
-// ── DRAW NPC (Mirabel) ──
+// ── DRAW NPC (Dewey) ──
 function drawNPC() {
   const c=document.getElementById('npc-canvas'), ctx=c.getContext('2d');
   ctx.imageSmoothingEnabled=false; ctx.clearRect(0,0,70,88);
@@ -1182,6 +1235,20 @@ window.addEventListener('resize',()=>{
 buildShelves();
 drawNPC();
 setInterval(spawnMote, 700);
+positionExitSign();
+
+// ── POSITION EXIT SIGN below left of bookshelf ──
+function positionExitSign() {
+  const wrap  = document.getElementById('shelf-wrap');
+  const sign  = document.getElementById('exit-sign');
+  if (!wrap || !sign) return;
+  const rect  = wrap.getBoundingClientRect();
+  const scene = document.getElementById('scene').getBoundingClientRect();
+  // Left-align with the shelf, just below the base
+  sign.style.left = (rect.left - scene.left) + 'px';
+  sign.style.top  = (rect.bottom - scene.top + 10) + 'px';
+}
+window.addEventListener('resize', positionExitSign);
 </script>
 <!-- Library Menu Overlay -->
 <div id="lib-menu-overlay">
