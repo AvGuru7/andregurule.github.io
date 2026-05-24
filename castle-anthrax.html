@@ -172,34 +172,62 @@ const PW=WORLD_W*TILE, PH=WORLD_H*TILE;
 //  [========= MAIN CORRIDOR 36x4 ==================]        y:12–15
 //  [ARMORY 10x12][BARRACKS 10x12][BANQUET 12x12][DUNGEON 10x12] y:16–27
 //
+// doorTile: the tile column on the room's corridor-facing wall where the doorway opening is centred (2 tiles wide)
+// doorSide: 'bottom' = top-row rooms (open toward corridor below), 'top' = bottom-row rooms (open toward corridor above)
 const ROOMS=[
-  {id:'library',  label:'📚 LIBRARY',     x:2,  y:2,  w:10, h:10, floorC:'#2a2218', wallC:'#1a1510', accentC:'#4a3820'},
-  {id:'throne',   label:'👑 THRONE ROOM', x:13, y:2,  w:14, h:10, floorC:'#3a2010', wallC:'#241408', accentC:'#6a3010'},
-  {id:'treasury', label:'💰 TREASURY',    x:28, y:2,  w:10, h:10, floorC:'#1e1e14', wallC:'#141410', accentC:'#3a3810'},
-  {id:'armory',   label:'⚔ ARMORY',       x:2,  y:16, w:10, h:12, floorC:'#1e1e22', wallC:'#141416', accentC:'#303040'},
-  {id:'barracks', label:'🛡 BARRACKS',    x:13, y:16, w:10, h:12, floorC:'#221e1a', wallC:'#161210', accentC:'#403020'},
-  {id:'banquet',  label:'🍖 BANQUET HALL',x:24, y:16, w:12, h:12, floorC:'#281e14', wallC:'#18120c', accentC:'#503020'},
-  {id:'dungeon',  label:'⛓ DUNGEON',      x:37, y:16, w:10, h:12, floorC:'#141414', wallC:'#0e0e0e', accentC:'#242424'},
+  {id:'library',  label:'📚 LIBRARY',     x:2,  y:2,  w:10, h:10, floorC:'#5a4a30', wallC:'#3a3a3a', accentC:'#555555', doorTile:7,  doorSide:'bottom'},
+  {id:'throne',   label:'👑 THRONE ROOM', x:13, y:2,  w:14, h:10, floorC:'#6a3a18', wallC:'#3a3a3a', accentC:'#555555', doorTile:20, doorSide:'bottom'},
+  {id:'treasury', label:'💰 TREASURY',    x:28, y:2,  w:10, h:10, floorC:'#5a4a30', wallC:'#3a3a3a', accentC:'#555555', doorTile:33, doorSide:'bottom'},
+  {id:'armory',   label:'⚔ ARMORY',       x:2,  y:16, w:10, h:12, floorC:'#5a4a30', wallC:'#3a3a3a', accentC:'#555555', doorTile:7,  doorSide:'top'},
+  {id:'storage',   label:'📦 STORAGE',      x:13, y:16, w:9,  h:12, floorC:'#5a4a30', wallC:'#3a3a3a', accentC:'#555555', doorTile:18, doorSide:'top'},
+  {id:'banquet',  label:'🍖 BANQUET HALL',x:24, y:16, w:12, h:12, floorC:'#5a4a30', wallC:'#3a3a3a', accentC:'#555555', doorTile:30, doorSide:'top'},
+  {id:'dungeon',  label:'⛓ DUNGEON',      x:37, y:16, w:10, h:12, floorC:'#303030', wallC:'#3a3a3a', accentC:'#555555', doorTile:42, doorSide:'top'},
 ];
 
 // Corridor + vertical connectors between top and bottom rows
 const CORRIDORS=[
   {x:2,  y:12, w:36, h:4},   // main horizontal corridor
-  // short vertical connectors from corridor into bottom rooms
-  {x:4,  y:16, w:6,  h:1},   // armory top door
-  {x:15, y:16, w:6,  h:1},   // barracks top door
-  {x:26, y:16, w:8,  h:1},   // banquet top door
-  {x:39, y:16, w:6,  h:1},   // dungeon top door
-  // connectors from top rooms into corridor
-  {x:4,  y:11, w:6,  h:1},   // library bottom door
-  {x:16, y:11, w:6,  h:1},   // throne bottom door
-  {x:30, y:11, w:6,  h:1},   // treasury bottom door
+  // 2-tile-wide connectors matching each room's doorTile (doorTile-1 and doorTile)
+  {x:6,  y:11, w:2,  h:1},   // library bottom door  (doorTile:7 → cols 6,7)
+  {x:19, y:11, w:2,  h:1},   // throne bottom door   (doorTile:20 → cols 19,20)
+  {x:32, y:11, w:2,  h:1},   // treasury bottom door (doorTile:33 → cols 32,33)
+  {x:6,  y:16, w:2,  h:1},   // armory top door      (doorTile:7 → cols 6,7)
+  {x:17, y:16, w:2,  h:1},   // storage top door     (doorTile:18 → cols 17,18)
+  {x:29, y:16, w:2,  h:1},   // banquet top door     (doorTile:30 → cols 29,30)
+  // Dungeon narrow path: 1-tile-wide horizontal jog east then drop into dungeon door
+  {x:38, y:15, w:5,  h:1},   // east jog along corridor bottom edge
+  {x:42, y:16, w:1,  h:1},   // drop into dungeon doorTile:42 (single tile connector)
+  // Vertical passage connecting exit corridor to main hallway (2 tiles wide, x:22–23)
+  {x:22, y:15, w:2,  h:13},  // runs y:15–27, bridging corridor → exit corridor
   // exit corridor at bottom
   {x:19, y:28, w:6,  h:3},
 ];
 
+// Returns true if (tx,ty) is a room's border tile that is NOT the doorway opening.
+// These tiles are visually inside the room rect but act as solid walls.
+function isInteriorWall(tx,ty){
+  for(const r of ROOMS){
+    if(tx<r.x||tx>=r.x+r.w||ty<r.y||ty>=r.y+r.h) continue; // not in this room
+    const onBorder=(tx===r.x||tx===r.x+r.w-1||ty===r.y||ty===r.y+r.h-1);
+    if(!onBorder) return false; // interior tile, fine
+    // It's a border tile — is it part of the doorway opening?
+    const dL=r.doorTile-1, dR=r.doorTile;
+    if(r.doorSide==='bottom'&&ty===r.y+r.h-1&&(tx===dL||tx===dR)){
+      // Treasury door is locked until skeleton-key is used
+      if(r.id==='treasury'&&!treasuryOpen) return true;
+      return false; // bottom doorway open
+    }
+    if(r.doorSide==='top'   &&ty===r.y         &&(tx===dL||tx===dR)) return false; // top doorway
+    return true; // border tile, no doorway exemption
+  }
+  return false;
+}
+
 function isWalkable(tx,ty){
   if(tx<0||ty<0||tx>=WORLD_W||ty>=WORLD_H) return false;
+  if(isInteriorWall(tx,ty)) return false;
+  // Treasury corridor connector tiles are blocked when door is locked
+  if(!treasuryOpen&&ty===11&&(tx===32||tx===33)) return false;
   for(const r of ROOMS) if(tx>=r.x&&tx<r.x+r.w&&ty>=r.y&&ty<r.y+r.h) return true;
   for(const c of CORRIDORS) if(tx>=c.x&&tx<c.x+c.w&&ty>=c.y&&ty<c.y+c.h) return true;
   return false;
@@ -211,14 +239,62 @@ function isCorridorAt(tx,ty){ return CORRIDORS.some(c=>tx>=c.x&&tx<c.x+c.w&&ty>=
 const NPCS=[{
   id:'lyn', label:'👑 KING LYN', title:'KING LYN',
   tx:20, ty:5,   // center of throne room
-  // ── EDIT LYN'S DIALOG BELOW ──────────────────────────────────────────────
-  // Add as many lines as you like. Player presses A to advance through them.
   dialogs:[
     {body:"Greetings, traveller. I am King Lyn, ruler of Castle Anthrax. Welcome to my domain."},
+    {body:"Do you have any artwork to trade? I have a fine Blue Kayak sitting in storage that I would part with for a worthy piece."},
   ],
-  // ─────────────────────────────────────────────────────────────────────────
   dialogIdx:0,
 }];
+
+// ── KAYAK TRADE ───────────────────────────────────────────────────────────────
+// kayakEarned is true once the player has traded the Artwork to King Lyn.
+// It persists via GameState.unlocked so it survives page navigation.
+// The Blue Kayak item itself is collectible in the Storage room afterward.
+let kayakEarned=false; // set from GameState after initialisation
+
+// Called when player presses A on the last Lyn dialog line
+function handleLynTrade(){
+  if(kayakEarned){
+    showInlineDialog('KING LYN','The kayak awaits you in storage. Take good care of it.','[B] Close');
+    return;
+  }
+  if(GameState.hasItem('artwork')){
+    GameState.consumeItem('artwork');
+    GameState.unlock('kayak-earned');
+    kayakEarned=true;
+    showInlineDialog('KING LYN','A fine choice! I shall take this artwork. The Blue Kayak is yours — find it in the storage room.','[B] Close');
+  } else {
+    showInlineDialog('KING LYN','Alas, you carry no artwork. Bring me a worthy piece and we shall trade.','[B] Close');
+  }
+}
+
+function showInlineDialog(title,body,hint){
+  dialogOpen=true;
+  document.getElementById('dialog-title').textContent=title;
+  document.getElementById('dialog-body').textContent=body;
+  const linksEl=document.getElementById('dialog-links');linksEl.innerHTML='';
+  const h=document.createElement('span');
+  h.style.cssText='font-family:VT323,monospace;font-size:16px;color:#a09070;display:block;margin-top:4px;';
+  h.textContent=hint;linksEl.appendChild(h);
+  document.getElementById('dialog-box').style.display='block';
+  document.getElementById('zone-label').style.opacity='0';
+}
+
+// The Blue Kayak pickup — available in Storage room once trade is done
+const KAYAK_PICKUP={
+  id:'kayak_pickup',
+  label:'🚣 BLUE KAYAK',
+  tx:16, ty:24,  // centre of Storage room interior
+};
+
+let kayakCollected=false; // set from GameState after initialisation
+
+function collectKayak(){
+  if(kayakCollected) return;
+  kayakCollected=true;
+  GameState.unlock('kayak-collected');
+  showInlineDialog('🚣 BLUE KAYAK','You collected the Blue Kayak! It\'s yours to keep.','[B] Close');
+}
 
 const SIGNS=[
   {id:'exit', label:'◀ EXIT — WORLD MAP', tx:22, ty:29,
@@ -228,19 +304,54 @@ const SIGNS=[
   {id:'throne_sign',   label:'👑 THRONE ROOM',  tx:20, ty:12, title:'THRONE ROOM',       body:"The seat of King Lyn's power. The golden throne watches all who enter.", links:[]},
   {id:'treasury_sign', label:'💰 TREASURY',     tx:33, ty:12, title:'THE TREASURY',       body:'Coffers of gold, gemstones, and locked chests. The wealth of many campaigns rests here.', links:[]},
   {id:'armory_sign',   label:'⚔ ARMORY',        tx:7,  ty:17, title:'ARMORY',             body:'Swords, shields, and armor line the walls. Every knight must be prepared.', links:[]},
-  {id:'barracks_sign', label:'🛡 BARRACKS',     tx:18, ty:17, title:'BARRACKS',           body:'Rows of bunks and weapon racks. The castle guard rests — and trains — here.', links:[]},
+  {id:'storage_sign',  label:'📦 STORAGE',      tx:18, ty:17, title:'STORAGE',           body:'Crates, barrels, and forgotten supplies fill the room. Something glints in the corner.', links:[]},
   {id:'banquet_sign',  label:'🍖 BANQUET HALL', tx:30, ty:17, title:'BANQUET HALL',       body:'A grand hall for feasts. Long tables once groaned under the weight of roasted meats and fine wines.', links:[]},
   {id:'dungeon_sign',  label:'⛓ DUNGEON',       tx:42, ty:17, title:'THE DUNGEON',        body:'Cold stone, dripping water, iron bars. Not all who descend return. You have been warned.', links:[]},
 ];
 
-// ── GAME STATE ────────────────────────────────────────────────────────────────
+// ── TREASURY LOCKED DOOR ──────────────────────────────────────────────────────
+// The treasury bottom-wall doorway (cols 32,33 at y:11) is locked until the
+// player has the Skeleton Key. treasuryOpen drives both collision and visuals.
+let treasuryOpen=false; // will be set from GameState after it is initialised
+
+const TREASURY_DOOR={
+  id:'treasury_door',
+  label:'🔒 TREASURY DOOR',
+  tx:32, ty:11,   // interactable tile — player stands in corridor at y:12, faces up
+};
+
+function tryOpenTreasury(){
+  if(treasuryOpen) return;
+  if(GameState.unlocked.includes('skeleton-key')){
+    treasuryOpen=true;
+    showZoneLabel('✓ The door swings open!');
+  } else {
+    // Show locked dialog inline (no SIGN object needed)
+    dialogOpen=true;
+    document.getElementById('dialog-title').textContent='🔒 TREASURY DOOR';
+    document.getElementById('dialog-body').textContent='The heavy iron door is sealed with an ornate lock. You need the Skeleton Key to enter.';
+    const linksEl=document.getElementById('dialog-links');linksEl.innerHTML='';
+    const hint=document.createElement('span');
+    hint.style.cssText='font-family:VT323,monospace;font-size:16px;color:#a09070;display:block;margin-top:4px;';
+    hint.textContent='[B] Close';linksEl.appendChild(hint);
+    document.getElementById('dialog-box').style.display='block';
+  }
+}
 const _p=new URLSearchParams(window.location.search);
 const GameState={
   points:parseInt(_p.get('points')||'0',10),
   visited:_p.get('visited')?_p.get('visited').split(',').filter(Boolean):[],
   unlocked:_p.get('unlocked')?_p.get('unlocked').split(',').filter(Boolean):[],
-  withState(href){return href+(href.includes('?')?'&':'?')+new URLSearchParams({points:this.points,visited:this.visited.join(','),unlocked:this.unlocked.join(',')}).toString();}
+  items:_p.get('items')?_p.get('items').split(',').filter(Boolean):[],
+  hasItem(id){return this.items.includes(id);},
+  consumeItem(id){this.items=this.items.filter(i=>i!==id);},
+  unlock(key){if(!this.unlocked.includes(key))this.unlocked.push(key);},
+  withState(href){return href+(href.includes('?')?'&':'?')+new URLSearchParams({points:this.points,visited:this.visited.join(','),unlocked:this.unlocked.join(','),items:this.items.join(',')}).toString();}
 };
+// Restore treasury door state from URL params
+treasuryOpen=GameState.unlocked.includes('skeleton-key');
+kayakEarned=GameState.unlocked.includes('kayak-earned');
+kayakCollected=GameState.unlocked.includes('kayak-collected');
 
 let camX=0,camY=0;
 let playerX=22*TILE,playerY=29*TILE;  // spawn at exit sign bottom
@@ -282,14 +393,35 @@ function drawFloorTile(sx,sy,tx,ty,room){
 }
 
 function drawWalls(sx,sy,tx,ty,room){
+  const dL=room.doorTile-1, dR=room.doorTile;
+  const isDoorBottom=room.doorSide==='bottom'&&ty===room.y+room.h-1&&(tx===dL||tx===dR);
+  const isDoorTop   =room.doorSide==='top'   &&ty===room.y         &&(tx===dL||tx===dR);
+  const isDoor=isDoorBottom||isDoorTop;
+
+  // Top border row
   if(ty===room.y){
-    ctx.fillStyle=room.wallC;ctx.fillRect(sx,sy,TILE,9);
-    ctx.fillStyle=room.accentC;ctx.fillRect(sx,sy+8,TILE,2);
-    if((tx-room.x)%5===2){torch(sx+TILE/2,sy+2,false);}
+    if(!isDoorTop){
+      ctx.fillStyle=room.wallC;ctx.fillRect(sx,sy,TILE,TILE);       // full wall tile
+      ctx.fillStyle=room.accentC;ctx.fillRect(sx,sy+TILE-3,TILE,3); // inner ledge
+    }
+    // Torches on top wall
+    if(!isDoor&&(tx-room.x)%5===2){torch(sx+TILE/2,sy+4,false);}
   }
-  if(ty===room.y+room.h-1){ctx.fillStyle=room.wallC;ctx.fillRect(sx,sy+TILE-9,TILE,9);ctx.fillStyle=room.accentC;ctx.fillRect(sx,sy+TILE-10,TILE,2);}
-  if(tx===room.x){ctx.fillStyle=room.wallC;ctx.fillRect(sx,sy,9,TILE);ctx.fillStyle=room.accentC;ctx.fillRect(sx+8,sy,2,TILE);}
-  if(tx===room.x+room.w-1){ctx.fillStyle=room.wallC;ctx.fillRect(sx+TILE-9,sy,9,TILE);ctx.fillStyle=room.accentC;ctx.fillRect(sx+TILE-10,sy,2,TILE);}
+  // Bottom border row
+  if(ty===room.y+room.h-1&&!isDoorBottom){
+    ctx.fillStyle=room.wallC;ctx.fillRect(sx,sy,TILE,TILE);
+    ctx.fillStyle=room.accentC;ctx.fillRect(sx,sy,TILE,3);
+  }
+  // Left border column (skip corners already painted by top/bottom)
+  if(tx===room.x&&ty>room.y&&ty<room.y+room.h-1){
+    ctx.fillStyle=room.wallC;ctx.fillRect(sx,sy,TILE,TILE);
+    ctx.fillStyle=room.accentC;ctx.fillRect(sx+TILE-3,sy,3,TILE);
+  }
+  // Right border column
+  if(tx===room.x+room.w-1&&ty>room.y&&ty<room.y+room.h-1){
+    ctx.fillStyle=room.wallC;ctx.fillRect(sx,sy,TILE,TILE);
+    ctx.fillStyle=room.accentC;ctx.fillRect(sx,sy,3,TILE);
+  }
 }
 
 // ── ROOM DETAIL DRAWING ───────────────────────────────────────────────────────
@@ -449,41 +581,80 @@ function drawArmory(wx,wy){
   torch(rx+TILE,ry+TILE*0.4,false);torch(rx+rw-TILE,ry+TILE*0.4,false);
 }
 
-function drawBarracks(wx,wy){
+function drawStorage(wx,wy){
   const r=ROOMS[4];
   const rx=r.x*TILE-wx,ry=r.y*TILE-wy,rw=r.w*TILE,rh=r.h*TILE;
-  // Bunk beds along walls
-  for(let bi=0;bi<2;bi++){
-    const bx=rx+TILE*0.8+bi*TILE*3;
-    // Frame
-    ctx.fillStyle='#4a3010';ctx.fillRect(bx,ry+TILE*1.2,TILE*2,TILE*4.5);
-    ctx.fillStyle='#6a4820';ctx.fillRect(bx+4,ry+TILE*1.4,TILE*2-8,TILE*4.1);
-    // Lower mattress
-    ctx.fillStyle='#3a5028';ctx.fillRect(bx+4,ry+TILE*3,TILE*2-8,TILE*0.8);
-    ctx.fillStyle='#c8b090';ctx.fillRect(bx+6,ry+TILE*3+4,TILE*2-16,12);  // pillow
-    // Upper mattress
-    ctx.fillStyle='#3a5028';ctx.fillRect(bx+4,ry+TILE*1.8,TILE*2-8,TILE*0.8);
-    ctx.fillStyle='#c8b090';ctx.fillRect(bx+6,ry+TILE*1.9,TILE*2-16,12);
-    // Divider rail
-    ctx.fillStyle='#4a3010';ctx.fillRect(bx,ry+TILE*2.9,TILE*2,6);
-    // Ladder
-    ctx.fillStyle='#3a2010';ctx.fillRect(bx+TILE*2-6,ry+TILE*1.8,4,TILE*1.6);
-    for(let rung=0;rung<4;rung++) ctx.fillRect(bx+TILE*2-10,ry+TILE*2+rung*10,8,3);
-  }
-  // Weapon rack (spears)
-  for(let sp=0;sp<4;sp++){
-    const spx=rx+TILE*5.5+sp*14;
-    ctx.fillStyle='#8a6030';ctx.fillRect(spx-2,ry+TILE*1.5,4,TILE*4);
-    ctx.fillStyle='#aaaaaa';ctx.fillRect(spx-3,ry+TILE*1.3,6,TILE*0.5);
-    ctx.beginPath();ctx.moveTo(spx-3,ry+TILE*1.3);ctx.lineTo(spx,ry+TILE*0.8);ctx.lineTo(spx+3,ry+TILE*1.3);ctx.fillStyle='#cccccc';ctx.fill();
-  }
-  ctx.fillStyle='#4a3010';ctx.fillRect(rx+TILE*5.2,ry+TILE*4,TILE*3,8);ctx.fillRect(rx+TILE*5.2,ry+TILE*2.5,TILE*3,8);
-  // Table and stools
-  ctx.fillStyle='#5a3a10';ctx.fillRect(rx+TILE*1.5,ry+TILE*6,TILE*3.5,TILE*0.6);
-  ctx.fillRect(rx+TILE*1.7,ry+TILE*6.6,TILE*0.4,TILE);ctx.fillRect(rx+TILE*4.4,ry+TILE*6.6,TILE*0.4,TILE);
-  ctx.fillStyle='#4a3010';ctx.fillRect(rx+TILE*1.2,ry+TILE*7.2,TILE,6);ctx.fillRect(rx+TILE*4,ry+TILE*7.2,TILE,6);
+
+  // Stacked crates along left wall
+  const crateColor=['#7a5a28','#6a4a20','#8a6a30'];
+  [[rx+TILE*1.0,ry+TILE*6.5],[rx+TILE*1.0,ry+TILE*5.2],[rx+TILE*2.0,ry+TILE*6.5],
+   [rx+TILE*1.0,ry+TILE*3.8],[rx+TILE*2.0,ry+TILE*5.2]].forEach(([cx,cy],i)=>{
+    ctx.fillStyle=crateColor[i%crateColor.length];ctx.fillRect(cx,cy,TILE*0.9,TILE*0.9);
+    ctx.fillStyle='rgba(0,0,0,0.2)';ctx.fillRect(cx,cy,TILE*0.9,4);ctx.fillRect(cx,cy,4,TILE*0.9);
+    ctx.fillStyle='rgba(255,255,255,0.07)';ctx.fillRect(cx+4,cy+4,TILE*0.9-8,4);ctx.fillRect(cx+4,cy+4,4,TILE*0.9-8);
+    // Planks
+    ctx.fillStyle='rgba(0,0,0,0.15)';
+    ctx.fillRect(cx+TILE*0.3,cy,3,TILE*0.9);ctx.fillRect(cx+TILE*0.6,cy,3,TILE*0.9);
+    ctx.fillRect(cx,cy+TILE*0.3,TILE*0.9,3);ctx.fillRect(cx,cy+TILE*0.6,TILE*0.9,3);
+  });
+
+  // Barrels along right wall
+  [[rx+rw-TILE*1.8,ry+TILE*2.0],[rx+rw-TILE*1.0,ry+TILE*2.0],
+   [rx+rw-TILE*1.8,ry+TILE*3.6],[rx+rw-TILE*1.0,ry+TILE*4.8],
+   [rx+rw-TILE*1.8,ry+TILE*6.0]].forEach(([bx,by])=>{
+    ctx.fillStyle='#5a3810';ctx.fillRect(bx,by,TILE*0.75,TILE*1.0);
+    ctx.fillStyle='#7a5030';ctx.fillRect(bx+4,by+2,TILE*0.75-8,TILE-4);
+    // Hoops
+    ctx.fillStyle='#3a2808';
+    [0.15,0.45,0.75].forEach(t=>ctx.fillRect(bx,by+TILE*t,TILE*0.75,4));
+    // Highlight
+    ctx.fillStyle='rgba(255,255,255,0.06)';ctx.fillRect(bx+6,by+4,6,TILE-8);
+  });
+
+  // Shelf along back wall
+  ctx.fillStyle='#4a3010';ctx.fillRect(rx+TILE*3.0,ry+TILE*1.3,rw-TILE*4.5,8);
+  ctx.fillStyle='#6a4820';ctx.fillRect(rx+TILE*3.0,ry+TILE*1.1,rw-TILE*4.5,TILE*0.22);
+  // Small pots on shelf
+  [[rx+TILE*3.2,ry+TILE*1.1,'#7a4020'],[rx+TILE*4.0,ry+TILE*1.0,'#5a6020'],
+   [rx+TILE*4.8,ry+TILE*1.1,'#6a3030']].forEach(([px,py,c])=>{
+    ctx.fillStyle=c;ctx.fillRect(px,py,20,20);
+    ctx.fillStyle='rgba(255,255,255,0.1)';ctx.fillRect(px+2,py+2,6,10);
+  });
+
   // Torch
   torch(rx+rw/2,ry+TILE*0.4,false);
+
+  // Blue Kayak — always drawn in storage room centre
+  {
+    const kx=rx+TILE*2.2, ky=ry+TILE*3.8;
+    // Kayak hull
+    ctx.fillStyle='#1565c0';
+    ctx.beginPath();ctx.ellipse(kx+TILE*2,ky+14,TILE*2,14,0,0,Math.PI*2);ctx.fill();
+    // Hull highlight
+    ctx.fillStyle='#1e88e5';
+    ctx.beginPath();ctx.ellipse(kx+TILE*2,ky+10,TILE*1.4,8,0,0,Math.PI*2);ctx.fill();
+    // Cockpit rim
+    ctx.fillStyle='#0d47a1';ctx.beginPath();ctx.ellipse(kx+TILE*2,ky+12,TILE*0.55,9,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#263238';ctx.beginPath();ctx.ellipse(kx+TILE*2,ky+12,TILE*0.42,7,0,0,Math.PI*2);ctx.fill();
+    // Paddle resting across
+    ctx.fillStyle='#5a3010';ctx.fillRect(kx,ky-4,TILE*4,5);
+    ctx.fillStyle='#78909c';ctx.fillRect(kx-6,ky-6,TILE*0.4,9);ctx.fillRect(kx+TILE*3.6,ky-6,TILE*0.4,9);
+    // Glow + prompt when earned but not yet collected
+    if(kayakEarned&&!kayakCollected){
+      const pulse=0.3+0.25*Math.sin(Date.now()/350);
+      ctx.fillStyle=`rgba(30,136,229,${pulse})`;
+      ctx.beginPath();ctx.ellipse(kx+TILE*2,ky+14,TILE*2+6,18,0,0,Math.PI*2);ctx.fill();
+      const pdx=Math.abs(playerX-(kx+TILE*2)),pdy=Math.abs(playerY-(ky+14));
+      if(pdx<TILE*3&&pdy<TILE*3){
+        ctx.fillStyle='rgba(30,136,229,0.9)';ctx.font='6px "Press Start 2P"';ctx.textAlign='center';
+        ctx.fillText('[A] TAKE KAYAK',kx+TILE*2,ky-12);ctx.textAlign='left';
+      }
+    } else if(!kayakEarned){
+      // Lock icon overlay — not yours yet
+      ctx.fillStyle='rgba(0,0,0,0.45)';ctx.beginPath();ctx.ellipse(kx+TILE*2,ky+14,TILE*2,14,0,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#f0c040';ctx.font='14px serif';ctx.textAlign='center';ctx.fillText('🔒',kx+TILE*2,ky+18);ctx.textAlign='left';
+    }
+  }
 }
 
 function drawBanquetHall(wx,wy){
@@ -518,9 +689,9 @@ function drawBanquetHall(wx,wy){
   ctx.save();const fg=ctx.createRadialGradient(rx+TILE*0.75,ry+TILE*5,5,rx+TILE*0.75,ry+TILE*5,50);
   fg.addColorStop(0,'rgba(255,100,0,0.18)');fg.addColorStop(1,'rgba(255,100,0,0)');
   ctx.fillStyle=fg;ctx.fillRect(rx,ry+TILE*3.5,TILE*2,TILE*3);ctx.restore();
-  // Chandelier
-  ctx.fillStyle='#c8a000';ctx.fillRect(rx+rw/2-24,ry+TILE*0.3,48,6);
-  for(let ci=0;ci<5;ci++){const lx=rx+rw/2-20+ci*10;ctx.fillStyle='#c8a000';ctx.fillRect(lx-1,ry+TILE*0.3,2,TILE*0.4+ci%2*6);torch(lx,ry+TILE*0.7,false);}
+  // Chandelier — south wall
+  ctx.fillStyle='#c8a000';ctx.fillRect(rx+rw/2-24,ry+rh-TILE*1.0,48,6);
+  for(let ci=0;ci<5;ci++){const lx=rx+rw/2-20+ci*10;ctx.fillStyle='#c8a000';ctx.fillRect(lx-1,ry+rh-TILE*1.0,2,TILE*0.4+ci%2*6);torch(lx,ry+rh-TILE*0.6,false);}
 }
 
 function drawDungeon(wx,wy){
@@ -623,11 +794,110 @@ function drawKingLyn(wx,wy){
   }
 }
 
-// ── MAIN DRAW ─────────────────────────────────────────────────────────────────
+// ── DOORWAY ARCHES ────────────────────────────────────────────────────────────
+function drawDoorways(wx,wy){
+  for(const room of ROOMS){
+    const dL=room.doorTile-1, dR=room.doorTile;
+    const dx=dL*TILE-wx, dw=TILE*2;
+    const JAMB='#4a4a4a', JAMB_HI='#5a5a5a', LINTEL='#3a3a3a', LINTEL_HI='#555555';
+
+    if(room.doorSide==='bottom'){
+      const dy=(room.y+room.h-1)*TILE-wy+TILE; // just below room's last tile
+      // Left pillar
+      ctx.fillStyle=JAMB;ctx.fillRect(dx-5,dy-26,9,26);
+      ctx.fillStyle=JAMB_HI;ctx.fillRect(dx-4,dy-24,4,22);
+      // Right pillar
+      ctx.fillStyle=JAMB;ctx.fillRect(dx+dw-4,dy-26,9,26);
+      ctx.fillStyle=JAMB_HI;ctx.fillRect(dx+dw-1,dy-24,4,22);
+      // Lintel
+      ctx.fillStyle=LINTEL;ctx.fillRect(dx-5,dy-28,dw+10,6);
+      ctx.fillStyle=LINTEL_HI;ctx.fillRect(dx-3,dy-27,dw+6,2);
+      // Shadow inside passage
+      ctx.fillStyle='rgba(0,0,0,0.4)';ctx.fillRect(dx+1,dy-22,dw-2,24);
+    } else {
+      const dy=room.y*TILE-wy; // top of room's first tile
+      // Left pillar
+      ctx.fillStyle=JAMB;ctx.fillRect(dx-5,dy,9,26);
+      ctx.fillStyle=JAMB_HI;ctx.fillRect(dx-4,dy+2,4,22);
+      // Right pillar
+      ctx.fillStyle=JAMB;ctx.fillRect(dx+dw-4,dy,9,26);
+      ctx.fillStyle=JAMB_HI;ctx.fillRect(dx+dw-1,dy+2,4,22);
+      // Lintel
+      ctx.fillStyle=LINTEL;ctx.fillRect(dx-5,dy+22,dw+10,6);
+      ctx.fillStyle=LINTEL_HI;ctx.fillRect(dx-3,dy+23,dw+6,2);
+      // Shadow inside passage
+      ctx.fillStyle='rgba(0,0,0,0.4)';ctx.fillRect(dx+1,dy,dw-2,24);
+    }
+  }
+
+  // ── Treasury locked door visual ────────────────────────────────────────────
+  {
+    const tRoom=ROOMS[2]; // treasury
+    const dL=tRoom.doorTile-1; // col 32
+    const dx=dL*TILE-wx, dy=(tRoom.y+tRoom.h-1)*TILE-wy;
+    const dw=TILE*2;
+    if(!treasuryOpen){
+      // Iron door panels — two planks filling the archway opening
+      ctx.fillStyle='#2a2a2a';ctx.fillRect(dx,dy,dw,TILE);
+      ctx.fillStyle='#383838';ctx.fillRect(dx+3,dy+3,dw-6,TILE-6);
+      // Door planks horizontal banding
+      ctx.fillStyle='#222';
+      for(let band=0;band<3;band++) ctx.fillRect(dx+3,dy+10+band*12,dw-6,4);
+      // Iron rivets
+      ctx.fillStyle='#555';
+      [[dx+10,dy+8],[dx+dw-10,dy+8],[dx+10,dy+TILE-10],[dx+dw-10,dy+TILE-10]].forEach(([rx2,ry2])=>{
+        ctx.beginPath();ctx.arc(rx2,ry2,3,0,Math.PI*2);ctx.fill();
+      });
+      // Keyhole
+      const kx=dx+dw/2, ky=dy+TILE/2-4;
+      ctx.fillStyle='#111';
+      ctx.beginPath();ctx.arc(kx,ky,6,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.moveTo(kx-4,ky);ctx.lineTo(kx+4,ky);ctx.lineTo(kx+3,ky+10);ctx.lineTo(kx-3,ky+10);ctx.closePath();ctx.fill();
+      // Gold lock plate
+      ctx.fillStyle='#c8a000';ctx.fillRect(kx-10,ky-8,20,24);
+      ctx.fillStyle='#111';
+      ctx.beginPath();ctx.arc(kx,ky,6,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.moveTo(kx-4,ky);ctx.lineTo(kx+4,ky);ctx.lineTo(kx+3,ky+10);ctx.lineTo(kx-3,ky+10);ctx.closePath();ctx.fill();
+      // Glow hint when player is nearby
+      const pdx=Math.abs(playerX-(dx+dw/2)), pdy=Math.abs(playerY-(dy+TILE/2));
+      if(pdx<TILE*3&&pdy<TILE*3){
+        const pulse=0.4+0.3*Math.sin(Date.now()/300);
+        ctx.fillStyle=`rgba(240,192,64,${pulse})`;
+        ctx.font='6px "Press Start 2P"';ctx.textAlign='center';
+        ctx.fillText('[A] USE KEY',dx+dw/2,dy-6);ctx.textAlign='left';
+      }
+    }
+    // Arch pillars always drawn (open or closed)
+    const JAMB='#4a4a4a',JAMB_HI='#5a5a5a',LINTEL='#3a3a3a',LINTEL_HI='#555555';
+    ctx.fillStyle=JAMB;ctx.fillRect(dx-5,dy+TILE-26,9,26);ctx.fillStyle=JAMB_HI;ctx.fillRect(dx-4,dy+TILE-24,4,22);
+    ctx.fillStyle=JAMB;ctx.fillRect(dx+dw-4,dy+TILE-26,9,26);ctx.fillStyle=JAMB_HI;ctx.fillRect(dx+dw-1,dy+TILE-24,4,22);
+    ctx.fillStyle=LINTEL;ctx.fillRect(dx-5,dy+TILE-28,dw+10,6);ctx.fillStyle=LINTEL_HI;ctx.fillRect(dx-3,dy+TILE-27,dw+6,2);
+    if(treasuryOpen){ctx.fillStyle='rgba(0,0,0,0.4)';ctx.fillRect(dx+1,dy+TILE-22,dw-2,24);}
+  }
+  for(let row=15;row<=27;row++){
+    const epx=22*TILE-wx, epy=row*TILE-wy;
+    ctx.fillStyle='#5a4a30';ctx.fillRect(epx,epy,TILE*2,TILE);
+    ctx.fillStyle='rgba(0,0,0,0.22)';ctx.fillRect(epx,epy,TILE*2,1);
+    ctx.fillStyle='rgba(0,0,0,0.4)';ctx.fillRect(epx,epy,3,TILE);ctx.fillRect(epx+TILE*2-3,epy,3,TILE);
+  }
+  // Horizontal jog: x:38–42, y:15 (1 tile tall)
+  const njx=38*TILE-wx, njy=15*TILE-wy, njw=5*TILE;
+  ctx.fillStyle='#5a4a30'; // narrow path floor
+  ctx.fillRect(njx,njy,njw,TILE);
+  // Cobblestone lines
+  ctx.fillStyle='rgba(0,0,0,0.22)';
+  for(let i=0;i<5;i++){ctx.fillRect(njx+i*TILE,njy,1,TILE);ctx.fillRect(njx,njy,njw,1);}
+  // Wall shadows on top and bottom edges of the narrow passage
+  ctx.fillStyle='rgba(0,0,0,0.45)';ctx.fillRect(njx,njy,njw,4);ctx.fillRect(njx,njy+TILE-4,njw,4);
+  // Vertical drop: x:42, y:16 (1 tile) — drawn as the corridor tile, arch handles the doorway
+  const ndx=42*TILE-wx, ndy=16*TILE-wy;
+  ctx.fillStyle='#5a4a30';ctx.fillRect(ndx,ndy,TILE,TILE);
+  ctx.fillStyle='rgba(0,0,0,0.22)';ctx.fillRect(ndx,ndy,1,TILE);ctx.fillRect(ndx,ndy,TILE,1);
+}
 function drawWorld(){
   const W=canvas.width,H=canvas.height,wx=camX,wy=camY;
   // Stone wall background
-  ctx.fillStyle='#141010';ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#222222';ctx.fillRect(0,0,W,H);
 
   const stX=Math.max(0,Math.floor(wx/TILE));
   const stY=Math.max(0,Math.floor(wy/TILE));
@@ -643,14 +913,15 @@ function drawWorld(){
         drawFloorTile(sx,sy,tx,ty,room);
         drawWalls(sx,sy,tx,ty,room);
       } else if(cor){
-        ctx.fillStyle='#2a2018';ctx.fillRect(sx,sy,TILE,TILE);
+        ctx.fillStyle='#5a4a30';ctx.fillRect(sx,sy,TILE,TILE);
         if((tx+ty)%3===0){ctx.fillStyle='rgba(0,0,0,0.14)';ctx.fillRect(sx+3,sy+3,TILE-6,TILE-6);}
         ctx.fillStyle='rgba(0,0,0,0.22)';ctx.fillRect(sx,sy,TILE,1);ctx.fillRect(sx,sy,1,TILE);
       } else {
-        // Outer stone wall
-        ctx.fillStyle=(tx+ty)%2===0?'#1c1810':'#161410';ctx.fillRect(sx,sy,TILE,TILE);
-        ctx.fillStyle='rgba(0,0,0,0.38)';ctx.fillRect(sx,sy,TILE,2);
+        // Outer stone wall — dark grey masonry
+        ctx.fillStyle=(tx+ty)%2===0?'#2e2e2e':'#282828';ctx.fillRect(sx,sy,TILE,TILE);
+        ctx.fillStyle='rgba(0,0,0,0.45)';ctx.fillRect(sx,sy,TILE,2);
         const off=Math.floor(ty%2)*18;ctx.fillRect(sx+(off%TILE),sy,2,TILE);
+        ctx.fillStyle='rgba(0,0,0,0.2)';ctx.fillRect(sx,sy,2,TILE);ctx.fillRect(sx+TILE-2,sy,2,TILE);
       }
     }
   }
@@ -660,9 +931,12 @@ function drawWorld(){
   drawLibrary(wx,wy);
   drawTreasury(wx,wy);
   drawArmory(wx,wy);
-  drawBarracks(wx,wy);
+  drawStorage(wx,wy);
   drawBanquetHall(wx,wy);
   drawDungeon(wx,wy);
+
+  // Doorway arches
+  drawDoorways(wx,wy);
 
   // Exit sign + King Lyn
   drawExitSign(wx,wy);
@@ -706,6 +980,21 @@ function getNearestInteractable(){
   let best=null,bestD=120;
   NPCS.forEach(n=>{const d=distToTile(n.tx,n.ty);if(d<bestD){bestD=d;best={type:'npc',obj:n};}});
   SIGNS.forEach(s=>{const d=distToTile(s.tx,s.ty);if(d<bestD){bestD=d;best={type:'sign',obj:s};}});
+  // Treasury door interactable — only show prompt when door is still locked
+  if(!treasuryOpen){
+    const dd=distToTile(TREASURY_DOOR.tx,TREASURY_DOOR.ty);
+    if(dd<bestD){bestD=dd;best={type:'treasury_door',obj:TREASURY_DOOR};}
+  }
+  // Kayak pickup — only available after trade and before collection
+  if(kayakEarned&&!kayakCollected){
+    const kd=distToTile(KAYAK_PICKUP.tx,KAYAK_PICKUP.ty);
+    if(kd<bestD){bestD=kd;best={type:'kayak_pickup',obj:KAYAK_PICKUP};}
+  }
+  // Locked kayak — show hint dialog when trade hasn't been made yet
+  if(!kayakEarned&&!kayakCollected){
+    const kd=distToTile(KAYAK_PICKUP.tx,KAYAK_PICKUP.ty);
+    if(kd<bestD){bestD=kd;best={type:'kayak_locked',obj:KAYAK_PICKUP};}
+  }
   return best;
 }
 function getRoomAt2(tx,ty){return ROOMS.find(r=>tx>=r.x&&tx<r.x+r.w&&ty>=r.y&&ty<r.y+r.h)||null;}
@@ -746,6 +1035,12 @@ function handleA(){
   if(dialogOpen){
     if(activeInteractable&&activeInteractable.type==='npc'){
       const npc=activeInteractable.obj;
+      const isLastLine=npc.dialogIdx===npc.dialogs.length-1;
+      if(npc.id==='lyn'&&isLastLine){
+        // Last Lyn line — trigger the trade dialog instead of cycling back
+        handleLynTrade();
+        return;
+      }
       npc.dialogIdx=(npc.dialogIdx+1)%npc.dialogs.length;
       document.getElementById('dialog-body').textContent=npc.dialogs[npc.dialogIdx].body;
       return;
@@ -754,7 +1049,15 @@ function handleA(){
     if(links.length===1){links[0].click();}else{closeDialog();}
     return;
   }
-  if(activeInteractable) openDialog(activeInteractable);
+  if(activeInteractable){
+    if(activeInteractable.type==='treasury_door'){tryOpenTreasury();return;}
+    if(activeInteractable.type==='kayak_pickup'){collectKayak();return;}
+    if(activeInteractable.type==='kayak_locked'){
+      showInlineDialog('🚣 BLUE KAYAK',"You must talk to the king before you can take his kayak. He will likely want something of value to trade.",'[B] Close');
+      return;
+    }
+    openDialog(activeInteractable);
+  }
 }
 function handleB(){if(menuOpen){closeMenu();return;}if(dialogOpen){closeDialog();return;}}
 
