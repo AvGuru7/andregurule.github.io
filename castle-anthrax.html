@@ -108,7 +108,7 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
 <div id="menu-overlay">
   <div id="menu-box">
     <div id="menu-title">NAVIGATION</div>
-    <a class="menu-item" href="world.html"><span class="menu-item-icon">🗺</span> WORLD MAP</a>
+    <a class="menu-item" href="world.html#spawn=story"><span class="menu-item-icon">🗺</span> WORLD MAP</a>
     <a class="menu-item selected" href="castle-anthrax.html"><span class="menu-item-icon">🏰</span><span id="menu-cursor">▶ </span>CASTLE ANTHRAX</a>
     <a class="menu-item" href="andregurule-library.html"><span class="menu-item-icon">⚔</span> HALL OF RECORDS</a>
     <a class="menu-item" href="https://www.andregurule.com/hobbies" target="_blank"><span class="menu-item-icon">🏕</span> HOBBIES</a>
@@ -223,7 +223,7 @@ const NPCS=[{
 const SIGNS=[
   {id:'exit', label:'◀ EXIT — WORLD MAP', tx:22, ty:29,
    title:'EXIT CASTLE', body:'Leave Castle Anthrax and return to the world map?',
-   links:[{label:'◀ RETURN TO WORLD MAP', href:'world.html', local:true}]},
+   links:[{label:'◀ RETURN TO WORLD MAP', href:'world.html#spawn=story', local:true}]},
   {id:'library_sign',  label:'📚 LIBRARY',      tx:7,  ty:12, title:'LIBRARY / STUDY',  body:'Shelves of ancient tomes, scrolls of lore, and the quiet scratch of a quill. Knowledge lives here.', links:[]},
   {id:'throne_sign',   label:'👑 THRONE ROOM',  tx:20, ty:12, title:'THRONE ROOM',       body:"The seat of King Lyn's power. The golden throne watches all who enter.", links:[]},
   {id:'treasury_sign', label:'💰 TREASURY',     tx:33, ty:12, title:'THE TREASURY',       body:'Coffers of gold, gemstones, and locked chests. The wealth of many campaigns rests here.', links:[]},

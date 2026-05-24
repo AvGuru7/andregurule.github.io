@@ -508,6 +508,20 @@ const GameState = {
 
 let camX=0,camY=0;
 let playerX=16*TILE,playerY=9*TILE;
+
+const SPAWN_POINTS={
+  projects:{x:25,y:9},
+  story:   {x:5, y:9},
+  hobbies: {x:5, y:19},
+  blog:    {x:25,y:19},
+  contact: {x:16,y:14},
+};
+const _spawnHash=location.hash.match(/spawn=(\w+)/);
+if(_spawnHash&&SPAWN_POINTS[_spawnHash[1]]){
+  playerX=SPAWN_POINTS[_spawnHash[1]].x*TILE;
+  playerY=SPAWN_POINTS[_spawnHash[1]].y*TILE;
+  history.replaceState(null,'',location.pathname);
+}
 let facing='down',moving=false,frame=0,frameTimer=0;
 const FRAME_RATE=8;
 let dialogOpen=false,menuOpen=false,activeZone=null,zoneLabelTimer=0;
