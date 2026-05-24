@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Town Square — Andre Gurule</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --gold:#f0c040; --gold2:#c8982a;
+  --ui-bg:#0d0a18; --ui-text:#f0e8c0; --ui-dim:#a09070;
+  --btn-red:#aa2244; --btn-red-hi:#cc4466;
+  --ctrl-body:#2e2e34; --ctrl-hi:#3a3a42; --ctrl-edge:#222;
+  --orange:#e07030;
+}
+body{
+  background:#3a7520;
+  font-family:'Press Start 2P',monospace;
+  overflow:hidden;width:100vw;height:100vh;
+  -webkit-tap-highlight-color:transparent;
+}
+canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;touch-action:none;}
+#player{position:absolute;image-rendering:pixelated;z-index:10;transform:translate(-50%,-50%);pointer-events:none;}
+#player canvas{display:block;image-rendering:pixelated;}
+
+/* ── HUD ── */
+#hud{
+  position:fixed;top:10px;left:10px;z-index:100;
+  background:var(--ui-bg);border:3px solid var(--gold);padding:8px 13px;
+}
+#hud::before{content:'';position:absolute;inset:2px;border:1px solid rgba(240,192,64,0.25);pointer-events:none;}
+#hud-name{font-size:clamp(5px,1.1vw,8px);color:var(--gold);margin-bottom:4px;letter-spacing:1px;}
+#hud-title{font-family:'VT323',monospace;font-size:clamp(13px,2.4vw,17px);color:#ffd080;line-height:1.2;}
+
+/* ── LOCATION BADGE ── */
+#location-badge{
+  position:fixed;top:10px;right:10px;z-index:100;
+  background:var(--ui-bg);border:3px solid var(--orange);
+  padding:8px 13px;font-size:clamp(5px,1vw,8px);color:var(--orange);
+  letter-spacing:1px;
+}
+#location-badge::before{content:'📍 ';}
+
+/* ── DIALOG ── */
+#dialog-box{
+  position:fixed;bottom:clamp(170px,26vh,220px);left:50%;transform:translateX(-50%);
+  width:min(640px,92vw);
+  background:var(--ui-bg);border:4px solid var(--gold);
+  padding:clamp(13px,2.2vh,20px) clamp(14px,2.5vw,22px);
+  z-index:200;display:none;
+}
+#dialog-box::before{content:'';position:absolute;inset:2px;border:2px solid rgba(240,192,64,0.28);pointer-events:none;}
+#dialog-title{
+  font-size:clamp(7px,1.2vw,10px);color:var(--gold);margin-bottom:9px;
+  display:flex;align-items:center;gap:10px;
+}
+#dialog-title::before{content:'▶';color:#ff6060;font-size:8px;animation:blink 0.8s step-end infinite;}
+#dialog-body{font-family:'VT323',monospace;font-size:clamp(16px,3vw,20px);color:var(--ui-text);line-height:1.5;min-height:48px;}
+#dialog-links{display:none;margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;}
+.dialog-link{
+  font-family:'Press Start 2P',monospace;font-size:clamp(5px,0.9vw,7px);
+  color:var(--ui-bg);background:var(--gold);border:none;
+  padding:clamp(6px,1vh,8px) clamp(9px,1.5vw,12px);
+  cursor:pointer;text-decoration:none;display:inline-block;touch-action:manipulation;
+}
+.dialog-link:hover,.dialog-link:active{background:#fff3a0;}
+#btn-hint{
+  margin-top:10px;font-size:clamp(8px,1.4vw,11px);color:var(--ui-dim);
+  display:flex;gap:14px;flex-wrap:wrap;
+}
+.hint-key{display:inline-flex;align-items:center;gap:5px;}
+.hint-badge{background:#222;border:1.5px solid var(--gold2);color:var(--gold);padding:4px 8px;border-radius:2px;font-size:inherit;}
+
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+/* ── MENU OVERLAY ── */
+#menu-overlay{
+  position:fixed;inset:0;background:rgba(10,8,24,0.92);backdrop-filter:blur(4px);
+  z-index:500;display:none;align-items:center;justify-content:center;
+}
+#menu-box{
+  background:var(--ui-bg);border:4px solid var(--gold);
+  padding:clamp(20px,4vw,36px) clamp(24px,5vw,44px);
+  min-width:clamp(240px,50vw,400px);position:relative;
+}
+#menu-box::before{content:'';position:absolute;inset:3px;border:1px solid rgba(240,192,64,0.22);pointer-events:none;}
+#menu-title{font-size:clamp(8px,1.5vw,12px);color:var(--gold);text-align:center;margin-bottom:clamp(18px,3vh,28px);letter-spacing:2px;}
+#menu-title::before{content:'★ ';}
+#menu-title::after{content:' ★';}
+.menu-item{
+  display:flex;width:100%;font-family:'Press Start 2P',monospace;font-size:clamp(7px,1.2vw,10px);
+  color:var(--ui-text);background:transparent;border:none;
+  padding:clamp(10px,1.8vh,16px) clamp(12px,2vw,20px);
+  text-align:left;cursor:pointer;border-left:3px solid transparent;
+  text-decoration:none;align-items:center;gap:12px;
+  transition:color 0.1s,border-color 0.1s,background 0.1s;letter-spacing:0.5px;line-height:1.5;
+  touch-action:manipulation;
+}
+.menu-item:hover,.menu-item:active,.menu-item.selected{color:var(--gold);border-left-color:var(--gold);background:rgba(240,192,64,0.06);}
+.menu-item-icon{font-size:12px;width:20px;text-align:center;flex-shrink:0;}
+#menu-divider{height:1px;background:rgba(240,192,64,0.18);margin:clamp(8px,1.5vh,14px) 0;}
+#menu-close-hint{text-align:center;margin-top:clamp(12px,2vh,20px);font-size:clamp(5px,0.8vw,7px);color:var(--ui-dim);}
+.hint-badge-sm{background:#222;border:1.5px solid #555;color:#aaa;padding:1px 5px;border-radius:2px;font-size:inherit;}
+#menu-cursor{color:var(--gold);font-size:10px;margin-right:4px;}
+
+/* ── CURSOR ── */
+@media(pointer:fine){
+  body{cursor:none;}
+  #cursor{position:fixed;width:12px;height:12px;border:2px solid var(--gold);pointer-events:none;z-index:9999;transform:translate(-50%,-50%);}
+}
+@media(pointer:coarse){#cursor{display:none;}}
+
+/* ── NES CONTROLLER ── */
+#nes-controller{
+  position:fixed;bottom:0;left:0;right:0;z-index:300;
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  background:#0d0a18;padding:clamp(8px,1.5vh,16px) 0 clamp(8px,1.5vh,14px);
+  border-top:2px solid #2a2040;
+}
+#controller-body{
+  position:relative;width:clamp(388.8px,60.75vw,518.4px);height:clamp(90px,14vw,120px);
+  background:linear-gradient(180deg,#3a3a40 0%,#2e2e34 60%,#252528 100%);
+  border-radius:6px 6px 10px 10px;border:2px solid #555;
+  box-shadow:0 4px 18px rgba(0,0,0,0.7),0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.08),inset 0 -2px 0 rgba(0,0,0,0.5);
+  display:flex;align-items:center;justify-content:space-between;padding:0 clamp(18px,4vw,28px);
+}
+#controller-body::before{content:'';position:absolute;top:10px;left:12px;right:12px;height:2px;background:rgba(255,255,255,0.05);border-radius:1px;}
+#controller-body::after{content:'';position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:clamp(60px,12vw,90px);height:6px;background:rgba(255,255,255,0.04);border-radius:3px;}
+#dpad{position:relative;width:clamp(70px,13vw,96px);height:clamp(70px,13vw,96px);flex-shrink:0;}
+.dpad-h,.dpad-v{position:absolute;background:linear-gradient(180deg,#4c4c56,#38383f);border:2.5px solid #1a1a20;border-radius:3px;}
+.dpad-h{left:0;right:0;top:33.3%;bottom:33.3%;box-shadow:inset 0 2px 0 rgba(255,255,255,0.09),inset 0 -2px 0 rgba(0,0,0,0.4);}
+.dpad-v{top:0;bottom:0;left:33.3%;right:33.3%;box-shadow:inset 2px 0 0 rgba(255,255,255,0.09),inset -2px 0 0 rgba(0,0,0,0.4);}
+.dpad-center{position:absolute;left:33.3%;right:33.3%;top:33.3%;bottom:33.3%;background:#3c3c44;border-radius:2px;z-index:2;}
+.dpad-btn{position:absolute;z-index:3;display:flex;align-items:center;justify-content:center;cursor:pointer;user-select:none;touch-action:none;-webkit-tap-highlight-color:transparent;}
+#btn-up{top:0;left:33.3%;right:33.3%;height:33.3%;}
+#btn-down{bottom:0;left:33.3%;right:33.3%;height:33.3%;}
+#btn-left{left:0;top:33.3%;bottom:33.3%;width:33.3%;}
+#btn-right{right:0;top:33.3%;bottom:33.3%;width:33.3%;}
+#btn-up::after{content:'▲';}
+#btn-down::after{content:'▼';}
+#btn-left::after{content:'◀';}
+#btn-right::after{content:'▶';}
+.dpad-btn::after{font-size:clamp(8px,1.6vw,12px);color:rgba(255,255,255,0.3);}
+.dpad-btn.pressing::after{color:var(--gold);text-shadow:0 0 7px var(--gold);}
+#center-section{display:flex;flex-direction:column;align-items:center;gap:clamp(6px,1.2vw,10px);flex-shrink:0;margin-left:clamp(8px,2vw,16px);margin-right:clamp(0px,1vw,8px);}
+#select-start-row{display:flex;gap:clamp(8px,1.8vw,14px);align-items:center;}
+.ss-btn{width:clamp(32px,6vw,46px);height:clamp(10px,2vw,14px);background:linear-gradient(180deg,#3a3a42,#28282e);border:1.5px solid #1a1a20;border-radius:clamp(5px,1vw,7px);box-shadow:0 2px 0 rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.07);cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;display:flex;align-items:center;justify-content:center;transition:transform 0.06s,box-shadow 0.06s;}
+.ss-btn:active,.ss-btn.pressed{transform:translateY(1px);box-shadow:none;}
+.ss-label{font-family:'Press Start 2P',monospace;font-size:clamp(4px,0.8vw,6px);color:#666;letter-spacing:0.5px;margin-top:clamp(2px,0.5vh,4px);text-align:center;}
+#menu-btn-wrap{display:flex;flex-direction:column;align-items:center;position:relative;}
+#menu-btn{width:clamp(36px,6.5vw,50px);height:clamp(36px,6.5vw,50px);border-radius:50%;background:radial-gradient(circle at 42% 38%,#4a4a54,#26262e);border:2.5px solid #1a1a20;box-shadow:0 3px 0 rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.1),0 0 0 3px rgba(240,192,64,0.15);cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;display:flex;align-items:center;justify-content:center;transition:transform 0.06s,box-shadow 0.06s;}
+#menu-btn:hover{box-shadow:0 3px 0 rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.1),0 0 0 4px rgba(240,192,64,0.35);}
+#menu-btn:active,#menu-btn.pressed{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,0.55);}
+#menu-btn-icon{font-family:'Press Start 2P',monospace;font-size:clamp(5px,0.9vw,7px);color:rgba(240,192,64,0.85);letter-spacing:0.5px;line-height:1.3;text-align:center;}
+#menu-btn-label{font-family:'Press Start 2P',monospace;font-size:clamp(4px,0.7vw,5px);color:var(--gold2);margin-top:4px;letter-spacing:0.5px;}
+#ab-buttons{display:flex;gap:clamp(8px,1.8vw,14px);align-items:center;flex-shrink:0;transform:rotate(-18deg);}
+.ab-btn{width:clamp(36px,6.5vw,50px);height:clamp(36px,6.5vw,50px);border-radius:50%;border:2.5px solid #1a1a20;display:flex;align-items:center;justify-content:center;font-family:'Press Start 2P',monospace;font-size:clamp(9px,1.6vw,12px);cursor:pointer;touch-action:manipulation;user-select:none;box-shadow:0 4px 0 rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.15);transition:transform 0.06s,box-shadow 0.06s;-webkit-tap-highlight-color:transparent;}
+.ab-btn:active,.ab-btn.pressed{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,0.55);}
+#btn-b{background:radial-gradient(circle at 40% 35%,var(--btn-red-hi),var(--btn-red));color:rgba(255,255,255,0.85);}
+#btn-a{background:radial-gradient(circle at 40% 35%,var(--btn-red-hi),var(--btn-red));color:rgba(255,255,255,0.85);}
+.ab-label-row{display:flex;gap:clamp(8px,1.8vw,14px);transform:rotate(-18deg);margin-top:clamp(2px,0.5vh,4px);}
+.ab-label{font-family:'Press Start 2P',monospace;font-size:clamp(4px,0.7vw,5px);color:#555;width:clamp(36px,6.5vw,50px);text-align:center;}
+#ab-col{display:flex;flex-direction:column;align-items:center;flex-shrink:0;}
+#ctrl-hint{font-family:'VT323',monospace;font-size:clamp(10px,1.8vw,13px);color:var(--gold);text-align:center;opacity:0.75;}
+
+/* ── PICKUP FLASH ── */
+#pickup-flash{
+  position:fixed;top:50%;left:50%;transform:translate(-50%,-60%);
+  background:var(--ui-bg);border:3px solid var(--gold);
+  padding:clamp(10px,1.8vh,16px) clamp(14px,2.5vw,22px);
+  z-index:600;display:none;text-align:center;pointer-events:none;
+}
+#pickup-flash-icon{font-size:clamp(24px,5vw,36px);display:block;margin-bottom:6px;}
+#pickup-flash-text{font-size:clamp(6px,1vw,8px);color:var(--gold);line-height:1.6;}
+#pickup-flash-pts{font-family:'VT323',monospace;font-size:clamp(16px,3vw,22px);color:#40c060;margin-top:4px;}
+
+/* ── EXIT SIGN ── */
+#exit-sign{
+  position:fixed;bottom:clamp(170px,26vh,220px);left:clamp(16px,3vw,28px);
+  z-index:150;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+}
+#exit-sign-board{
+  background:#1a1a0a;border:3px solid var(--gold2);
+  padding:6px 10px;
+  font-size:clamp(5px,0.9vw,7px);color:var(--gold);
+  letter-spacing:1px;white-space:nowrap;
+}
+#exit-sign-arrow{
+  font-family:'VT323',monospace;font-size:clamp(14px,2.5vw,18px);
+  color:var(--gold);animation:pulse-arrow 1.2s ease-in-out infinite;
+}
+#exit-sign-post{width:6px;height:clamp(20px,3vh,30px);background:linear-gradient(180deg,#8a7040,#5a4820);}
+@keyframes pulse-arrow{0%,100%{opacity:1;transform:translateX(0);}50%{opacity:0.6;transform:translateX(-3px);}}
+</style>
+</head>
+<body>
+
+<div id="cursor"></div>
+<canvas id="world-canvas"></canvas>
+<div id="player"><canvas id="player-canvas" width="32" height="48"></canvas></div>
+
+<!-- HUD -->
+<div id="hud">
+  <div id="hud-name">ANDRE GURULE</div>
+  <div id="hud-title">💌 TOWN SQUARE</div>
+</div>
+
+<!-- Location badge -->
+<div id="location-badge">TOWN SQUARE</div>
+
+<!-- Exit sign -->
+<div id="exit-sign" onclick="exitToWorld()">
+  <div id="exit-sign-board">◀ EXIT</div>
+  <div id="exit-sign-post"></div>
+</div>
+
+<!-- Dialog -->
+<div id="dialog-box">
+  <div id="dialog-title">NPC</div>
+  <div id="dialog-body"></div>
+  <div id="dialog-links"></div>
+  <div id="btn-hint">
+    <span class="hint-key"><span class="hint-badge">A</span> select</span>
+    <span class="hint-key"><span class="hint-badge">B</span> close</span>
+  </div>
+</div>
+
+<!-- Menu overlay -->
+<div id="menu-overlay" style="display:none;align-items:center;justify-content:center;">
+  <div id="menu-box">
+    <div id="menu-title">NAVIGATION</div>
+    <a class="menu-item" id="menu-world" href="world.html">
+      <span class="menu-item-icon">🗺</span> WORLD MAP
+    </a>
+    <a class="menu-item" href="andregurule-library.html">
+      <span class="menu-item-icon">⚔</span> HALL OF RECORDS
+    </a>
+    <a class="menu-item" href="castle-anthrax.html">
+      <span class="menu-item-icon">📖</span> CASTLE ANTHRAX
+    </a>
+    <a class="menu-item" href="https://www.andregurule.com/hobbies" target="_blank">
+      <span class="menu-item-icon">⛰</span> EREBOR MOUNTAIN
+    </a>
+    <a class="menu-item" href="https://www.andregurule.com/blog" target="_blank">
+      <span class="menu-item-icon">📜</span> SCROLL LIBRARY
+    </a>
+    <div id="menu-divider"></div>
+    <a class="menu-item" href="https://linkedin.com/in/andregurule" target="_blank">
+      <span class="menu-item-icon">💼</span> LINKEDIN
+    </a>
+    <a class="menu-item" href="mailto:hello@andregurule.com">
+      <span class="menu-item-icon">✉</span> EMAIL ANDRE
+    </a>
+    <div id="menu-close-hint">
+      <span class="hint-badge-sm">B</span> or <span class="hint-badge-sm">MENU</span> to close
+      &nbsp;·&nbsp;<span class="hint-badge-sm">↑↓</span> navigate
+      &nbsp;·&nbsp;<span class="hint-badge-sm">A</span> select
+    </div>
+  </div>
+</div>
+
+<!-- NES Controller -->
+<div id="nes-controller">
+  <div id="controller-body">
+    <div id="dpad">
+      <div class="dpad-h"></div>
+      <div class="dpad-v"></div>
+      <div class="dpad-center"></div>
+      <div class="dpad-btn" id="btn-up"    data-dir="up"></div>
+      <div class="dpad-btn" id="btn-down"  data-dir="down"></div>
+      <div class="dpad-btn" id="btn-left"  data-dir="left"></div>
+      <div class="dpad-btn" id="btn-right" data-dir="right"></div>
+    </div>
+    <div id="center-section">
+      <div id="menu-btn-wrap">
+        <div id="menu-btn" onclick="toggleMenu()"><div id="menu-btn-icon">MENU</div></div>
+        <div id="menu-btn-label">MENU</div>
+      </div>
+      <div id="select-start-row">
+        <div style="display:flex;flex-direction:column;align-items:center;">
+          <div class="ss-btn" id="btn-select" onclick="exitToWorld()"></div>
+          <div class="ss-label">SELECT</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;">
+          <div class="ss-btn" id="btn-start" onclick="handleA()"></div>
+          <div class="ss-label">START</div>
+        </div>
+      </div>
+    </div>
+    <div id="ab-col">
+      <div id="ab-buttons">
+        <div class="ab-btn" id="btn-b" onclick="handleB()">B</div>
+        <div class="ab-btn" id="btn-a" onclick="handleA()">A</div>
+      </div>
+      <div class="ab-label-row">
+        <div class="ab-label">BACK</div>
+        <div class="ab-label">SELECT</div>
+      </div>
+    </div>
+  </div>
+  <div id="ctrl-hint">D-PAD · A=INTERACT · B=CLOSE · MENU=NAV · SELECT=EXIT</div>
+</div>
+
+<!-- Pickup Flash -->
+<div id="pickup-flash">
+  <span id="pickup-flash-icon"></span>
+  <div id="pickup-flash-text"></div>
+  <div id="pickup-flash-pts"></div>
+</div>
+
+<script>
+// ── GAME STATE ──
+const _p = new URLSearchParams(window.location.search);
+const GameState = {
+  points:   parseInt(_p.get('points')  || '0', 10),
+  visited:  _p.get('visited')   ? _p.get('visited').split(',').filter(Boolean)  : [],
+  unlocked: _p.get('unlocked')  ? _p.get('unlocked').split(',').filter(Boolean) : [],
+  items:    _p.get('items')     ? _p.get('items').split(',').filter(Boolean)    : [],
+  visitZone(id,pts=10){if(!this.visited.includes(id)){this.visited.push(id);this.points+=pts;}},
+  unlock(key){if(!this.unlocked.includes(key))this.unlocked.push(key);},
+  collectItem(id){
+    const item=ITEMS.find(i=>i.id===id);
+    if(!item||this.items.includes(id))return false;
+    this.items.push(id);this.points+=item.points;return true;
+  },
+  hasItem(id){return this.items.includes(id);},
+  consumeItem(id){const idx=this.items.indexOf(id);if(idx>-1)this.items.splice(idx,1);},
+  toParams(){
+    return new URLSearchParams({
+      points:this.points,visited:this.visited.join(','),
+      unlocked:this.unlocked.join(','),items:this.items.join(',')
+    }).toString();
+  },
+  withState(href){return href+(href.includes('?')?'&':'?')+this.toParams();}
+};
+
+// Mark this zone visited on arrival
+GameState.visitZone('contact', 10);
+
+// Items available on this page
+const ITEMS = [
+  {id:'artwork', icon:'🖼️', label:'Artwork',   category:'collectible', points:10, page:'Town Square'},
+  {id:'bread',   icon:'🍞', label:'Bread',     category:'collectible', points:10, page:'Town Square'},
+];
+
+// ── WORLD SIZE — the plaza interior ──
+const TILE = 48;
+const COLS = 16, ROWS = 12;          // tiles wide & tall
+const PW = COLS * TILE, PH = ROWS * TILE;
+
+const canvas = document.getElementById('world-canvas');
+const ctx = canvas.getContext('2d');
+ctx.imageSmoothingEnabled = false;
+
+const playerCanvas = document.getElementById('player-canvas');
+const pCtx = playerCanvas.getContext('2d');
+pCtx.imageSmoothingEnabled = false;
+
+function ctrlHeight(){
+  const ctrl = document.getElementById('nes-controller');
+  return ctrl ? ctrl.offsetHeight + 16 : 160;
+}
+function resize(){
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight - ctrlHeight();
+  ctx.imageSmoothingEnabled = false;
+}
+resize();
+window.addEventListener('resize', resize);
+
+// ── CAMERA ──
+let camX = 0, camY = 0;
+
+// ── PLAYER ──
+let playerX = PW/2;    // start center
+let playerY = PH*0.72; // start near bottom — just inside entrance
+let facing = 'up', moving = false, frame = 0, frameTimer = 0;
+const FRAME_RATE = 8;
+const keys = {up:false,down:false,left:false,right:false};
+
+// ── DIALOG / MENU STATE ──
+let dialogOpen = false, menuOpen = false;
+let menuItems = [], menuIdx = 0;
+
+// ── PSEUDO RANDOM (deterministic) ──
+function pseudoRand(x,y,seed=42){
+  const n = Math.sin(x*127.1+y*311.7+seed*74.3)*43758.5453;
+  return n - Math.floor(n);
+}
+
+// ── WORLD GEOMETRY ──
+// Fountain center in world coords
+const FCX = PW / 2;
+const FCY = PH * 0.44;
+const FR  = Math.min(PW, PH) * 0.13;  // fountain radius
+
+// Stall rects [x, y, w, h] in world pixels — matches draw code
+const SW = PW * 0.16, SH = PH * 0.22;
+const TW = PW * 0.22, TH = PH * 0.2;
+const STALLS = [
+  {x:8,          y:8,         w:SW, h:SH, awning:'#c03030', stripe:'#f06060', goods:'🥖🧀', name:'BAKER\'S STALL',  speech:'Fresh bread baked this morning! 🥖 And aged cheese from the highlands. Take some for the road!'},
+  {x:8,          y:PH-SH-8,   w:SW, h:SH, awning:'#208040', stripe:'#50c060', goods:'🥕🌽', name:'VEGGIE MARKET',   speech:'Finest vegetables in the realm! 🌽 Harvested at dawn from the valley farms.'},
+  {x:PW-SW-12,   y:8,         w:SW, h:SH, awning:'#6040c0', stripe:'#9080f0', goods:'🏺🪬', name:'CRAFT STALL',    speech:'Handmade wares and trinkets. 🏺 Each piece tells a story. Perhaps one will find you?'},
+  {x:PW-SW-12,   y:PH-SH-8,   w:SW, h:SH, awning:'#c07820', stripe:'#f0b040', goods:'🌶️🧄', name:'SPICE TRADER',   speech:'Rare spices from distant lands! 🌶️ Add some fire to your journey.'},
+  {x:PW/2-TW/2,  y:6,         w:TW, h:TH, awning:'#205090', stripe:'#4080d0', goods:'🐟🦐', name:'FISH MONGER',    speech:'Catch of the day! 🐟 Reeled fresh from Lake Tahoe this very morning.'},
+];
+
+// NPCs — wandering visitors and two contact NPCs
+const NPCS = [
+  // Wandering ambient folk
+  {x:PW*0.28, y:PH*0.30, body:'#6050a0', head:'#f5c5a3', phase:0,   wander:true, speed:0.4, name:null},
+  {x:PW*0.38, y:PH*0.65, body:'#c04040', head:'#d4a070', phase:2,   wander:true, speed:0.35,name:null},
+  {x:PW*0.55, y:PH*0.22, body:'#208050', head:'#f0c090', phase:4,   wander:true, speed:0.45,name:null},
+  {x:PW*0.70, y:PH*0.72, body:'#4070b0', head:'#e0b080', phase:1,   wander:true, speed:0.3, name:null},
+  {x:PW*0.82, y:PH*0.38, body:'#a06020', head:'#f5c5a3', phase:3,   wander:true, speed:0.4, name:null},
+  {x:FCX-22,  y:FCY+FR+18,body:'#905030',head:'#d4a870', phase:5,   wander:true, speed:0.3, name:null},
+  {x:FCX+28,  y:FCY-FR-18,body:'#507080',head:'#f0d0a0', phase:1.5, wander:true, speed:0.35,name:null},
+  // Contact NPCs — stationary, interactive
+  {x:PW*0.28, y:PH*0.76, body:'#1a5090', head:'#f0d0a0', phase:0, wander:false, speed:0,
+   name:'MESSENGER',
+   speech:'Greetings, traveler! Andre can be reached on LinkedIn — he checks it regularly and would love to connect!',
+   links:[{label:'💼 LINKEDIN', href:'https://linkedin.com/in/andregurule', external:true}]},
+  {x:PW*0.72, y:PH*0.76, body:'#902020', head:'#f5c5a3', phase:2, wander:false, speed:0,
+   name:'TOWN CRIER',
+   speech:'HEAR YE! Want to work with Andre? Send a raven — or an email. Same thing, really. ✉',
+   links:[{label:'✉ EMAIL ANDRE', href:'mailto:hello@andregurule.com', external:false}]},
+];
+
+// Wander target for each wandering NPC
+NPCS.forEach(n=>{
+  if(n.wander){n.tx=n.x;n.ty=n.y;n._timer=Math.random()*180;}
+});
+
+// ── ITEMS on this page ──
+const PAGE_ITEMS = [
+  {id:'artwork', icon:'🖼️', label:'Artwork', points:10,
+   x: PW*0.72, y: PH*0.58,
+   speech:'A small oil painting — a riverside market at dusk. Press A to take it.'},
+  {id:'bread',   icon:'🍞', label:'Bread',   points:10,
+   x: PW*0.28, y: PH*0.58,
+   speech:'A warm loaf of bread from the baker. Press A to collect it.'},
+];
+
+// ── COLLISION: returns true if a world-pixel point is blocked ──
+function isBlocked(wx, wy){
+  // Perimeter wall
+  if(wx<16||wx>PW-16||wy<16||wy>PH-16) return true;
+  // Fountain basin
+  const dx = wx - FCX, dy = wy - FCY;
+  if((dx*dx)/(FR*FR)+(dy*dy)/((FR*0.36)*(FR*0.36)) < 1) return true;
+  // Stall bodies
+  for(const s of STALLS){
+    if(wx>s.x+4&&wx<s.x+s.w-4&&wy>s.y+s.h*0.45&&wy<s.y+s.h*0.87) return true;
+  }
+  return false;
+}
+
+// ── NPC WANDER ──
+function updateNPCs(){
+  const t = Date.now();
+  NPCS.forEach(n=>{
+    if(!n.wander) return;
+    n._timer--;
+    if(n._timer<=0){
+      // Pick a new wander target
+      for(let attempt=0;attempt<10;attempt++){
+        const nx = PW*0.15 + Math.random()*PW*0.7;
+        const ny = PH*0.18 + Math.random()*PH*0.65;
+        if(!isBlocked(nx,ny)){n.tx=nx;n.ty=ny;break;}
+      }
+      n._timer = 120 + Math.random()*300;
+    }
+    // Move toward target
+    const dx=n.tx-n.x, dy=n.ty-n.y, dist=Math.hypot(dx,dy);
+    if(dist>2){
+      const nx=n.x+dx/dist*n.speed;
+      const ny=n.y+dy/dist*n.speed;
+      if(!isBlocked(nx,ny)){n.x=nx;n.y=ny;}
+    }
+  });
+}
+
+// ── DRAW STALL ──
+function drawStall(s){
+  const {x:sx,y:sy,w:sw,h:sh,awning,stripe,goods}=s;
+  // Table
+  ctx.fillStyle='#7a5428'; ctx.fillRect(sx,sy+sh*0.45,sw,sh*0.3);
+  ctx.fillStyle='#5c3c18'; ctx.fillRect(sx,sy+sh*0.75,sw,sh*0.12);
+  // Legs
+  ctx.fillStyle='#4a3010';
+  ctx.fillRect(sx+4,sy+sh*0.75,4,sh*0.25);
+  ctx.fillRect(sx+sw-8,sy+sh*0.75,4,sh*0.25);
+  // Poles
+  ctx.fillStyle='#5c3c18';
+  ctx.fillRect(sx+2,sy,4,sh*0.5);
+  ctx.fillRect(sx+sw-6,sy,4,sh*0.5);
+  // Awning
+  ctx.fillStyle=awning;
+  ctx.beginPath();
+  ctx.moveTo(sx-4,sy+sh*0.1);
+  ctx.lineTo(sx+sw+4,sy+sh*0.1);
+  ctx.lineTo(sx+sw+6,sy+sh*0.42);
+  ctx.lineTo(sx-6,sy+sh*0.42);
+  ctx.closePath(); ctx.fill();
+  // Stripes
+  ctx.fillStyle=stripe;
+  for(let i=sx-4;i<sx+sw+8;i+=14){ctx.fillRect(i,sy+sh*0.1,7,sh*0.32);}
+  // Valance
+  ctx.fillStyle=awning;
+  for(let v=sx-5;v<sx+sw+6;v+=8){ctx.beginPath();ctx.arc(v+4,sy+sh*0.42,5,0,Math.PI);ctx.fill();}
+  // Goods
+  ctx.font=`${Math.min(sh*0.22,14)}px serif`;
+  ctx.textAlign='center';
+  ctx.fillText(goods,sx+sw/2,sy+sh*0.58);
+  ctx.textAlign='left';
+  // Stall name sign
+  ctx.fillStyle='#f0e8c0';
+  ctx.fillRect(sx,sy+sh*0.88,sw,sh*0.12);
+  ctx.fillStyle='#1a1a2e';
+  ctx.font=`bold ${Math.min(sw*0.1,7)}px "Press Start 2P"`;
+  ctx.textAlign='center';
+  ctx.fillText(s.name, sx+sw/2, sy+sh*0.97);
+  ctx.textAlign='left';
+}
+
+// ── DRAW FOUNTAIN ──
+function drawFountain(){
+  const t=Date.now();
+  // Shadow
+  ctx.fillStyle='rgba(0,0,0,0.2)';
+  ctx.beginPath();ctx.ellipse(FCX+4,FCY+FR*0.38+4,FR+6,FR*0.4,0,0,Math.PI*2);ctx.fill();
+  // Basin rim
+  ctx.fillStyle='#d4bc88';
+  ctx.beginPath();ctx.ellipse(FCX,FCY,FR+6,FR*0.42,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#c8b080';
+  ctx.beginPath();ctx.ellipse(FCX,FCY,FR+3,FR*0.38,0,0,Math.PI*2);ctx.fill();
+  // Water
+  const wp=Math.sin(t/600)*0.05;
+  const wg=ctx.createRadialGradient(FCX,FCY,2,FCX,FCY,FR);
+  wg.addColorStop(0,`hsla(200,72%,${58+wp*18}%,1)`);
+  wg.addColorStop(0.55,`hsla(210,65%,${44+wp*12}%,1)`);
+  wg.addColorStop(1,'hsla(218,62%,30%,1)');
+  ctx.fillStyle=wg;
+  ctx.beginPath();ctx.ellipse(FCX,FCY,FR,FR*0.33,0,0,Math.PI*2);ctx.fill();
+  // Ripples
+  ctx.save();
+  [0.3,0.58,0.82].forEach((rf,i)=>{
+    ctx.strokeStyle=`rgba(200,230,255,${0.28+0.14*Math.sin(t/450+i*1.8)})`;
+    ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.ellipse(FCX,FCY,FR*rf,FR*rf*0.33,0,0,Math.PI*2);ctx.stroke();
+  });
+  ctx.restore();
+  // Pedestal
+  ctx.fillStyle='#c8a870';
+  ctx.fillRect(FCX-5,FCY-FR*0.55,10,FR*0.52);
+  ctx.fillStyle='#dac890';
+  ctx.beginPath();ctx.ellipse(FCX,FCY-FR*0.55,FR*0.2,FR*0.08,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#d4bc88';
+  ctx.beginPath();ctx.ellipse(FCX,FCY-2,FR*0.15,FR*0.06,0,0,Math.PI*2);ctx.fill();
+  // Jet streams
+  ctx.save();ctx.strokeStyle='rgba(160,215,255,0.78)';ctx.lineWidth=2.5;
+  for(let j=0;j<4;j++){
+    const angle=(j/4)*Math.PI*2;
+    const waveOff=Math.sin(t/380+j*2.1)*4;
+    const jx=FCX+Math.cos(angle)*FR*0.6;
+    const jy=FCY+Math.sin(angle)*FR*0.24;
+    const cx1=FCX+Math.cos(angle+0.5)*FR*0.25;
+    const cy1=FCY-FR*0.38+waveOff;
+    ctx.beginPath();ctx.moveTo(FCX,FCY-FR*0.54);ctx.quadraticCurveTo(cx1,cy1,jx,jy);ctx.stroke();
+  }
+  ctx.restore();
+  // Droplets
+  ctx.fillStyle='rgba(200,238,255,0.72)';
+  for(let d=0;d<6;d++){
+    const da=(d/6)*Math.PI*2+t/1600;
+    const dr=FR*(0.58+0.1*Math.sin(t/280+d));
+    ctx.beginPath();ctx.arc(FCX+Math.cos(da)*dr,FCY+Math.sin(da)*(dr*0.4),2,0,Math.PI*2);ctx.fill();
+  }
+  // "FOUNTAIN" label on rim
+  ctx.fillStyle='rgba(0,0,0,0.45)';
+  ctx.font='bold 6px "Press Start 2P"';ctx.textAlign='center';
+  ctx.fillText('FOUNTAIN',FCX,FCY+FR*0.38+10);
+  ctx.textAlign='left';
+}
+
+// ── DRAW NPC ──
+function drawNPC(n){
+  const t=Date.now();
+  const bob=Math.sin(t/300+n.phase)*1.5;
+  const leg=Math.sin(t/300+n.phase);
+  const px=Math.round(n.x-camX);
+  const py=Math.round(n.y-camY);
+  // Shadow
+  ctx.fillStyle='rgba(0,0,0,0.18)';
+  ctx.beginPath();ctx.ellipse(px,py+10,6,2.5,0,0,Math.PI*2);ctx.fill();
+  // Legs
+  ctx.fillStyle='#2a1a08';
+  ctx.fillRect(px-4,py+2+bob,3,7+leg*2);
+  ctx.fillRect(px+1,py+2+bob,3,7-leg*2);
+  // Body
+  ctx.fillStyle=n.body;ctx.fillRect(px-5,py-5+bob,11,9);
+  // Arms
+  ctx.fillRect(px-8,py-4+bob+leg*2,3,7);
+  ctx.fillRect(px+5,py-4+bob-leg*2,3,7);
+  // Head
+  ctx.fillStyle=n.head;ctx.fillRect(px-4,py-14+bob,9,9);
+  // Eyes
+  ctx.fillStyle='#1a1a2e';ctx.fillRect(px-2,py-11+bob,2,2);ctx.fillRect(px+2,py-11+bob,2,2);
+  // Name badge for interactive NPCs
+  if(n.name){
+    const bw=n.name.length*5+12;
+    ctx.fillStyle='rgba(13,10,24,0.85)';
+    ctx.fillRect(px-bw/2,py-26+bob,bw,10);
+    ctx.fillStyle='#f0c040';
+    ctx.font='bold 5px "Press Start 2P"';ctx.textAlign='center';
+    ctx.fillText(n.name,px,py-18+bob);
+    ctx.textAlign='left';
+    // Interact prompt if nearby
+    const dist=Math.hypot(playerX-n.x,playerY-n.y);
+    if(dist<64&&!dialogOpen){
+      ctx.fillStyle='rgba(240,192,64,0.9)';
+      ctx.font='bold 6px "Press Start 2P"';ctx.textAlign='center';
+      ctx.fillText('[A]',px,py-30+bob);
+      ctx.textAlign='left';
+    }
+  }
+}
+
+// ── DRAW PAGE ITEMS ──
+function drawPageItems(){
+  PAGE_ITEMS.forEach(item=>{
+    if(GameState.hasItem(item.id)) return;
+    const px=Math.round(item.x-camX);
+    const py=Math.round(item.y-camY);
+    const t=Date.now();
+    const bob=Math.sin(t/400)*3;
+    // Shadow
+    ctx.fillStyle='rgba(0,0,0,0.22)';
+    ctx.beginPath();ctx.ellipse(px,py+16,9,3,0,0,Math.PI*2);ctx.fill();
+    // Emoji
+    ctx.font='22px serif';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(item.icon,px,py+bob);
+    ctx.textAlign='left';ctx.textBaseline='alphabetic';
+    // Pickup prompt if nearby
+    const dist=Math.hypot(playerX-item.x,playerY-item.y);
+    if(dist<60&&!dialogOpen){
+      ctx.fillStyle='rgba(240,192,64,0.9)';
+      ctx.font='bold 6px "Press Start 2P"';ctx.textAlign='center';
+      ctx.fillText('[A]',px,py-12+bob);
+      ctx.textAlign='left';
+    }
+  });
+}
+
+// ── DRAW GROUND ──
+function drawGround(){
+  // Base stone
+  ctx.fillStyle='#b89c74';ctx.fillRect(0,0,PW,PH);
+  // Cobbles
+  for(let gy=0;gy<PH;gy+=10){
+    const row=Math.floor(gy/10);
+    for(let gx=(row%2)*7;gx<PW;gx+=14){
+      ctx.fillStyle=pseudoRand(gx,gy)>0.5?'#c4a87e':'#aa9060';
+      ctx.fillRect(gx-camX,gy-camY,12,8);
+      ctx.fillStyle='#8a7048';
+      ctx.fillRect(gx-camX,gy-camY,12,1);
+      ctx.fillRect(gx-camX,gy-camY,1,8);
+    }
+  }
+  // Perimeter low wall
+  const W4=4;
+  ctx.fillStyle='#c8a870';
+  ctx.fillRect(-camX,        -camY,         PW,  W4);
+  ctx.fillRect(-camX,        PH-W4-camY,    PW,  W4);
+  ctx.fillRect(-camX,        -camY,         W4,  PH);
+  ctx.fillRect(PW-W4-camX,   -camY,         W4,  PH);
+  ctx.fillStyle='#8a6840';
+  ctx.fillRect(-camX,        W4-camY,       PW,  1);
+  ctx.fillRect(-camX,        PH-W4-1-camY,  PW,  1);
+  ctx.fillRect(W4-camX,      -camY,         1,   PH);
+  ctx.fillRect(PW-W4-1-camX, -camY,         1,   PH);
+
+  // Entrance arch at bottom center
+  const archW=80, archX=PW/2-archW/2;
+  ctx.fillStyle='#c8a870';ctx.fillRect(archX-camX,PH-14-camY,archW,14);
+  ctx.fillStyle='#f0e8c0';ctx.fillRect(archX+4-camX,PH-10-camY,archW-8,6);
+  ctx.fillStyle='#1a1a2e';ctx.font='bold 5px "Press Start 2P"';ctx.textAlign='center';
+  ctx.fillText('ENTRANCE',PW/2-camX,PH-4-camY);
+  ctx.textAlign='left';
+
+  // Decorative corner stones
+  [[0,0],[PW-16,0],[0,PH-16],[PW-16,PH-16]].forEach(([cx,cy])=>{
+    ctx.fillStyle='#d4bc88';ctx.fillRect(cx-camX,cy-camY,16,16);
+    ctx.fillStyle='#a89060';ctx.fillRect(cx+2-camX,cy+2-camY,12,12);
+    ctx.fillStyle='#c8a870';ctx.fillRect(cx+5-camX,cy+5-camY,6,6);
+  });
+
+  // Lamp posts — two flanking the entrance
+  [[PW/2-60, PH-60],[PW/2+48, PH-60]].forEach(([lx,ly])=>{
+    const t=Date.now();
+    ctx.fillStyle='#4a3010';ctx.fillRect(lx-3-camX,ly-camY,6,50);
+    ctx.fillStyle='#7a6030';ctx.fillRect(lx-7-camX,ly+46-camY,14,4);
+    // Lamp head
+    ctx.fillStyle='#c8a850';ctx.fillRect(lx-6-camX,ly-18-camY,12,18);
+    ctx.fillStyle='#1a1a2e';ctx.fillRect(lx-4-camX,ly-16-camY,8,14);
+    // Warm glow
+    const gp=0.6+0.4*Math.sin(t/900+lx);
+    ctx.save();
+    const lg=ctx.createRadialGradient(lx-camX,ly-8-camY,2,lx-camX,ly-8-camY,40);
+    lg.addColorStop(0,`rgba(255,200,60,${0.28*gp})`);
+    lg.addColorStop(1,'rgba(255,200,60,0)');
+    ctx.fillStyle=lg;ctx.fillRect(lx-40-camX,ly-48-camY,80,60);
+    ctx.restore();
+  });
+
+  // Central path from entrance to fountain (worn stone strip)
+  ctx.fillStyle='rgba(240,220,160,0.18)';
+  ctx.fillRect(PW/2-22-camX,FCY+FR*0.45-camY,44,PH-FCY-FR*0.45);
+}
+
+// ── DRAW PLAYER ──
+function drawPlayer(){
+  pCtx.clearRect(0,0,32,48);
+  const cx=16,f=Math.floor(frame%4);
+  const lo=moving?[[-4,0],[4,0],[-2,-3],[2,-3]][f]:[0,0];
+  pCtx.fillStyle='#1a3060';
+  pCtx.fillRect(cx-8,30+(moving&&f%2===0?lo[1]:-lo[1]),7,10);
+  pCtx.fillRect(cx+1,30+(moving&&f%2===1?lo[1]:-lo[1]),7,10);
+  pCtx.fillStyle='#2a1808';
+  pCtx.fillRect(cx-9,39+(moving&&f%2===0?lo[1]:-lo[1]),9,5);
+  pCtx.fillRect(cx,39+(moving&&f%2===1?lo[1]:-lo[1]),9,5);
+  pCtx.fillStyle='#4080ff';pCtx.fillRect(cx-9,18,18,14);
+  const arm=moving?Math.sin(frame*0.8)*3:0;
+  pCtx.fillStyle='#4080ff';pCtx.fillRect(cx-14,19+arm,6,10);pCtx.fillRect(cx+8,19-arm,6,10);
+  pCtx.fillStyle='#f5c5a3';pCtx.fillRect(cx-8,4,16,16);
+  pCtx.fillStyle='#3a2010';pCtx.fillRect(cx-8,4,16,6);pCtx.fillRect(cx-10,6,4,8);
+  pCtx.fillStyle='#1a1a2e';if(facing!=='up'){pCtx.fillRect(cx-5,13,3,3);pCtx.fillRect(cx+2,13,3,3);}
+  pCtx.fillStyle='#c04020';pCtx.fillRect(cx+7,18,8,12);
+}
+
+// ── DRAW SCENE ──
+function drawScene(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  // Sky fill (outside bounds of plaza — visible if plaza smaller than viewport)
+  ctx.fillStyle='#1a2840';ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  drawGround();
+
+  // Stalls (translated by camera)
+  ctx.save();ctx.translate(-camX,-camY);
+  STALLS.forEach(drawStall);
+  ctx.restore();
+
+  // Fountain
+  ctx.save();ctx.translate(-camX,-camY);
+  drawFountain();
+  ctx.restore();
+
+  // NPCs
+  NPCS.forEach(drawNPC);
+
+  // Items
+  drawPageItems();
+
+  // Player shadow
+  const ppx=Math.round(playerX-camX);
+  const ppy=Math.round(playerY-camY);
+  ctx.fillStyle='rgba(0,0,0,0.28)';
+  ctx.beginPath();ctx.ellipse(ppx,ppy+7,11,4,0,0,Math.PI*2);ctx.fill();
+
+  // Player element position
+  const pe=document.getElementById('player');
+  pe.style.left=ppx+'px';pe.style.top=ppy+'px';
+}
+
+// ── UPDATE CAMERA ──
+function updateCamera(){
+  const W=canvas.width,H=canvas.height;
+  let tx=playerX-W/2, ty=playerY-H/2;
+  tx=Math.max(0,Math.min(Math.max(0,PW-W),tx));
+  ty=Math.max(0,Math.min(Math.max(0,PH-H),ty));
+  camX+=(tx-camX)*0.12; camY+=(ty-camY)*0.12;
+}
+
+// ── UPDATE PLAYER ──
+function updatePlayer(){
+  if(dialogOpen||menuOpen) return;
+  const SPEED=3; let dx=0,dy=0;
+  if(keys.up){dy=-SPEED;facing='up';}
+  if(keys.down){dy=SPEED;facing='down';}
+  if(keys.left){dx=-SPEED;facing='left';}
+  if(keys.right){dx=SPEED;facing='right';}
+  moving=dx!==0||dy!==0;
+  if(moving){
+    const nx=Math.max(TILE/2,Math.min(PW-TILE/2,playerX+dx));
+    const ny=Math.max(TILE/2,Math.min(PH-TILE/2,playerY+dy));
+    if(!isBlocked(nx,ny)){playerX=nx;playerY=ny;}
+    if(++frameTimer>=FRAME_RATE){frame++;frameTimer=0;}
+  }
+}
+
+// ── GAME LOOP ──
+function gameLoop(){
+  updateNPCs();
+  updatePlayer();
+  updateCamera();
+  drawScene();
+  drawPlayer();
+  requestAnimationFrame(gameLoop);
+}
+
+// ── DIALOG ──
+function openDialog(title, body, links=[]){
+  dialogOpen=true;
+  document.getElementById('dialog-title').textContent=title;
+  document.getElementById('dialog-body').textContent=body;
+  const linksEl=document.getElementById('dialog-links');
+  linksEl.innerHTML='';
+  if(links.length){
+    links.forEach(l=>{
+      const a=document.createElement('a');
+      a.className='dialog-link';a.textContent=l.label;
+      a.href=l.href;
+      if(l.external)a.target='_blank';
+      linksEl.appendChild(a);
+    });
+    linksEl.style.display='flex';
+  } else {
+    linksEl.style.display='none';
+  }
+  document.getElementById('dialog-box').style.display='block';
+}
+function closeDialog(){
+  dialogOpen=false;
+  document.getElementById('dialog-box').style.display='none';
+}
+
+// ── PICKUP FLASH ──
+let pickupTimer=null;
+function showPickupFlash(item){
+  document.getElementById('pickup-flash-icon').textContent=item.icon;
+  document.getElementById('pickup-flash-text').textContent=item.label+' obtained!';
+  document.getElementById('pickup-flash-pts').textContent='+'+item.points+' pts';
+  document.getElementById('pickup-flash').style.display='block';
+  clearTimeout(pickupTimer);
+  pickupTimer=setTimeout(()=>{document.getElementById('pickup-flash').style.display='none';},2200);
+}
+
+// ── A BUTTON — interact ──
+function handleA(){
+  if(menuOpen){menuSelectCurrent();return;}
+  if(dialogOpen){closeDialog();return;}
+
+  // Check nearby items first
+  for(const item of PAGE_ITEMS){
+    if(GameState.hasItem(item.id)) continue;
+    const dist=Math.hypot(playerX-item.x,playerY-item.y);
+    if(dist<64){
+      if(GameState.collectItem(item.id)){
+        showPickupFlash(item);
+      }
+      return;
+    }
+  }
+
+  // Check interactive NPCs
+  for(const n of NPCS){
+    if(!n.name) continue;
+    const dist=Math.hypot(playerX-n.x,playerY-n.y);
+    if(dist<72){
+      openDialog(n.name, n.speech, n.links||[]);
+      return;
+    }
+  }
+
+  // Check stalls (press A near a stall for flavor text)
+  for(const s of STALLS){
+    const scx=s.x+s.w/2, scy=s.y+s.h*0.5;
+    const dist=Math.hypot(playerX-scx,playerY-scy);
+    if(dist<72){
+      openDialog(s.name, s.speech||'The vendor nods at you.');
+      return;
+    }
+  }
+
+  // Near entrance?
+  if(playerY>PH*0.82&&Math.abs(playerX-PW/2)<60){
+    exitToWorld();
+  }
+}
+
+// ── B BUTTON ──
+function handleB(){
+  if(menuOpen){closeMenu();return;}
+  if(dialogOpen){closeDialog();return;}
+}
+
+// ── MENU ──
+function toggleMenu(){menuOpen?closeMenu():openMenu();}
+function openMenu(){
+  if(dialogOpen)closeDialog();
+  menuOpen=true;
+  const ov=document.getElementById('menu-overlay');
+  ov.style.display='flex';
+  menuItems=Array.from(document.querySelectorAll('.menu-item'));
+  menuIdx=0;updateMenuCursor();
+  document.getElementById('menu-btn').classList.add('pressed');
+  // Rewrite world map link with state
+  document.getElementById('menu-world').href=GameState.withState('world.html#spawn=contact');
+}
+function closeMenu(){
+  menuOpen=false;
+  document.getElementById('menu-overlay').style.display='none';
+  document.getElementById('menu-btn').classList.remove('pressed');
+}
+function updateMenuCursor(){
+  menuItems.forEach((item,i)=>{
+    item.classList.toggle('selected',i===menuIdx);
+    const cur=item.querySelector('#menu-cursor');if(cur)cur.remove();
+    if(i===menuIdx){const s=document.createElement('span');s.id='menu-cursor';s.textContent='▶ ';s.style.color='var(--gold)';item.insertBefore(s,item.children[1]);}
+  });
+}
+function menuSelectCurrent(){if(menuItems[menuIdx])menuItems[menuIdx].click();}
+
+// ── EXIT ──
+function exitToWorld(){
+  window.location.href=GameState.withState('world.html#spawn=contact');
+}
+
+// ── KEYBOARD ──
+document.addEventListener('keydown',e=>{
+  if(document.activeElement&&document.activeElement.tagName==='INPUT') return;
+  if(menuOpen){
+    if(e.key==='ArrowUp'||e.key==='w'){menuIdx=Math.max(0,menuIdx-1);updateMenuCursor();e.preventDefault();return;}
+    if(e.key==='ArrowDown'||e.key==='s'){menuIdx=Math.min(menuItems.length-1,menuIdx+1);updateMenuCursor();e.preventDefault();return;}
+    if(e.key==='Enter'||e.key===' '){handleA();e.preventDefault();return;}
+    if(e.key==='Escape'||e.key==='b'||e.key==='B'){handleB();e.preventDefault();return;}
+    return;
+  }
+  if(e.key==='ArrowUp'   ||e.key==='w'||e.key==='W')keys.up=true;
+  if(e.key==='ArrowDown' ||e.key==='s'||e.key==='S')keys.down=true;
+  if(e.key==='ArrowLeft')  keys.left=true;
+  if(e.key==='ArrowRight') keys.right=true;
+  if(e.key==='Enter'||e.key===' '||e.key==='a'||e.key==='A'){handleA();e.preventDefault();}
+  if(e.key==='Escape'||e.key==='b'||e.key==='B') handleB();
+  if(e.key==='m'||e.key==='M') toggleMenu();
+  if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) e.preventDefault();
+});
+document.addEventListener('keyup',e=>{
+  if(e.key==='ArrowUp'   ||e.key==='w'||e.key==='W')keys.up=false;
+  if(e.key==='ArrowDown' ||e.key==='s'||e.key==='S')keys.down=false;
+  if(e.key==='ArrowLeft')  keys.left=false;
+  if(e.key==='ArrowRight') keys.right=false;
+});
+document.addEventListener('mouseup',()=>{keys.up=false;keys.down=false;keys.left=false;keys.right=false;});
+
+// ── D-PAD TOUCH/MOUSE ──
+function setupDpad(){
+  document.querySelectorAll('.dpad-btn').forEach(btn=>{
+    const dir=btn.dataset.dir;
+    btn.addEventListener('touchstart',e=>{e.preventDefault();keys[dir]=true;btn.classList.add('pressing');},{passive:false});
+    btn.addEventListener('touchend',  e=>{e.preventDefault();keys[dir]=false;btn.classList.remove('pressing');},{passive:false});
+    btn.addEventListener('touchcancel',e=>{e.preventDefault();keys[dir]=false;btn.classList.remove('pressing');},{passive:false});
+    btn.addEventListener('mousedown',e=>{e.preventDefault();keys[dir]=true;btn.classList.add('pressing');});
+    btn.addEventListener('mouseup',  e=>{keys[dir]=false;btn.classList.remove('pressing');});
+  });
+}
+setupDpad();
+
+// ── CURSOR ──
+document.addEventListener('mousemove',e=>{
+  const c=document.getElementById('cursor');
+  if(c){c.style.left=e.clientX+'px';c.style.top=e.clientY+'px';}
+});
+
+// ── START ──
+window.addEventListener('load',resize);
+requestAnimationFrame(gameLoop);
+</script>
+</body>
+</html>
