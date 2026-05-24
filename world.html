@@ -404,6 +404,12 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
       <span class="menu-item-icon">📜</span> BLOG
     </a>
     <div id="menu-divider"></div>
+    <a class="menu-item" href="https://www.andregurule.com/hobbies" target="_blank">
+      <span class="menu-item-icon">🏔</span> LAKE TAHOE
+    </a>
+    <a class="menu-item" href="https://www.andregurule.com/blog" target="_blank">
+      <span class="menu-item-icon">🌊</span> THE LAKE
+    </a>
     <a class="menu-item" href="https://linkedin.com/in/andregurule" target="_blank">
       <span class="menu-item-icon">💼</span> LINKEDIN
     </a>
@@ -510,11 +516,13 @@ let camX=0,camY=0;
 let playerX=16*TILE,playerY=9*TILE;
 
 const SPAWN_POINTS={
-  projects:{x:25,y:9},
-  story:   {x:5, y:9},
-  hobbies: {x:5, y:19},
-  blog:    {x:25,y:19},
-  contact: {x:16,y:14},
+  projects:  {x:25,y:9},
+  story:     {x:5, y:9},
+  hobbies:   {x:5, y:19},
+  blog:      {x:25,y:19},
+  contact:   {x:16,y:14},
+  'lake-tahoe':{x:11,y:21},
+  'the-lake':  {x:19,y:9},
 };
 const _spawnHash=location.hash.match(/spawn=(\w+)/);
 if(_spawnHash&&SPAWN_POINTS[_spawnHash[1]]){
@@ -548,6 +556,14 @@ const ZONES=[
    title:'THE SCROLL LIBRARY',
    body:'I enjoy learning and sharing what I know. Inside, you\'ll find some books I enjoy, along with brief thoughts on the lessons and applications I\'ve drawn from them.',
    links:[{label:'📜 READ THE BLOG',href:'https://www.andregurule.com/blog'}]},
+  {id:'lake-tahoe',label:'🏔 LAKE TAHOE',x:9,y:16,w:5,h:4,color:'#1565c0',isWater:true,
+   title:'LAKE TAHOE',
+   body:'One of my favorite places on Earth. Crystal-clear water, towering pines, and endless adventure.',
+   links:[{label:'🏔 LEARN MORE',href:'https://www.andregurule.com/hobbies'}]},
+  {id:'the-lake',label:'🌊 THE LAKE',x:17,y:4,w:4,h:4,color:'#1565c0',isWater:true,
+   title:'THE LAKE',
+   body:'A quiet place to think, read, and recharge. Sometimes the best ideas come from the water\'s edge.',
+   links:[{label:'🌊 LEARN MORE',href:'https://www.andregurule.com/blog'}]},
   {id:'contact',label:'💌 TOWN SQUARE',x:13,y:10,w:6,h:4,color:'#e07030',
    title:'TOWN SQUARE — CONTACT',
    body:'Ready to start a quest together? Message me on LinkedIn or email me. No spam, please.',
@@ -596,10 +612,12 @@ function isOnPath(tx,ty){
   return false;
 }
 function isInWater(tx,ty){
-  const dx=(tx-12)/2.5,dy=(ty-6)/2;if(dx*dx+dy*dy<1)return true;
-  const dx2=(tx-20)/2,dy2=(ty-19)/1.5;return dx2*dx2+dy2*dy2<1;
+  if(tx>=9&&tx<14&&ty>=16&&ty<20)return true;
+  if(tx>=17&&tx<21&&ty>=4&&ty<8)return true;
+  return false;
 }
-function isInBuildingZone(tx,ty){return ZONES.some(z=>tx>=z.x&&tx<z.x+z.w&&ty>=z.y&&ty<z.y+z.h);}
+function isInBuildingZone(tx,ty){return ZONES.some(z=>!z.isWater&&tx>=z.x&&tx<z.x+z.w&&ty>=z.y&&ty<z.y+z.h);}
+function isBlockedZone(tx,ty){return ZONES.some(z=>tx>=z.x&&tx<z.x+z.w&&ty>=z.y&&ty<z.y+z.h);}
 
 function drawNYPLBuilding(wx,wy,zone){
   const bx=zone.x*TILE-wx,by=zone.y*TILE-wy,bw=zone.w*TILE,bh=zone.h*TILE;
@@ -1136,6 +1154,37 @@ function drawMountainBuilding(wx,wy,zone){
   }
 }
 
+function drawWaterLabel(wx,wy,zone){
+  const cx=(zone.x+zone.w/2)*TILE-wx;
+  const cy=(zone.y+zone.h/2)*TILE-wy;
+  const pulse=0.7+0.3*Math.sin(Date.now()/700);
+  ctx.save();
+  ctx.globalAlpha=pulse*0.92;
+  ctx.font='bold 8px "Press Start 2P"';
+  ctx.textAlign='center';
+  ctx.textBaseline='middle';
+  // Shadow
+  ctx.fillStyle='rgba(0,20,60,0.7)';
+  ctx.fillText(zone.title,cx+1,cy+1);
+  // Label text — bright white-blue
+  ctx.fillStyle='#c8e8ff';
+  ctx.fillText(zone.title,cx,cy);
+  ctx.globalAlpha=1;ctx.textAlign='left';ctx.textBaseline='alphabetic';
+  ctx.restore();
+
+  // Proximity glow
+  const dist=distToZone(playerX,playerY,zone);
+  if(dist<140){
+    ctx.save();
+    ctx.strokeStyle='#4ab8ff';ctx.lineWidth=2;
+    ctx.globalAlpha=(0.25+0.2*Math.sin(Date.now()/300));
+    ctx.beginPath();
+    ctx.ellipse(cx,cy,zone.w*TILE/2+4,zone.h*TILE/2+4,0,0,Math.PI*2);
+    ctx.stroke();
+    ctx.globalAlpha=1;ctx.restore();
+  }
+}
+
 function drawBuilding(wx,wy,zone){
   // Hall of Records gets the special NYPL treatment
   if(zone.id==='projects'){drawNYPLBuilding(wx,wy,zone);return;}
@@ -1211,7 +1260,7 @@ function drawWorld(){
       ctx.fillStyle='#3a7520';ctx.beginPath();ctx.arc(cx+2,cy-h*0.58,h*0.22,0,Math.PI*2);ctx.fill();
     }
   }}
-  ZONES.forEach(z=>drawBuilding(wx,wy,z));
+  ZONES.forEach(z=>z.isWater ? drawWaterLabel(wx,wy,z) : drawBuilding(wx,wy,z));
   const ppx=playerX-wx,ppy=playerY-wy;
   ctx.fillStyle='rgba(0,0,0,0.28)';ctx.beginPath();ctx.ellipse(ppx,ppy+7,11,4,0,0,Math.PI*2);ctx.fill();
 }
@@ -1238,8 +1287,8 @@ function drawMinimap(){
   mCtx.fillStyle='#2d5a1b';mCtx.fillRect(0,0,120,90);
   const sX=120/PW,sY=90/PH;
   mCtx.fillStyle='#1565c0';
-  mCtx.beginPath();mCtx.ellipse(12*TILE*sX,6*TILE*sY,2.5*TILE*sX,2*TILE*sY,0,0,Math.PI*2);mCtx.fill();
-  mCtx.beginPath();mCtx.ellipse(20*TILE*sX,19*TILE*sY,2*TILE*sX,1.5*TILE*sY,0,0,Math.PI*2);mCtx.fill();
+  mCtx.fillRect(9*TILE*sX,16*TILE*sY,5*TILE*sX,4*TILE*sY);
+  mCtx.fillRect(17*TILE*sX,4*TILE*sY,4*TILE*sX,4*TILE*sY);
   mCtx.fillStyle='#c4a35a';
   mCtx.fillRect(0,11*TILE*sY,120,2*TILE*sY);mCtx.fillRect(15*TILE*sX,0,2*TILE*sX,90);
   ZONES.forEach(z=>{mCtx.fillStyle=z.color;mCtx.fillRect(z.x*TILE*sX,z.y*TILE*sY,z.w*TILE*sX,z.h*TILE*sY);});
@@ -1266,7 +1315,7 @@ function updatePlayer(){
     const nx=Math.max(TILE,Math.min(PW-TILE,playerX+dx));
     const ny=Math.max(TILE,Math.min(PH-TILE,playerY+dy));
     const tx=Math.floor(nx/TILE),ty=Math.floor(ny/TILE);
-    if(!ZONES.some(z=>tx>=z.x&&tx<z.x+z.w&&ty>=z.y&&ty<z.y+z.h)){playerX=nx;playerY=ny;}
+    if(!isBlockedZone(tx,ty)&&!isInWater(tx,ty)){playerX=nx;playerY=ny;}
     if(++frameTimer>=FRAME_RATE){frame++;frameTimer=0;}
   }
   let nearest=null,minDist=140;
