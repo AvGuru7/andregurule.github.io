@@ -398,7 +398,7 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
       <span class="menu-item-icon">📖</span> CASTLE ANTHRAX
     </a>
     <a class="menu-item" href="https://www.andregurule.com/hobbies" target="_blank">
-      <span class="menu-item-icon">🏕</span> HOBBIES
+      <span class="menu-item-icon">⛰</span> EREBOR MOUNTAIN
     </a>
     <a class="menu-item" href="https://www.andregurule.com/blog" target="_blank">
       <span class="menu-item-icon">📜</span> BLOG
@@ -526,10 +526,10 @@ const ZONES=[
    title:'CASTLE ANTHRAX',
    body:'Every great hero has an origin. Mine started with curiosity and a love of learning.',
    links:[{label:'🏰 ENTER CASTLE ANTHRAX',href:'castle-anthrax.html',local:true}]},
-  {id:'hobbies',label:'🏕 HOBBIES OUTPOST',x:2,y:14,w:6,h:5,color:'#40c060',
-   title:'HOBBIES OUTPOST',
+  {id:'hobbies',label:'⛰ EREBOR MOUNTAIN',x:2,y:14,w:6,h:5,color:'#40c060',
+   title:'EREBOR MOUNTAIN',
    body:'Motorcycles, off-roading, LEGO, and the great outdoors. Life beyond the keyboard.',
-   links:[{label:'🏕 MY HOBBIES',href:'https://www.andregurule.com/hobbies'}]},
+   links:[{label:'⛰ MY HOBBIES',href:'https://www.andregurule.com/hobbies'}]},
   {id:'blog',label:'📜 SCROLL LIBRARY',x:22,y:14,w:6,h:5,color:'#f0c040',
    title:'THE SCROLL LIBRARY',
    body:'I enjoy learning and sharing what I know. Check out my blog — or "ramblings" as I call them.',
@@ -918,11 +918,217 @@ function drawCastleBuilding(wx,wy,zone){
   }
 }
 
+function drawMountainBuilding(wx,wy,zone){
+  const bx=zone.x*TILE-wx,by=zone.y*TILE-wy,bw=zone.w*TILE,bh=zone.h*TILE;
+  const midX=bx+bw/2,bot=by+bh;
+
+  // === GROUND SHADOW ===
+  ctx.fillStyle='rgba(0,0,0,0.3)';ctx.fillRect(bx+10,bot-4,bw,10);
+
+  // === SNOW GLOW (ambient) ===
+  ctx.save();
+  const snowGlow=ctx.createRadialGradient(midX,by,8,midX,by+bh*0.3,bw*0.7);
+  snowGlow.addColorStop(0,'rgba(200,230,255,0.18)');
+  snowGlow.addColorStop(1,'rgba(200,230,255,0)');
+  ctx.fillStyle=snowGlow;ctx.fillRect(bx-20,by-10,bw+40,bh*0.7);
+  ctx.restore();
+
+  // Colour palette
+  const rockDark='#2e2a26',rockMid='#4a4440',rockLight='#6e6460',rockHi='#8a8078';
+  const snowPure='#e8f0f8',snowShad='#b8c8dc',snowMid='#ccdcec';
+
+  // === MAIN MOUNTAIN BODY (3 layered peaks) ===
+  // Far-left background peak
+  ctx.fillStyle=rockDark;
+  ctx.beginPath();
+  ctx.moveTo(bx-4,bot);
+  ctx.lineTo(bx+bw*0.18,by+bh*0.14);
+  ctx.lineTo(bx+bw*0.42,bot);
+  ctx.closePath();ctx.fill();
+  ctx.fillStyle=rockMid;
+  ctx.beginPath();
+  ctx.moveTo(bx-4,bot);
+  ctx.lineTo(bx+bw*0.18,by+bh*0.14);
+  ctx.lineTo(bx+bw*0.14,bot);
+  ctx.closePath();ctx.fill();
+
+  // Far-right background peak
+  ctx.fillStyle=rockDark;
+  ctx.beginPath();
+  ctx.moveTo(bx+bw*0.58,bot);
+  ctx.lineTo(bx+bw*0.82,by+bh*0.18);
+  ctx.lineTo(bx+bw+4,bot);
+  ctx.closePath();ctx.fill();
+  ctx.fillStyle=rockMid;
+  ctx.beginPath();
+  ctx.moveTo(bx+bw*0.86,bot);
+  ctx.lineTo(bx+bw*0.82,by+bh*0.18);
+  ctx.lineTo(bx+bw+4,bot);
+  ctx.closePath();ctx.fill();
+
+  // === MAIN CENTRAL PEAK ===
+  ctx.fillStyle=rockDark;
+  ctx.beginPath();
+  ctx.moveTo(bx,bot);
+  ctx.lineTo(midX,by-6);
+  ctx.lineTo(bx+bw,bot);
+  ctx.closePath();ctx.fill();
+
+  // Central peak — left face (lighter)
+  ctx.fillStyle=rockMid;
+  ctx.beginPath();
+  ctx.moveTo(bx+bw*0.08,bot);
+  ctx.lineTo(midX,by-6);
+  ctx.lineTo(midX,bot);
+  ctx.closePath();ctx.fill();
+
+  // Central peak — highlight ridge
+  ctx.fillStyle=rockLight;
+  ctx.beginPath();
+  ctx.moveTo(midX-8,by+bh*0.1);
+  ctx.lineTo(midX,by-6);
+  ctx.lineTo(midX+6,by+bh*0.1);
+  ctx.closePath();ctx.fill();
+
+  // High face detail — crags / ledges
+  ctx.fillStyle=rockDark;
+  for(let i=0;i<5;i++){
+    const ly=by+bh*0.25+i*bh*0.1,spread=bw*(0.08+i*0.06);
+    ctx.fillRect(midX-spread,ly,spread*0.6,3);
+    ctx.fillRect(midX+spread*0.3,ly+2,spread*0.5,3);
+  }
+
+  // === SNOW CAPS ===
+  // Main peak snow
+  ctx.fillStyle=snowPure;
+  ctx.beginPath();
+  ctx.moveTo(midX,by-6);
+  ctx.lineTo(midX-bw*0.16,by+bh*0.22);
+  ctx.lineTo(midX-bw*0.04,by+bh*0.18);
+  ctx.lineTo(midX+bw*0.08,by+bh*0.22);
+  ctx.lineTo(midX+bw*0.18,by+bh*0.2);
+  ctx.closePath();ctx.fill();
+  // Snow shadow side
+  ctx.fillStyle=snowShad;
+  ctx.beginPath();
+  ctx.moveTo(midX,by-6);
+  ctx.lineTo(midX+bw*0.18,by+bh*0.2);
+  ctx.lineTo(midX+bw*0.08,by+bh*0.22);
+  ctx.lineTo(midX+bw*0.04,by+bh*0.16);
+  ctx.closePath();ctx.fill();
+  // Small snow patches on left peak
+  ctx.fillStyle=snowMid;
+  ctx.beginPath();
+  ctx.moveTo(bx+bw*0.18,by+bh*0.14);
+  ctx.lineTo(bx+bw*0.1,by+bh*0.28);
+  ctx.lineTo(bx+bw*0.22,by+bh*0.26);
+  ctx.closePath();ctx.fill();
+  // Small snow patches on right peak
+  ctx.fillStyle=snowMid;
+  ctx.beginPath();
+  ctx.moveTo(bx+bw*0.82,by+bh*0.18);
+  ctx.lineTo(bx+bw*0.76,by+bh*0.32);
+  ctx.lineTo(bx+bw*0.88,by+bh*0.3);
+  ctx.closePath();ctx.fill();
+
+  // === DARK TUNNEL ENTRANCE ===
+  const tW=bw*0.28,tH=bh*0.32,tX=midX-tW/2,tY=bot-tH;
+
+  // Rough rock surround — jagged pixel edges around mouth of tunnel
+  ctx.fillStyle=rockDark;
+  ctx.beginPath();
+  ctx.moveTo(tX-10,bot);
+  ctx.lineTo(tX-10,tY+6);
+  ctx.lineTo(tX-4,tY+2);
+  ctx.lineTo(tX,tY-2);
+  ctx.lineTo(tX+tW*0.25,tY-8);
+  ctx.lineTo(midX,tY-14);
+  ctx.lineTo(tX+tW*0.75,tY-8);
+  ctx.lineTo(tX+tW,tY-2);
+  ctx.lineTo(tX+tW+4,tY+2);
+  ctx.lineTo(tX+tW+10,tY+6);
+  ctx.lineTo(tX+tW+10,bot);
+  ctx.closePath();ctx.fill();
+
+  // Rock lip above tunnel — slightly lighter overhang
+  ctx.fillStyle=rockMid;
+  ctx.beginPath();
+  ctx.moveTo(tX-6,tY+4);
+  ctx.lineTo(tX+tW*0.25,tY-6);
+  ctx.lineTo(midX,tY-12);
+  ctx.lineTo(tX+tW*0.75,tY-6);
+  ctx.lineTo(tX+tW+6,tY+4);
+  ctx.lineTo(tX+tW+2,tY+8);
+  ctx.lineTo(tX+tW*0.8,tY);
+  ctx.lineTo(midX,tY-6);
+  ctx.lineTo(tX+tW*0.2,tY);
+  ctx.lineTo(tX-2,tY+8);
+  ctx.closePath();ctx.fill();
+
+  // Tunnel void — pure black, no light at all
+  ctx.fillStyle='#000000';
+  ctx.beginPath();
+  ctx.moveTo(tX,tY);
+  ctx.quadraticCurveTo(midX,tY-10,tX+tW,tY);
+  ctx.lineTo(tX+tW,bot);
+  ctx.lineTo(tX,bot);
+  ctx.closePath();ctx.fill();
+
+  // Slight depth gradient inside — just barely visible rock walls fading to black
+  ctx.save();
+  const tunnelDepth=ctx.createLinearGradient(tX,tY,tX,bot);
+  tunnelDepth.addColorStop(0,'rgba(46,42,38,0.55)');
+  tunnelDepth.addColorStop(0.3,'rgba(20,18,16,0.8)');
+  tunnelDepth.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=tunnelDepth;
+  // Only paint the very edges of the tunnel to hint at walls, keeping center black
+  ctx.fillRect(tX,tY,tW*0.18,tH);
+  ctx.fillRect(tX+tW*0.82,tY,tW*0.18,tH);
+  ctx.restore();
+
+  // Jagged stalactite-style rock teeth at tunnel mouth top
+  ctx.fillStyle=rockDark;
+  const toothCount=6,toothSpacing=tW/toothCount;
+  for(let t=0;t<toothCount;t++){
+    const tx2=tX+t*toothSpacing+toothSpacing*0.2;
+    const th2=6+pseudoRand(t,77)*8;
+    ctx.beginPath();
+    ctx.moveTo(tx2,tY-2);
+    ctx.lineTo(tx2+toothSpacing*0.3,tY+th2);
+    ctx.lineTo(tx2+toothSpacing*0.6,tY-2);
+    ctx.closePath();ctx.fill();
+  }
+
+  // === CARVED ROCK LABEL above tunnel mouth ===
+  const banW=bw*0.72,banH=18,banX=midX-banW/2,banY=tY-38;
+  // Recessed slab cut into the rock face
+  ctx.fillStyle=rockDark;ctx.fillRect(banX-3,banY-3,banW+6,banH+6);
+  ctx.fillStyle='#1e1a16';ctx.fillRect(banX,banY,banW,banH);
+  // Chiselled inner edge highlight
+  ctx.fillStyle=rockMid;ctx.fillRect(banX,banY,banW,1);
+  ctx.fillStyle=rockMid;ctx.fillRect(banX,banY,1,banH);
+  // Carved text — slightly lighter than the slab, no gold, no parchment
+  ctx.fillStyle=rockLight;ctx.font='bold 9px "Press Start 2P"';ctx.textAlign='center';
+  ctx.fillText('EREBOR MOUNTAIN',midX,banY+13);
+  ctx.textAlign='left';
+
+  // === PROXIMITY GLOW ===
+  const dist=distToZone(playerX,playerY,zone);
+  if(dist<120){
+    ctx.strokeStyle=zone.color;ctx.lineWidth=3;
+    ctx.globalAlpha=0.38+0.28*Math.sin(Date.now()/300);
+    ctx.strokeRect(bx-2,by-10,bw+4,bh+14);
+    ctx.globalAlpha=1;ctx.lineWidth=1;
+  }
+}
+
 function drawBuilding(wx,wy,zone){
   // Hall of Records gets the special NYPL treatment
   if(zone.id==='projects'){drawNYPLBuilding(wx,wy,zone);return;}
   // Castle Anthrax gets the castle treatment
   if(zone.id==='story'){drawCastleBuilding(wx,wy,zone);return;}
+  // Erebor Mountain gets the mountain treatment
+  if(zone.id==='hobbies'){drawMountainBuilding(wx,wy,zone);return;}
 
   const bx=zone.x*TILE-wx,by=zone.y*TILE-wy,bw=zone.w*TILE,bh=zone.h*TILE;
   ctx.fillStyle='rgba(0,0,0,0.22)';ctx.fillRect(bx+6,by+bh-6,bw,12);
