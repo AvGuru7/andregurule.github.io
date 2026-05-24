@@ -1654,6 +1654,11 @@ function menuSelectCurrent(){
 
 // ── KEYBOARD ──
 document.addEventListener('keydown',e=>{
+  // Don't intercept game hotkeys while the player is typing in a riddle input
+  if(document.activeElement&&document.activeElement.classList.contains('riddle-input')){
+    if(e.key==='Enter'){submitRiddle();e.preventDefault();}
+    return;
+  }
   // Menu navigation
   if(menuOpen){
     if(e.key==='ArrowUp'||e.key==='w'){menuIdx=Math.max(0,menuIdx-1);updateMenuCursor();e.preventDefault();return;}
