@@ -347,29 +347,10 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
   color:var(--gold);text-align:center;opacity:0.75;
 }
 
-/* ── LOADING ── */
-#loading-screen{
-  position:fixed;inset:0;background:#000;z-index:9999;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:18px;padding:20px;
-}
-#loading-title{font-size:clamp(10px,3vw,22px);color:var(--gold);text-align:center;line-height:2;animation:blink 1s step-end infinite;}
-#loading-sub{font-family:'VT323',monospace;font-size:clamp(16px,3.5vw,22px);color:#a0d8ff;text-align:center;}
-#press-start{
-  font-size:clamp(8px,1.8vw,12px);color:var(--gold);
-  border:3px solid var(--gold);padding:clamp(10px,2vh,14px) clamp(16px,3vw,24px);
-  background:none;cursor:pointer;margin-top:10px;touch-action:manipulation;
-  animation:blink 1s step-end infinite;
-}
+/* loading screen lives in loading.html */
 </style>
 </head>
 <body>
-
-<div id="loading-screen">
-  <div id="loading-title">ANDRE GURULE<br>PORTFOLIO WORLD</div>
-  <div id="loading-sub">© 2025 — All rights reserved<br>A professional adventure awaits</div>
-  <button id="press-start" onclick="startGame()">▶ PRESS START</button>
-</div>
 
 <div id="cursor"></div>
 
@@ -490,7 +471,41 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
 <script>
 const TILE=48,WORLD_W=32,WORLD_H=24;
 const PW=WORLD_W*TILE,PH=WORLD_H*TILE;
-let gameStarted=false;
+// ── GAME STATE — read from URL params (set by loading.html, passed between pages) ──
+const _p = new URLSearchParams(window.location.search);
+const GameState = {
+  points:   parseInt(_p.get('points')  || '0', 10),
+  visited:  _p.get('visited')   ? _p.get('visited').split(',').filter(Boolean)  : [],
+  unlocked: _p.get('unlocked')  ? _p.get('unlocked').split(',').filter(Boolean) : [],
+
+  // Mark a zone as visited and award points
+  visitZone(id, pts = 10){
+    if(!this.visited.includes(id)){
+      this.visited.push(id);
+      this.points += pts;
+    }
+  },
+
+  // Unlock a secret (e.g. 'g14')
+  unlock(key){
+    if(!this.unlocked.includes(key)) this.unlocked.push(key);
+  },
+
+  // Serialize to query string — append to any outgoing href
+  toParams(){
+    return new URLSearchParams({
+      points:   this.points,
+      visited:  this.visited.join(','),
+      unlocked: this.unlocked.join(',')
+    }).toString();
+  },
+
+  // Rewrite a local href to carry state forward
+  withState(href){
+    return href + (href.includes('?') ? '&' : '?') + this.toParams();
+  }
+};
+
 let camX=0,camY=0;
 let playerX=16*TILE,playerY=9*TILE;
 let facing='down',moving=false,frame=0,frameTimer=0;
@@ -734,13 +749,15 @@ function handleB(){
 
 function openDialog(zone){
   dialogOpen=true;
+  GameState.visitZone(zone.id);  // track visit + award points
   document.getElementById('dialog-title').textContent=zone.title;
   document.getElementById('dialog-body').textContent=zone.body;
   const linksEl=document.getElementById('dialog-links');
   linksEl.innerHTML='';
   zone.links.forEach(l=>{
     const a=document.createElement('a');
-    a.className='dialog-link';a.textContent=l.label;a.href=l.href;
+    a.className='dialog-link';a.textContent=l.label;
+    a.href=l.local ? GameState.withState(l.href) : l.href;
     if(!l.local)a.target='_blank';
     linksEl.appendChild(a);
   });
@@ -788,7 +805,6 @@ function menuSelectCurrent(){
 
 // ── KEYBOARD ──
 document.addEventListener('keydown',e=>{
-  if(!gameStarted)return;
   // Menu navigation
   if(menuOpen){
     if(e.key==='ArrowUp'||e.key==='w'){menuIdx=Math.max(0,menuIdx-1);updateMenuCursor();e.preventDefault();return;}
@@ -854,11 +870,11 @@ function setupDpad(){
   });
 }
 
-// Attach D-pad events straight away — don't wait for startGame
+// Attach D-pad events
 setupDpad();
 
 // Canvas click = A button behavior
-canvas.addEventListener('click',()=>{if(gameStarted)handleA();});
+canvas.addEventListener('click',()=>{ handleA(); });
 
 // Cursor
 document.addEventListener('mousemove',e=>{
@@ -867,25 +883,17 @@ document.addEventListener('mousemove',e=>{
 });
 
 function gameLoop(){
-  if(gameStarted){
-    updatePlayer();updateCamera();
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    drawWorld();drawPlayer();
-    const ppx=playerX-camX,ppy=playerY-camY;
-    const pe=document.getElementById('player');
-    pe.style.left=ppx+'px';pe.style.top=ppy+'px';
-    drawMinimap();
-  }
+  updatePlayer();updateCamera();
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  drawWorld();drawPlayer();
+  const ppx=playerX-camX,ppy=playerY-camY;
+  const pe=document.getElementById('player');
+  pe.style.left=ppx+'px';pe.style.top=ppy+'px';
+  drawMinimap();
   requestAnimationFrame(gameLoop);
 }
 
-function startGame(){
-  gameStarted=true;
-  document.getElementById('loading-screen').style.display='none';
-  playerX=16*TILE;playerY=9*TILE;
-}
-
-// Start the loop immediately so it's ready the moment PRESS START is clicked
+// Start the loop immediately
 requestAnimationFrame(gameLoop);
 // Re-measure once fonts/layout settle
 window.addEventListener('load',()=>{ resize(); });
