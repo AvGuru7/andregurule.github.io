@@ -67,7 +67,7 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
 }
 #dialog-title::before{content:'▶';color:#ff6060;font-size:8px;animation:blink 0.8s step-end infinite;}
 #dialog-body{font-family:'VT323',monospace;font-size:clamp(16px,3vw,20px);color:var(--ui-text);line-height:1.5;min-height:48px;}
-#dialog-links{margin-top:11px;display:flex;gap:8px;flex-wrap:wrap;}
+#dialog-links{display:none;}
 .dialog-link{
   font-family:'Press Start 2P',monospace;font-size:clamp(5px,0.9vw,7px);
   color:var(--ui-bg);background:var(--gold);border:none;
@@ -76,7 +76,7 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
 }
 .dialog-link:hover,.dialog-link:active{background:#fff3a0;}
 #btn-hint{
-  margin-top:10px;font-size:clamp(4.5px,0.8vw,6px);color:var(--ui-dim);
+  margin-top:10px;font-size:clamp(8px,1.4vw,11px);color:var(--ui-dim);
   display:flex;gap:14px;flex-wrap:wrap;
 }
 .hint-key{
@@ -84,7 +84,7 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
 }
 .hint-badge{
   background:#222;border:1.5px solid var(--gold2);color:var(--gold);
-  padding:2px 5px;border-radius:2px;font-size:inherit;
+  padding:4px 8px;border-radius:2px;font-size:inherit;
 }
 
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
@@ -379,7 +379,7 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
 <!-- HUD -->
 <div id="hud">
   <div id="hud-name">ANDRE GURULE</div>
-  <div id="hud-title">Welcome!<br>Please look around.</div>
+  <div id="hud-title">Welcome!<br>Please excuse the mess.<br>Site under construction.</div>
 </div>
 
 <!-- Minimap -->
@@ -505,7 +505,7 @@ let menuIdx=0;
 const ZONES=[
   {id:'projects',label:'⚔ HALL OF RECORDS',x:22,y:4,w:6,h:5,color:'#e84393',
    title:'HALL OF RECORDS',
-   body:'I build things that solve real problems. From web apps to data pipelines — explore my portfolio.',
+   body:'Both my professional and personal information can be found in the Hall of Records. Enter to learn more.',
    links:[{label:'📁 ENTER THE HALL',href:'andregurule-library.html',local:true}]},
   {id:'story',label:'📖 MY STORY INN',x:2,y:4,w:6,h:5,color:'#4080ff',
    title:'MY STORY INN',
@@ -585,9 +585,9 @@ function drawBuilding(wx,wy,zone){
   for(let row=0;row<22;row+=4){const w2=(row/22)*bw;ctx.fillStyle=rc;ctx.fillRect(midX-w2/2,by+row,w2,4);}
   ctx.fillStyle=shadeColor(zone.color,-80);ctx.fillRect(bx+bw/2-10,by+bh-28,20,28);
   ctx.fillStyle='#1a1a2e';ctx.fillRect(bx+bw/2-6,by+bh-24,10,20);
-  ctx.fillStyle='#f0e8c0';ctx.fillRect(bx+6,by+22,bw-12,15);
-  ctx.fillStyle='#1a1a2e';ctx.font='6px "Press Start 2P"';ctx.textAlign='center';
-  ctx.fillText(zone.label.replace(/[^\w\s]/g,'').trim().slice(0,13).toUpperCase(),bx+bw/2,by+32);
+  ctx.fillStyle='#f0e8c0';ctx.fillRect(bx+6,by+22,bw-12,26);
+  ctx.fillStyle='#1a1a2e';ctx.font='12px "Press Start 2P"';ctx.textAlign='center';
+  ctx.fillText(zone.label.replace(/[^\w\s]/g,'').trim().slice(0,20).toUpperCase(),bx+bw/2,by+39);
   ctx.textAlign='left';
   const dist=distToZone(playerX,playerY,zone);
   if(dist<120){
@@ -799,9 +799,9 @@ document.addEventListener('keydown',e=>{
   }
   if(e.key==='ArrowUp'||e.key==='w'||e.key==='W')keys.up=true;
   if(e.key==='ArrowDown'||e.key==='s'||e.key==='S')keys.down=true;
-  if(e.key==='ArrowLeft'||e.key==='a'||e.key==='A')keys.left=true;
-  if(e.key==='ArrowRight'||e.key==='d'||e.key==='D')keys.right=true;
-  if(e.key==='Enter'||e.key===' '){handleA();e.preventDefault();}
+  if(e.key==='ArrowLeft')keys.left=true;
+  if(e.key==='ArrowRight')keys.right=true;
+  if(e.key==='Enter'||e.key===' '||e.key==='a'||e.key==='A'){handleA();e.preventDefault();}
   if(e.key==='Escape'||e.key==='b'||e.key==='B'){handleB();}
   if(e.key==='m'||e.key==='M'){toggleMenu();}
   if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key))e.preventDefault();
@@ -809,8 +809,8 @@ document.addEventListener('keydown',e=>{
 document.addEventListener('keyup',e=>{
   if(e.key==='ArrowUp'||e.key==='w'||e.key==='W')keys.up=false;
   if(e.key==='ArrowDown'||e.key==='s'||e.key==='S')keys.down=false;
-  if(e.key==='ArrowLeft'||e.key==='a'||e.key==='A')keys.left=false;
-  if(e.key==='ArrowRight'||e.key==='d'||e.key==='D')keys.right=false;
+  if(e.key==='ArrowLeft')keys.left=false;
+  if(e.key==='ArrowRight')keys.right=false;
 });
 
 // ── D-PAD TOUCH / MOUSE ──
