@@ -24,11 +24,11 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
 #dialog-box{position:fixed;bottom:clamp(170px,26vh,220px);left:50%;transform:translateX(-50%);width:min(640px,92vw);background:var(--ui-bg);border:4px solid var(--gold);padding:clamp(13px,2.2vh,20px) clamp(14px,2.5vw,22px);z-index:200;display:none;}
 #dialog-box::before{content:'';position:absolute;inset:2px;border:2px solid rgba(240,192,64,0.28);pointer-events:none;}
 #dialog-title{font-size:clamp(7px,1.2vw,10px);color:var(--gold);margin-bottom:9px;display:flex;align-items:center;gap:10px;}
-#-title::before{content:'▶';color:#ff6060;font-size:8px;animation:blink 0.8s step-end infinite;}
-#-body{font-family:'VT323',monospace;font-size:clamp(16px,3vw,20px);color:var(--ui-text);line-height:1.5;min-height:48px;}
-#-links{margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;}
-.-link{font-family:'Press Start 2P',monospace;font-size:clamp(5px,0.9vw,7px);color:var(--ui-bg);background:var(--gold);border:none;padding:clamp(6px,1vh,8px) clamp(9px,1.5vw,12px);cursor:pointer;text-decoration:none;display:inline-block;touch-action:manipulation;}
-.-link:hover,.-link:active{background:#fff3a0;}
+#dialog-title::before{content:'▶';color:#ff6060;font-size:8px;animation:blink 0.8s step-end infinite;}
+#dialog-body{font-family:'VT323',monospace;font-size:clamp(16px,3vw,20px);color:var(--ui-text);line-height:1.5;min-height:48px;}
+#dialog-links{margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;}
+.dialog-link{font-family:'Press Start 2P',monospace;font-size:clamp(5px,0.9vw,7px);color:var(--ui-bg);background:var(--gold);border:none;padding:clamp(6px,1vh,8px) clamp(9px,1.5vw,12px);cursor:pointer;text-decoration:none;display:inline-block;touch-action:manipulation;}
+.dialog-link:hover,.dialog-link:active{background:#fff3a0;}
 #btn-hint{margin-top:10px;font-size:clamp(8px,1.4vw,11px);color:var(--ui-dim);display:flex;gap:14px;flex-wrap:wrap;}
 .hint-key{display:inline-flex;align-items:center;gap:5px;}
 .hint-badge{background:#222;border:1.5px solid var(--gold2);color:var(--gold);padding:4px 8px;border-radius:2px;font-size:inherit;}
@@ -94,10 +94,10 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
 </div>
 <div id="zone-label"></div>
 
-<div id="-box">
-  <div id="-title">...</div>
-  <div id="-body"></div>
-  <div id="-links"></div>
+<div id="dialog-box">
+  <div id="dialog-title">...</div>
+  <div id="dialog-body"></div>
+  <div id="dialog-links"></div>
   <div id="btn-hint">
     <span class="hint-key"><span class="hint-badge">A</span> interact / next</span>
     <span class="hint-key"><span class="hint-badge">B</span> close</span>
@@ -214,9 +214,7 @@ const NPCS=[{
   // ── EDIT LYN'S DIALOG BELOW ──────────────────────────────────────────────
   // Add as many lines as you like. Player presses A to advance through them.
   dialogs:[
-    {body:"Greetings, traveler. I am King Lyn, ruler of Castle Anthrax. Welcome to my domain."},
-    {body:"This space is currently under development. The plan is to include this as part of a game that site visitors can play."},
-    {body:"[Andre]: This character is based on a friend I've had since first grade. I often refer to him as my brother."},
+    {body:"Greetings, traveller. I am King Lyn, ruler of Castle Anthrax. Welcome to my domain."},
   ],
   // ─────────────────────────────────────────────────────────────────────────
   dialogIdx:0,
