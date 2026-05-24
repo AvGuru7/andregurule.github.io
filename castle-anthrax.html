@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Castle Anthrax — Andre Gurule</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --gold:#f0c040;--gold2:#c8982a;
+  --ui-bg:#0d0a18;--ui-text:#f0e8c0;--ui-dim:#a09070;
+  --btn-red:#aa2244;--btn-red-hi:#cc4466;
+}
+body{background:#1a1a2e;font-family:'Press Start 2P',monospace;overflow:hidden;width:100vw;height:100vh;-webkit-tap-highlight-color:transparent;}
+canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;touch-action:none;}
+#player{position:absolute;image-rendering:pixelated;z-index:10;transform:translate(-50%,-50%);pointer-events:none;}
+#player canvas{display:block;image-rendering:pixelated;}
+#hud{position:fixed;top:10px;left:10px;z-index:100;background:var(--ui-bg);border:3px solid var(--gold);padding:8px 13px;}
+#hud::before{content:'';position:absolute;inset:2px;border:1px solid rgba(240,192,64,0.25);pointer-events:none;}
+#hud-name{font-size:clamp(5px,1.1vw,8px);color:var(--gold);margin-bottom:4px;letter-spacing:1px;}
+#hud-title{font-family:'VT323',monospace;font-size:clamp(13px,2.4vw,17px);color:#a0d8ff;line-height:1.2;}
+#zone-label{position:fixed;bottom:clamp(155px,22vh,200px);left:50%;transform:translateX(-50%);font-size:clamp(8px,1.8vw,13px);color:var(--gold);text-shadow:0 0 16px rgba(240,192,64,0.8);z-index:50;pointer-events:none;opacity:0;transition:opacity 0.3s;text-align:center;padding:0 12px;top:auto;}
+#dialog-box{position:fixed;bottom:clamp(170px,26vh,220px);left:50%;transform:translateX(-50%);width:min(640px,92vw);background:var(--ui-bg);border:4px solid var(--gold);padding:clamp(13px,2.2vh,20px) clamp(14px,2.5vw,22px);z-index:200;display:none;}
+#dialog-box::before{content:'';position:absolute;inset:2px;border:2px solid rgba(240,192,64,0.28);pointer-events:none;}
+#dialog-title{font-size:clamp(7px,1.2vw,10px);color:var(--gold);margin-bottom:9px;display:flex;align-items:center;gap:10px;}
+#dialog-title::before{content:'▶';color:#ff6060;font-size:8px;animation:blink 0.8s step-end infinite;}
+#dialog-body{font-family:'VT323',monospace;font-size:clamp(16px,3vw,20px);color:var(--ui-text);line-height:1.5;min-height:48px;}
+#dialog-links{margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;}
+.dialog-link{font-family:'Press Start 2P',monospace;font-size:clamp(5px,0.9vw,7px);color:var(--ui-bg);background:var(--gold);border:none;padding:clamp(6px,1vh,8px) clamp(9px,1.5vw,12px);cursor:pointer;text-decoration:none;display:inline-block;touch-action:manipulation;}
+.dialog-link:hover,.dialog-link:active{background:#fff3a0;}
+#btn-hint{margin-top:10px;font-size:clamp(8px,1.4vw,11px);color:var(--ui-dim);display:flex;gap:14px;flex-wrap:wrap;}
+.hint-key{display:inline-flex;align-items:center;gap:5px;}
+.hint-badge{background:#222;border:1.5px solid var(--gold2);color:var(--gold);padding:4px 8px;border-radius:2px;font-size:inherit;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+#menu-overlay{position:fixed;inset:0;background:rgba(10,8,24,0.92);backdrop-filter:blur(4px);z-index:500;display:none;align-items:center;justify-content:center;}
+#menu-box{background:var(--ui-bg);border:4px solid var(--gold);padding:clamp(20px,4vw,36px) clamp(24px,5vw,44px);min-width:clamp(240px,50vw,400px);position:relative;}
+#menu-box::before{content:'';position:absolute;inset:3px;border:1px solid rgba(240,192,64,0.22);pointer-events:none;}
+#menu-title{font-size:clamp(8px,1.5vw,12px);color:var(--gold);text-align:center;margin-bottom:clamp(18px,3vh,28px);letter-spacing:2px;}
+#menu-title::before{content:'★ ';}#menu-title::after{content:' ★';}
+.menu-item{display:flex;width:100%;font-family:'Press Start 2P',monospace;font-size:clamp(7px,1.2vw,10px);color:var(--ui-text);background:transparent;border:none;padding:clamp(10px,1.8vh,16px) clamp(12px,2vw,20px);text-align:left;cursor:pointer;border-left:3px solid transparent;text-decoration:none;align-items:center;gap:12px;transition:color 0.1s,border-color 0.1s,background 0.1s;letter-spacing:0.5px;line-height:1.5;touch-action:manipulation;}
+.menu-item:hover,.menu-item:active,.menu-item.selected{color:var(--gold);border-left-color:var(--gold);background:rgba(240,192,64,0.06);}
+.menu-item-icon{font-size:12px;width:20px;text-align:center;flex-shrink:0;}
+#menu-divider{height:1px;background:rgba(240,192,64,0.18);margin:clamp(8px,1.5vh,14px) 0;}
+#menu-close-hint{text-align:center;margin-top:clamp(12px,2vh,20px);font-size:clamp(5px,0.8vw,7px);color:var(--ui-dim);}
+.hint-badge-sm{background:#222;border:1.5px solid #555;color:#aaa;padding:1px 5px;border-radius:2px;font-size:inherit;}
+@media(pointer:fine){body{cursor:none;}#cursor{position:fixed;width:12px;height:12px;border:2px solid var(--gold);pointer-events:none;z-index:9999;transform:translate(-50%,-50%);}}
+@media(pointer:coarse){#cursor{display:none;}}
+#nes-controller{position:fixed;bottom:0;left:0;right:0;z-index:300;display:flex;flex-direction:column;align-items:center;gap:8px;background:#0d0a18;padding:clamp(8px,1.5vh,16px) 0 clamp(8px,1.5vh,14px);border-top:2px solid #2a2040;}
+#controller-body{position:relative;width:clamp(388.8px,60.75vw,518.4px);height:clamp(90px,14vw,120px);background:linear-gradient(180deg,#3a3a40 0%,#2e2e34 60%,#252528 100%);border-radius:6px 6px 10px 10px;border:2px solid #555;box-shadow:0 4px 18px rgba(0,0,0,0.7),0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.08),inset 0 -2px 0 rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:space-between;padding:0 clamp(18px,4vw,28px);}
+#controller-body::before{content:'';position:absolute;top:10px;left:12px;right:12px;height:2px;background:rgba(255,255,255,0.05);border-radius:1px;}
+#controller-body::after{content:'';position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:clamp(60px,12vw,90px);height:6px;background:rgba(255,255,255,0.04);border-radius:3px;}
+#dpad{position:relative;width:clamp(70px,13vw,96px);height:clamp(70px,13vw,96px);flex-shrink:0;}
+.dpad-h,.dpad-v{position:absolute;background:linear-gradient(180deg,#4c4c56,#38383f);border:2.5px solid #1a1a20;border-radius:3px;}
+.dpad-h{left:0;right:0;top:33.3%;bottom:33.3%;box-shadow:inset 0 2px 0 rgba(255,255,255,0.09),inset 0 -2px 0 rgba(0,0,0,0.4);}
+.dpad-v{top:0;bottom:0;left:33.3%;right:33.3%;box-shadow:inset 2px 0 0 rgba(255,255,255,0.09),inset -2px 0 0 rgba(0,0,0,0.4);}
+.dpad-center{position:absolute;left:33.3%;right:33.3%;top:33.3%;bottom:33.3%;background:#3c3c44;border-radius:2px;z-index:2;}
+.dpad-btn{position:absolute;z-index:3;display:flex;align-items:center;justify-content:center;cursor:pointer;user-select:none;touch-action:none;-webkit-tap-highlight-color:transparent;}
+#btn-up{top:0;left:33.3%;right:33.3%;height:33.3%;}#btn-down{bottom:0;left:33.3%;right:33.3%;height:33.3%;}
+#btn-left{left:0;top:33.3%;bottom:33.3%;width:33.3%;}#btn-right{right:0;top:33.3%;bottom:33.3%;width:33.3%;}
+#btn-up::after{content:'▲';}#btn-down::after{content:'▼';}#btn-left::after{content:'◀';}#btn-right::after{content:'▶';}
+.dpad-btn::after{font-size:clamp(8px,1.6vw,12px);color:rgba(255,255,255,0.3);}
+.dpad-btn.pressing::after{color:var(--gold);text-shadow:0 0 7px var(--gold);}
+#center-section{display:flex;flex-direction:column;align-items:center;gap:clamp(6px,1.2vw,10px);flex-shrink:0;margin-left:clamp(8px,2vw,16px);margin-right:clamp(0px,1vw,8px);}
+#select-start-row{display:flex;gap:clamp(8px,1.8vw,14px);align-items:center;}
+.ss-btn{width:clamp(32px,6vw,46px);height:clamp(10px,2vw,14px);background:linear-gradient(180deg,#3a3a42,#28282e);border:1.5px solid #1a1a20;border-radius:clamp(5px,1vw,7px);box-shadow:0 2px 0 rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.07);cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:transform 0.06s,box-shadow 0.06s;}
+.ss-btn:active{transform:translateY(1px);box-shadow:none;}
+.ss-label{font-family:'Press Start 2P',monospace;font-size:clamp(4px,0.8vw,6px);color:#666;letter-spacing:0.5px;margin-top:clamp(2px,0.5vh,4px);text-align:center;}
+#menu-btn-wrap{display:flex;flex-direction:column;align-items:center;}
+#menu-btn{width:clamp(36px,6.5vw,50px);height:clamp(36px,6.5vw,50px);border-radius:50%;background:radial-gradient(circle at 42% 38%,#4a4a54,#26262e);border:2.5px solid #1a1a20;box-shadow:0 3px 0 rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.1),0 0 0 3px rgba(240,192,64,0.15);cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;display:flex;align-items:center;justify-content:center;transition:transform 0.06s,box-shadow 0.06s;}
+#menu-btn:hover{box-shadow:0 3px 0 rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.1),0 0 0 4px rgba(240,192,64,0.35);}
+#menu-btn:active,#menu-btn.pressed{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,0.55);}
+#menu-btn-icon{font-family:'Press Start 2P',monospace;font-size:clamp(5px,0.9vw,7px);color:rgba(240,192,64,0.85);letter-spacing:0.5px;line-height:1.3;text-align:center;}
+#menu-btn-label{font-family:'Press Start 2P',monospace;font-size:clamp(4px,0.7vw,5px);color:var(--gold2);margin-top:4px;letter-spacing:0.5px;}
+#ab-buttons{display:flex;gap:clamp(8px,1.8vw,14px);align-items:center;flex-shrink:0;transform:rotate(-18deg);}
+.ab-btn{width:clamp(36px,6.5vw,50px);height:clamp(36px,6.5vw,50px);border-radius:50%;border:2.5px solid #1a1a20;display:flex;align-items:center;justify-content:center;font-family:'Press Start 2P',monospace;font-size:clamp(9px,1.6vw,12px);cursor:pointer;touch-action:manipulation;user-select:none;box-shadow:0 4px 0 rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.15);transition:transform 0.06s,box-shadow 0.06s;-webkit-tap-highlight-color:transparent;}
+.ab-btn:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,0.55);}
+#btn-b{background:radial-gradient(circle at 40% 35%,var(--btn-red-hi),var(--btn-red));color:rgba(255,255,255,0.85);}
+#btn-a{background:radial-gradient(circle at 40% 35%,var(--btn-red-hi),var(--btn-red));color:rgba(255,255,255,0.85);}
+.ab-label-row{display:flex;gap:clamp(8px,1.8vw,14px);transform:rotate(-18deg);margin-top:clamp(2px,0.5vh,4px);}
+.ab-label{font-family:'Press Start 2P',monospace;font-size:clamp(4px,0.7vw,5px);color:#555;width:clamp(36px,6.5vw,50px);text-align:center;}
+#ab-col{display:flex;flex-direction:column;align-items:center;flex-shrink:0;}
+#ctrl-hint{font-family:'VT323',monospace;font-size:clamp(10px,1.8vw,13px);color:var(--gold);text-align:center;opacity:0.75;}
+</style>
+</head>
+<body>
+<div id="cursor"></div>
+<canvas id="world-canvas"></canvas>
+<div id="player"><canvas id="player-canvas" width="32" height="48"></canvas></div>
+
+<div id="hud">
+  <div id="hud-name">CASTLE ANTHRAX</div>
+  <div id="hud-title">Explore the halls<br>of King Lyn's domain.</div>
+</div>
+<div id="zone-label"></div>
+
+<div id="dialog-box">
+  <div id="dialog-title">...</div>
+  <div id="dialog-body"></div>
+  <div id="dialog-links"></div>
+  <div id="btn-hint">
+    <span class="hint-key"><span class="hint-badge">A</span> interact / next</span>
+    <span class="hint-key"><span class="hint-badge">B</span> close</span>
+    <span class="hint-key"><span class="hint-badge">MENU</span> navigation</span>
+  </div>
+</div>
+
+<div id="menu-overlay">
+  <div id="menu-box">
+    <div id="menu-title">NAVIGATION</div>
+    <a class="menu-item" href="world.html"><span class="menu-item-icon">🗺</span> WORLD MAP</a>
+    <a class="menu-item selected" href="castle-anthrax.html"><span class="menu-item-icon">🏰</span><span id="menu-cursor">▶ </span>CASTLE ANTHRAX</a>
+    <a class="menu-item" href="andregurule-library.html"><span class="menu-item-icon">⚔</span> HALL OF RECORDS</a>
+    <a class="menu-item" href="https://www.andregurule.com/hobbies" target="_blank"><span class="menu-item-icon">🏕</span> HOBBIES</a>
+    <a class="menu-item" href="https://www.andregurule.com/blog" target="_blank"><span class="menu-item-icon">📜</span> BLOG</a>
+    <div id="menu-divider"></div>
+    <a class="menu-item" href="https://linkedin.com/in/andregurule" target="_blank"><span class="menu-item-icon">💼</span> LINKEDIN</a>
+    <div id="menu-close-hint">
+      <span class="hint-badge-sm">B</span> or <span class="hint-badge-sm">MENU</span> to close &nbsp;·&nbsp;
+      <span class="hint-badge-sm">↑↓</span> navigate &nbsp;·&nbsp;
+      <span class="hint-badge-sm">A</span> select
+    </div>
+  </div>
+</div>
+
+<div id="nes-controller">
+  <div id="controller-body">
+    <div id="dpad">
+      <div class="dpad-h"></div><div class="dpad-v"></div><div class="dpad-center"></div>
+      <div class="dpad-btn" id="btn-up" data-dir="up"></div>
+      <div class="dpad-btn" id="btn-down" data-dir="down"></div>
+      <div class="dpad-btn" id="btn-left" data-dir="left"></div>
+      <div class="dpad-btn" id="btn-right" data-dir="right"></div>
+    </div>
+    <div id="center-section">
+      <div id="menu-btn-wrap">
+        <div id="menu-btn" onclick="toggleMenu()"><div id="menu-btn-icon">MENU</div></div>
+        <div id="menu-btn-label">MENU</div>
+      </div>
+      <div id="select-start-row">
+        <div style="display:flex;flex-direction:column;align-items:center;">
+          <div class="ss-btn"></div><div class="ss-label">SELECT</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;">
+          <div class="ss-btn" onclick="handleA()"></div><div class="ss-label">START</div>
+        </div>
+      </div>
+    </div>
+    <div id="ab-col">
+      <div id="ab-buttons">
+        <div class="ab-btn" id="btn-b" onclick="handleB()">B</div>
+        <div class="ab-btn" id="btn-a" onclick="handleA()">A</div>
+      </div>
+      <div class="ab-label-row">
+        <div class="ab-label">BACK</div>
+        <div class="ab-label">TALK</div>
+      </div>
+    </div>
+  </div>
+  <div id="ctrl-hint">D-PAD / ARROW KEYS · A=TALK · B=CLOSE · MENU=NAV</div>
+</div>
+
+<script>
+// ── WORLD SIZE ────────────────────────────────────────────────────────────────
+const TILE=48, WORLD_W=48, WORLD_H=32;
+const PW=WORLD_W*TILE, PH=WORLD_H*TILE;
+
+// ── ROOM DEFINITIONS ──────────────────────────────────────────────────────────
+// Layout (tiles): three rooms across top, four across bottom, corridor between
+//
+//  [LIBRARY 10x10][  THRONE ROOM 14x10  ][TREASURY 10x10]  y:2–11
+//  [========= MAIN CORRIDOR 36x4 ==================]        y:12–15
+//  [ARMORY 10x12][BARRACKS 10x12][BANQUET 12x12][DUNGEON 10x12] y:16–27
+//
+const ROOMS=[
+  {id:'library',  label:'📚 LIBRARY',     x:2,  y:2,  w:10, h:10, floorC:'#2a2218', wallC:'#1a1510', accentC:'#4a3820'},
+  {id:'throne',   label:'👑 THRONE ROOM', x:13, y:2,  w:14, h:10, floorC:'#3a2010', wallC:'#241408', accentC:'#6a3010'},
+  {id:'treasury', label:'💰 TREASURY',    x:28, y:2,  w:10, h:10, floorC:'#1e1e14', wallC:'#141410', accentC:'#3a3810'},
+  {id:'armory',   label:'⚔ ARMORY',       x:2,  y:16, w:10, h:12, floorC:'#1e1e22', wallC:'#141416', accentC:'#303040'},
+  {id:'barracks', label:'🛡 BARRACKS',    x:13, y:16, w:10, h:12, floorC:'#221e1a', wallC:'#161210', accentC:'#403020'},
+  {id:'banquet',  label:'🍖 BANQUET HALL',x:24, y:16, w:12, h:12, floorC:'#281e14', wallC:'#18120c', accentC:'#503020'},
+  {id:'dungeon',  label:'⛓ DUNGEON',      x:37, y:16, w:10, h:12, floorC:'#141414', wallC:'#0e0e0e', accentC:'#242424'},
+];
+
+// Corridor + vertical connectors between top and bottom rows
+const CORRIDORS=[
+  {x:2,  y:12, w:36, h:4},   // main horizontal corridor
+  // short vertical connectors from corridor into bottom rooms
+  {x:4,  y:16, w:6,  h:1},   // armory top door
+  {x:15, y:16, w:6,  h:1},   // barracks top door
+  {x:26, y:16, w:8,  h:1},   // banquet top door
+  {x:39, y:16, w:6,  h:1},   // dungeon top door
+  // connectors from top rooms into corridor
+  {x:4,  y:11, w:6,  h:1},   // library bottom door
+  {x:16, y:11, w:6,  h:1},   // throne bottom door
+  {x:30, y:11, w:6,  h:1},   // treasury bottom door
+  // exit corridor at bottom
+  {x:19, y:28, w:6,  h:3},
+];
+
+function isWalkable(tx,ty){
+  if(tx<0||ty<0||tx>=WORLD_W||ty>=WORLD_H) return false;
+  for(const r of ROOMS) if(tx>=r.x&&tx<r.x+r.w&&ty>=r.y&&ty<r.y+r.h) return true;
+  for(const c of CORRIDORS) if(tx>=c.x&&tx<c.x+c.w&&ty>=c.y&&ty<c.y+c.h) return true;
+  return false;
+}
+function getRoomAt(tx,ty){ return ROOMS.find(r=>tx>=r.x&&tx<r.x+r.w&&ty>=r.y&&ty<r.y+r.h)||null; }
+function isCorridorAt(tx,ty){ return CORRIDORS.some(c=>tx>=c.x&&tx<c.x+c.w&&ty>=c.y&&ty<c.y+c.h); }
+
+// ── NPC & SIGNS ────────────────────────────────────────────────────────────────
+const NPCS=[{
+  id:'lyn', label:'👑 KING LYN', title:'KING LYN',
+  tx:20, ty:5,   // center of throne room
+  // ── EDIT LYN'S DIALOG BELOW ──────────────────────────────────────────────
+  // Add as many lines as you like. Player presses A to advance through them.
+  dialogs:[
+    {body:"Greetings, traveller. I am King Lyn, ruler of Castle Anthrax. Welcome to my domain."},
+  ],
+  // ─────────────────────────────────────────────────────────────────────────
+  dialogIdx:0,
+}];
+
+const SIGNS=[
+  {id:'exit', label:'◀ EXIT — WORLD MAP', tx:22, ty:29,
+   title:'EXIT CASTLE', body:'Leave Castle Anthrax and return to the world map?',
+   links:[{label:'◀ RETURN TO WORLD MAP', href:'world.html', local:true}]},
+  {id:'library_sign',  label:'📚 LIBRARY',      tx:7,  ty:12, title:'LIBRARY / STUDY',  body:'Shelves of ancient tomes, scrolls of lore, and the quiet scratch of a quill. Knowledge lives here.', links:[]},
+  {id:'throne_sign',   label:'👑 THRONE ROOM',  tx:20, ty:12, title:'THRONE ROOM',       body:"The seat of King Lyn's power. The golden throne watches all who enter.", links:[]},
+  {id:'treasury_sign', label:'💰 TREASURY',     tx:33, ty:12, title:'THE TREASURY',       body:'Coffers of gold, gemstones, and locked chests. The wealth of many campaigns rests here.', links:[]},
+  {id:'armory_sign',   label:'⚔ ARMORY',        tx:7,  ty:17, title:'ARMORY',             body:'Swords, shields, and armor line the walls. Every knight must be prepared.', links:[]},
+  {id:'barracks_sign', label:'🛡 BARRACKS',     tx:18, ty:17, title:'BARRACKS',           body:'Rows of bunks and weapon racks. The castle guard rests — and trains — here.', links:[]},
+  {id:'banquet_sign',  label:'🍖 BANQUET HALL', tx:30, ty:17, title:'BANQUET HALL',       body:'A grand hall for feasts. Long tables once groaned under the weight of roasted meats and fine wines.', links:[]},
+  {id:'dungeon_sign',  label:'⛓ DUNGEON',       tx:42, ty:17, title:'THE DUNGEON',        body:'Cold stone, dripping water, iron bars. Not all who descend return. You have been warned.', links:[]},
+];
+
+// ── GAME STATE ────────────────────────────────────────────────────────────────
+const _p=new URLSearchParams(window.location.search);
+const GameState={
+  points:parseInt(_p.get('points')||'0',10),
+  visited:_p.get('visited')?_p.get('visited').split(',').filter(Boolean):[],
+  unlocked:_p.get('unlocked')?_p.get('unlocked').split(',').filter(Boolean):[],
+  withState(href){return href+(href.includes('?')?'&':'?')+new URLSearchParams({points:this.points,visited:this.visited.join(','),unlocked:this.unlocked.join(',')}).toString();}
+};
+
+let camX=0,camY=0;
+let playerX=22*TILE,playerY=29*TILE;  // spawn at exit sign bottom
+let facing='up',moving=false,frame=0,frameTimer=0;
+const FRAME_RATE=8;
+let dialogOpen=false,menuOpen=false,activeInteractable=null,zoneLabelTimer=0;
+const keys={up:false,down:false,left:false,right:false};
+let menuItems=[],menuIdx=0;
+
+const canvas=document.getElementById('world-canvas');
+const ctx=canvas.getContext('2d');
+ctx.imageSmoothingEnabled=false;
+const playerCanvas=document.getElementById('player-canvas');
+const pCtx=playerCanvas.getContext('2d');
+pCtx.imageSmoothingEnabled=false;
+
+function ctrlHeight(){const c=document.getElementById('nes-controller');return c?c.offsetHeight+16:0;}
+function resize(){canvas.width=window.innerWidth;canvas.height=window.innerHeight-ctrlHeight();ctx.imageSmoothingEnabled=false;}
+resize();window.addEventListener('resize',resize);
+
+// ── DRAW HELPERS ──────────────────────────────────────────────────────────────
+function torch(x,y,redness){
+  const fl=Math.sin(Date.now()/120+x*0.05)*1.5;
+  ctx.fillStyle=redness?'#442200':'#6b4226';ctx.fillRect(x-3,y,6,8);
+  ctx.fillStyle=redness?'#cc3300':'#ff8800';ctx.fillRect(x-2,y-6+fl,4,6);
+  ctx.fillStyle=redness?'#ff6600':'#ffee00';ctx.fillRect(x-1,y-7+fl,2,3);
+  ctx.save();
+  const g=ctx.createRadialGradient(x,y,2,x,y,28);
+  g.addColorStop(0,redness?'rgba(200,80,0,0.18)':'rgba(255,140,0,0.18)');
+  g.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=g;ctx.fillRect(x-28,y-28,56,56);
+  ctx.restore();
+}
+
+function drawFloorTile(sx,sy,tx,ty,room){
+  ctx.fillStyle=room.floorC;ctx.fillRect(sx,sy,TILE,TILE);
+  if((tx+ty)%2===0){ctx.fillStyle='rgba(0,0,0,0.10)';ctx.fillRect(sx+2,sy+2,TILE-4,TILE-4);}
+  ctx.fillStyle='rgba(0,0,0,0.18)';ctx.fillRect(sx,sy,TILE,1);ctx.fillRect(sx,sy,1,TILE);
+}
+
+function drawWalls(sx,sy,tx,ty,room){
+  if(ty===room.y){
+    ctx.fillStyle=room.wallC;ctx.fillRect(sx,sy,TILE,9);
+    ctx.fillStyle=room.accentC;ctx.fillRect(sx,sy+8,TILE,2);
+    if((tx-room.x)%5===2){torch(sx+TILE/2,sy+2,false);}
+  }
+  if(ty===room.y+room.h-1){ctx.fillStyle=room.wallC;ctx.fillRect(sx,sy+TILE-9,TILE,9);ctx.fillStyle=room.accentC;ctx.fillRect(sx,sy+TILE-10,TILE,2);}
+  if(tx===room.x){ctx.fillStyle=room.wallC;ctx.fillRect(sx,sy,9,TILE);ctx.fillStyle=room.accentC;ctx.fillRect(sx+8,sy,2,TILE);}
+  if(tx===room.x+room.w-1){ctx.fillStyle=room.wallC;ctx.fillRect(sx+TILE-9,sy,9,TILE);ctx.fillStyle=room.accentC;ctx.fillRect(sx+TILE-10,sy,2,TILE);}
+}
+
+// ── ROOM DETAIL DRAWING ───────────────────────────────────────────────────────
+function drawThroneRoom(wx,wy){
+  const r=ROOMS[1];
+  const rx=r.x*TILE-wx,ry=r.y*TILE-wy,rw=r.w*TILE,rh=r.h*TILE;
+  const midX=rx+rw/2;
+  // Red carpet
+  ctx.fillStyle='#6b0000';ctx.fillRect(midX-TILE,ry+TILE,TILE*2,rh-TILE*1.5);
+  ctx.fillStyle='#880000';ctx.fillRect(midX-TILE+5,ry+TILE,TILE*2-10,rh-TILE*1.5);
+  ctx.fillStyle='#f0c040';ctx.fillRect(midX-TILE,ry+TILE,4,rh-TILE*1.5);ctx.fillRect(midX+TILE-4,ry+TILE,4,rh-TILE*1.5);
+  // Platform
+  ctx.fillStyle='#3a1a06';ctx.fillRect(midX-TILE*1.6,ry+TILE*0.4,TILE*3.2,TILE*2.2);
+  ctx.fillStyle='#4e2a0c';ctx.fillRect(midX-TILE*1.5,ry+TILE*0.5,TILE*3,TILE*2);
+  ctx.fillStyle='#5e3a14';ctx.fillRect(midX-TILE*1.2,ry+TILE*2.3,TILE*2.4,TILE*0.3);
+  ctx.fillStyle='#4e2a0c';ctx.fillRect(midX-TILE*1.0,ry+TILE*2.5,TILE*2,TILE*0.25);
+  // Throne
+  const thX=midX,thY=ry+TILE*0.6;
+  ctx.fillStyle='#2a1006';ctx.fillRect(thX-22,thY,44,56);
+  ctx.fillStyle='#7a1a1a';ctx.fillRect(thX-18,thY+2,36,48);
+  ctx.fillStyle='#f0c040';ctx.fillRect(thX-22,thY+30,10,20);ctx.fillRect(thX+12,thY+30,10,20);
+  // Crown finials
+  ctx.fillStyle='#f0c040';
+  ctx.fillRect(thX-22,thY-10,8,10);ctx.fillRect(thX-9,thY-14,6,14);
+  ctx.fillRect(thX+3,thY-14,6,14);ctx.fillRect(thX+14,thY-10,8,10);
+  ctx.fillRect(thX-4,thY-18,8,18);
+  // Seat
+  ctx.fillStyle='#4a0808';ctx.fillRect(thX-18,thY+44,36,12);
+  // Side banners
+  ctx.fillStyle='#7a0000';ctx.fillRect(midX-TILE*1.4,ry+TILE*0.5,10,TILE*2);ctx.fillRect(midX+TILE*1.2,ry+TILE*0.5,10,TILE*2);
+  ctx.fillStyle='#f0c040';ctx.fillRect(midX-TILE*1.38,ry+TILE*0.7,6,8);ctx.fillRect(midX+TILE*1.22,ry+TILE*0.7,6,8);
+  // Pillars
+  for(let pi=0;pi<2;pi++){
+    const px=rx+TILE*1.8+pi*(rw-TILE*3.6);
+    for(let pj=0;pj<2;pj++){
+      const py=ry+TILE*3+pj*(rh-TILE*5.5);
+      ctx.fillStyle='#4a3010';ctx.fillRect(px-10,py-10,20,20);
+      ctx.fillStyle='#6a5030';ctx.fillRect(px-8,py-8,16,16);
+      ctx.fillStyle='#8a7050';ctx.fillRect(px-6,py-26,12,32);
+      ctx.fillStyle='#4a3010';ctx.fillRect(px-10,py-28,20,4);ctx.fillRect(px-10,py+6,20,4);
+    }
+  }
+}
+
+function drawLibrary(wx,wy){
+  const r=ROOMS[0];
+  const rx=r.x*TILE-wx,ry=r.y*TILE-wy,rw=r.w*TILE,rh=r.h*TILE;
+  // Bookcase rows — back wall and sides
+  const bookColors=['#8b2020','#205080','#206020','#806020','#602080','#804020','#208080'];
+  // Back wall shelves
+  for(let shelf=0;shelf<3;shelf++){
+    const sy=ry+TILE*1.2+shelf*TILE*2.2;
+    ctx.fillStyle='#3a2810';ctx.fillRect(rx+TILE*0.5,sy,rw-TILE,8);
+    for(let book=0;book<14;book++){
+      const bx=rx+TILE*0.6+book*14;
+      const bh=28+Math.sin(book*1.3)*8;
+      ctx.fillStyle=bookColors[book%bookColors.length];ctx.fillRect(bx,sy-bh,12,bh);
+      ctx.fillStyle='rgba(255,255,255,0.15)';ctx.fillRect(bx,sy-bh,3,bh);
+      ctx.fillStyle='rgba(0,0,0,0.2)';ctx.fillRect(bx+10,sy-bh,2,bh);
+    }
+    ctx.fillStyle='#5a4020';ctx.fillRect(rx+TILE*0.5,sy,rw-TILE,6);
+  }
+  // Reading desk
+  const deskX=rx+rw/2-28,deskY=ry+rh-TILE*2.5;
+  ctx.fillStyle='#4a3010';ctx.fillRect(deskX,deskY,56,36);
+  ctx.fillStyle='#6a4820';ctx.fillRect(deskX+3,deskY+3,50,30);
+  // Open book on desk
+  ctx.fillStyle='#e8dfc0';ctx.fillRect(deskX+8,deskY+5,18,24);ctx.fillRect(deskX+30,deskY+5,18,24);
+  ctx.fillStyle='#5a3010';ctx.fillRect(deskX+26,deskY+5,4,24);
+  ctx.fillStyle='#3a2010';
+  for(let line=0;line<6;line++){ctx.fillRect(deskX+10,deskY+8+line*3,14,1);ctx.fillRect(deskX+32,deskY+8+line*3,14,1);}
+  // Candle on desk
+  ctx.fillStyle='#e8dfc0';ctx.fillRect(deskX+48,deskY+4,4,14);
+  torch(deskX+50,deskY+4,false);
+  // Desk legs
+  ctx.fillStyle='#3a2010';ctx.fillRect(deskX+4,deskY+36,6,12);ctx.fillRect(deskX+46,deskY+36,6,12);
+}
+
+function drawTreasury(wx,wy){
+  const r=ROOMS[2];
+  const rx=r.x*TILE-wx,ry=r.y*TILE-wy,rw=r.w*TILE,rh=r.h*TILE;
+  // Gold glow
+  ctx.save();
+  const g=ctx.createRadialGradient(rx+rw/2,ry+rh/2,10,rx+rw/2,ry+rh/2,rw*0.7);
+  g.addColorStop(0,'rgba(240,192,64,0.10)');g.addColorStop(1,'rgba(240,192,64,0)');
+  ctx.fillStyle=g;ctx.fillRect(rx,ry,rw,rh);ctx.restore();
+  // Chests
+  const chests=[
+    {cx:rx+TILE,cy:ry+TILE,open:true},{cx:rx+TILE*2.5,cy:ry+TILE,open:false},
+    {cx:rx+TILE*4,cy:ry+TILE,open:true},{cx:rx+TILE*1.5,cy:ry+TILE*4.5,open:false},
+    {cx:rx+TILE*3.5,cy:ry+TILE*4.5,open:true},{cx:rx+TILE*5.5,cy:ry+TILE*3,open:false},
+  ];
+  chests.forEach(ch=>{
+    ctx.fillStyle='#4a2808';ctx.fillRect(ch.cx-18,ch.cy,36,26);
+    ctx.fillStyle='#6a3a14';ctx.fillRect(ch.cx-15,ch.cy+3,30,20);
+    ctx.fillStyle='#8a6a10';ctx.fillRect(ch.cx-18,ch.cy+10,36,4);
+    ctx.fillStyle='#f0c040';ctx.fillRect(ch.cx-18,ch.cy+10,36,2);ctx.fillRect(ch.cx-4,ch.cy+14,8,9);
+    if(ch.open){
+      ctx.fillStyle='#4a2808';ctx.fillRect(ch.cx-18,ch.cy-16,36,17);
+      ctx.fillStyle='#6a3a14';ctx.fillRect(ch.cx-15,ch.cy-13,30,13);
+      ctx.fillStyle='#f0c040';
+      for(let ci=0;ci<8;ci++) ctx.fillRect(ch.cx-10+ci*3,ch.cy+1+(ci%2)*2,4,4);
+    } else {
+      ctx.fillStyle='#2e1604';ctx.fillRect(ch.cx-18,ch.cy-5,36,6);
+    }
+  });
+  // Coin piles
+  [{px:rx+TILE*2,py:ry+TILE*3,r:22},{px:rx+TILE*4.5,py:ry+TILE*2.5,r:16},{px:rx+TILE*6,py:ry+TILE*5,r:18}].forEach(p=>{
+    ctx.fillStyle='#8b6b00';ctx.beginPath();ctx.ellipse(p.px,p.py,p.r,p.r*0.45,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#f0c040';ctx.beginPath();ctx.ellipse(p.px,p.py-2,p.r*0.75,p.r*0.32,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#fff080';ctx.beginPath();ctx.arc(p.px-5,p.py-4,3,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(p.px+6,p.py-5,3,0,Math.PI*2);ctx.fill();
+  });
+  // Gems
+  [['#cc2244',rx+TILE*0.8,ry+TILE*3.5],['#2244cc',rx+TILE*1.1,ry+TILE*3.9],['#22aa44',rx+TILE*0.9,ry+TILE*4.2],['#aa22cc',rx+TILE*7.2,ry+TILE*2],['#cc8800',rx+TILE*7.5,ry+TILE*2.4]].forEach(([c,gx,gy])=>{
+    ctx.fillStyle=c;ctx.beginPath();ctx.moveTo(gx,gy-9);ctx.lineTo(gx+7,gy);ctx.lineTo(gx,gy+7);ctx.lineTo(gx-7,gy);ctx.closePath();ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,0.38)';ctx.beginPath();ctx.moveTo(gx,gy-9);ctx.lineTo(gx+7,gy);ctx.lineTo(gx,gy-2);ctx.closePath();ctx.fill();
+  });
+}
+
+function drawArmory(wx,wy){
+  const r=ROOMS[3];
+  const rx=r.x*TILE-wx,ry=r.y*TILE-wy,rw=r.w*TILE,rh=r.h*TILE;
+  // Weapon racks along walls
+  // Sword rack
+  ctx.fillStyle='#4a4a50';
+  const swords=[[rx+TILE,ry+TILE*1.5],[rx+TILE*1.8,ry+TILE*1.5],[rx+TILE*2.6,ry+TILE*1.5]];
+  swords.forEach(([sx,sy])=>{
+    ctx.fillStyle='#8a8a90';ctx.fillRect(sx-2,sy,4,36);    // blade
+    ctx.fillStyle='#c0a000';ctx.fillRect(sx-8,sy+22,16,5); // guard
+    ctx.fillStyle='#6a4a10';ctx.fillRect(sx-2,sy+27,4,14); // grip
+    ctx.fillStyle='#c0a000';ctx.fillRect(sx-3,sy+41,6,5);  // pommel
+  });
+  // Shields on wall
+  const shields=[[rx+rw-TILE*1.5,ry+TILE*1.2,'#8b0000'],[rx+rw-TILE*2.6,ry+TILE*1.2,'#00308f']];
+  shields.forEach(([sx,sy,c])=>{
+    ctx.fillStyle=c;ctx.fillRect(sx-16,sy,32,36);
+    ctx.fillStyle='rgba(255,255,255,0.08)';ctx.fillRect(sx-16,sy,16,36);
+    ctx.fillStyle='#c8a000';ctx.fillRect(sx-16,sy,32,5);ctx.fillRect(sx-16,sy+31,32,5);ctx.fillRect(sx-16,sy,5,36);ctx.fillRect(sx+11,sy,5,36);
+    ctx.beginPath();ctx.moveTo(sx-16,sy+36);ctx.lineTo(sx,sy+48);ctx.lineTo(sx+16,sy+36);ctx.closePath();
+    ctx.fillStyle=c;ctx.fill();ctx.fillStyle='#c8a000';ctx.strokeStyle='#c8a000';ctx.lineWidth=5;ctx.stroke();ctx.lineWidth=1;
+    ctx.fillStyle='#c8a000';ctx.fillRect(sx-3,sy+12,6,6);
+  });
+  // Armor stand center
+  ctx.fillStyle='#6a6a74';ctx.fillRect(rx+rw/2-12,ry+TILE*3,24,34);  // torso
+  ctx.fillStyle='#5a5a64';ctx.fillRect(rx+rw/2-10,ry+TILE*3+2,20,30);
+  ctx.fillStyle='#7a7a84';ctx.fillRect(rx+rw/2-14,ry+TILE*3-8,8,10); // L shoulder
+  ctx.fillRect(rx+rw/2+6,ry+TILE*3-8,8,10);                          // R shoulder
+  ctx.fillStyle='#6a6a74';ctx.fillRect(rx+rw/2-14,ry+TILE*2.3,8,TILE*0.8);// L arm
+  ctx.fillRect(rx+rw/2+6,ry+TILE*2.3,8,TILE*0.8);
+  ctx.fillStyle='#5a5a64';ctx.fillRect(rx+rw/2-8,ry+TILE*2,16,12);   // helm
+  ctx.fillRect(rx+rw/2-5,ry+TILE*2-6,10,8);                          // crest base
+  ctx.fillStyle='#cc2020';ctx.fillRect(rx+rw/2-3,ry+TILE*2-14,6,10); // crest
+  // Stand pole
+  ctx.fillStyle='#3a2a10';ctx.fillRect(rx+rw/2-3,ry+TILE*5.5,6,TILE*2.5);
+  ctx.fillRect(rx+rw/2-18,ry+TILE*7.5,36,6);
+  // Torches in armory
+  torch(rx+TILE,ry+TILE*0.4,false);torch(rx+rw-TILE,ry+TILE*0.4,false);
+}
+
+function drawBarracks(wx,wy){
+  const r=ROOMS[4];
+  const rx=r.x*TILE-wx,ry=r.y*TILE-wy,rw=r.w*TILE,rh=r.h*TILE;
+  // Bunk beds along walls
+  for(let bi=0;bi<2;bi++){
+    const bx=rx+TILE*0.8+bi*TILE*3;
+    // Frame
+    ctx.fillStyle='#4a3010';ctx.fillRect(bx,ry+TILE*1.2,TILE*2,TILE*4.5);
+    ctx.fillStyle='#6a4820';ctx.fillRect(bx+4,ry+TILE*1.4,TILE*2-8,TILE*4.1);
+    // Lower mattress
+    ctx.fillStyle='#3a5028';ctx.fillRect(bx+4,ry+TILE*3,TILE*2-8,TILE*0.8);
+    ctx.fillStyle='#c8b090';ctx.fillRect(bx+6,ry+TILE*3+4,TILE*2-16,12);  // pillow
+    // Upper mattress
+    ctx.fillStyle='#3a5028';ctx.fillRect(bx+4,ry+TILE*1.8,TILE*2-8,TILE*0.8);
+    ctx.fillStyle='#c8b090';ctx.fillRect(bx+6,ry+TILE*1.9,TILE*2-16,12);
+    // Divider rail
+    ctx.fillStyle='#4a3010';ctx.fillRect(bx,ry+TILE*2.9,TILE*2,6);
+    // Ladder
+    ctx.fillStyle='#3a2010';ctx.fillRect(bx+TILE*2-6,ry+TILE*1.8,4,TILE*1.6);
+    for(let rung=0;rung<4;rung++) ctx.fillRect(bx+TILE*2-10,ry+TILE*2+rung*10,8,3);
+  }
+  // Weapon rack (spears)
+  for(let sp=0;sp<4;sp++){
+    const spx=rx+TILE*5.5+sp*14;
+    ctx.fillStyle='#8a6030';ctx.fillRect(spx-2,ry+TILE*1.5,4,TILE*4);
+    ctx.fillStyle='#aaaaaa';ctx.fillRect(spx-3,ry+TILE*1.3,6,TILE*0.5);
+    ctx.beginPath();ctx.moveTo(spx-3,ry+TILE*1.3);ctx.lineTo(spx,ry+TILE*0.8);ctx.lineTo(spx+3,ry+TILE*1.3);ctx.fillStyle='#cccccc';ctx.fill();
+  }
+  ctx.fillStyle='#4a3010';ctx.fillRect(rx+TILE*5.2,ry+TILE*4,TILE*3,8);ctx.fillRect(rx+TILE*5.2,ry+TILE*2.5,TILE*3,8);
+  // Table and stools
+  ctx.fillStyle='#5a3a10';ctx.fillRect(rx+TILE*1.5,ry+TILE*6,TILE*3.5,TILE*0.6);
+  ctx.fillRect(rx+TILE*1.7,ry+TILE*6.6,TILE*0.4,TILE);ctx.fillRect(rx+TILE*4.4,ry+TILE*6.6,TILE*0.4,TILE);
+  ctx.fillStyle='#4a3010';ctx.fillRect(rx+TILE*1.2,ry+TILE*7.2,TILE,6);ctx.fillRect(rx+TILE*4,ry+TILE*7.2,TILE,6);
+  // Torch
+  torch(rx+rw/2,ry+TILE*0.4,false);
+}
+
+function drawBanquetHall(wx,wy){
+  const r=ROOMS[5];
+  const rx=r.x*TILE-wx,ry=r.y*TILE-wy,rw=r.w*TILE,rh=r.h*TILE;
+  // Long table
+  ctx.fillStyle='#5a3810';ctx.fillRect(rx+TILE*0.8,ry+TILE*1.5,rw-TILE*1.6,TILE*7);
+  ctx.fillStyle='#7a5228';ctx.fillRect(rx+TILE*1,ry+TILE*1.7,rw-TILE*2,TILE*6.6);
+  // Legs
+  ctx.fillStyle='#3a2008';ctx.fillRect(rx+TILE+8,ry+TILE*8.1,8,TILE*0.8);ctx.fillRect(rx+rw-TILE-16,ry+TILE*8.1,8,TILE*0.8);
+  // Benches
+  ctx.fillStyle='#4a2a08';ctx.fillRect(rx+TILE*0.2,ry+TILE*2,TILE*0.5,TILE*6);ctx.fillRect(rx+rw-TILE*0.7,ry+TILE*2,TILE*0.5,TILE*6);
+  // Food & candles
+  const items=[
+    [rx+TILE*2,ry+TILE*2.8,'#cc3300',10],[rx+TILE*3.5,ry+TILE*3.2,'#ddaa22',7],
+    [rx+TILE*5,ry+TILE*2.6,'#226622',8],[rx+TILE*6.5,ry+TILE*3,'#884422',11],
+    [rx+TILE*8,ry+TILE*2.8,'#cc8822',7],[rx+TILE*2.5,ry+TILE*5.5,'#cc3300',9],
+    [rx+TILE*4.5,ry+TILE*5,'#226622',7],[rx+TILE*7,ry+TILE*5.5,'#884422',10],
+  ];
+  items.forEach(([ix,iy,c,rad])=>{ctx.fillStyle=c;ctx.beginPath();ctx.arc(ix,iy,rad,0,Math.PI*2);ctx.fill();});
+  for(let ci=0;ci<5;ci++){
+    const cx2=rx+TILE*2+ci*TILE*1.6;
+    ctx.fillStyle='#e8dfc0';ctx.fillRect(cx2-2,ry+TILE*4.2,4,12);
+    torch(cx2,ry+TILE*4.2,false);
+  }
+  // Fireplace
+  ctx.fillStyle='#2a1a08';ctx.fillRect(rx+TILE*0.3,ry+TILE*4,TILE*0.9,TILE*2.5);
+  const ft=Math.sin(Date.now()/90)*1.5;
+  ctx.fillStyle='#ff4400';ctx.fillRect(rx+TILE*0.4,ry+TILE*4.3,TILE*0.7,TILE*1.8);
+  ctx.fillStyle='#ffaa00';ctx.fillRect(rx+TILE*0.45,ry+TILE*4.6,TILE*0.6,TILE*1.2+ft);
+  ctx.fillStyle='#ffee00';ctx.fillRect(rx+TILE*0.5,ry+TILE*5,TILE*0.5,TILE*0.6+ft);
+  ctx.save();const fg=ctx.createRadialGradient(rx+TILE*0.75,ry+TILE*5,5,rx+TILE*0.75,ry+TILE*5,50);
+  fg.addColorStop(0,'rgba(255,100,0,0.18)');fg.addColorStop(1,'rgba(255,100,0,0)');
+  ctx.fillStyle=fg;ctx.fillRect(rx,ry+TILE*3.5,TILE*2,TILE*3);ctx.restore();
+  // Chandelier
+  ctx.fillStyle='#c8a000';ctx.fillRect(rx+rw/2-24,ry+TILE*0.3,48,6);
+  for(let ci=0;ci<5;ci++){const lx=rx+rw/2-20+ci*10;ctx.fillStyle='#c8a000';ctx.fillRect(lx-1,ry+TILE*0.3,2,TILE*0.4+ci%2*6);torch(lx,ry+TILE*0.7,false);}
+}
+
+function drawDungeon(wx,wy){
+  const r=ROOMS[6];
+  const rx=r.x*TILE-wx,ry=r.y*TILE-wy,rw=r.w*TILE,rh=r.h*TILE;
+  // Damp overlay
+  ctx.fillStyle='rgba(0,20,8,0.2)';ctx.fillRect(rx,ry,rw,rh);
+  // Cells
+  for(let ci=0;ci<2;ci++){
+    const cx2=rx+TILE*0.5+ci*(rw-TILE);
+    const cy2=ry+TILE;
+    ctx.fillStyle='#0e0e0e';ctx.fillRect(cx2,cy2,TILE*3.5,rh-TILE*3);
+    ctx.fillStyle='#303030';
+    for(let bi=0;bi<=5;bi++) ctx.fillRect(cx2+bi*(TILE*3.5/5)-1,cy2,3,rh-TILE*3);
+    ctx.fillRect(cx2,cy2+(rh-TILE*3)*0.45,TILE*3.5,3);
+    // Chains
+    for(let ch=0;ch<2;ch++){const chx=cx2+TILE*0.5+ch*TILE*2;ctx.fillStyle='#555';ctx.fillRect(chx-2,cy2+8,4,TILE*2);for(let lk=0;lk<6;lk++)ctx.fillRect(chx-4,cy2+12+lk*12,8,4);}
+    // Bones
+    ctx.fillStyle='#ccc8b0';
+    ctx.fillRect(cx2+TILE,cy2+rh-TILE*2.8,26,5);ctx.fillRect(cx2+TILE-3,cy2+rh-TILE*2.9,10,9);ctx.fillRect(cx2+TILE+18,cy2+rh-TILE*2.9,10,9);
+    ctx.beginPath();ctx.arc(cx2+TILE*2,cy2+rh-TILE*2.5-10,9,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#0e0e0e';ctx.fillRect(cx2+TILE*2-5,cy2+rh-TILE*2.5-13,4,3);ctx.fillRect(cx2+TILE*2+1,cy2+rh-TILE*2.5-13,4,3);
+  }
+  // Drips
+  const t=Date.now()/1000;
+  for(let di=0;di<4;di++){
+    const dripX=rx+TILE+di*TILE*2;
+    const dripY=ry+TILE+(t*24+di*31)%(rh-TILE*2);
+    ctx.fillStyle='rgba(80,160,200,0.55)';ctx.beginPath();ctx.ellipse(dripX,dripY,2,4,0,0,Math.PI*2);ctx.fill();
+  }
+  // Dim torches
+  torch(rx+TILE*0.5,ry+TILE*0.5,true);torch(rx+rw-TILE,ry+TILE*0.5,true);
+}
+
+// ── EXIT SIGN ─────────────────────────────────────────────────────────────────
+function drawExitSign(wx,wy){
+  const s=SIGNS.find(s=>s.id==='exit');
+  const sx=s.tx*TILE-wx+TILE/2, sy=s.ty*TILE-wy;
+  ctx.fillStyle='#6b4226';ctx.fillRect(sx-4,sy+16,8,18);ctx.fillRect(sx-12,sy+30,24,6);
+  ctx.fillStyle='#1e1408';ctx.fillRect(sx-40,sy-2,80,22);ctx.fillStyle='#2e2010';ctx.fillRect(sx-38,sy,76,18);
+  ctx.fillStyle='#f0c040';ctx.font='7px "Press Start 2P"';ctx.textAlign='center';ctx.fillText('◀ EXIT',sx,sy+13);
+  const pulse=0.5+0.5*Math.sin(Date.now()/400);
+  ctx.fillStyle=`rgba(240,192,64,${pulse})`;ctx.font='9px "Press Start 2P"';ctx.fillText('◀',sx-30,sy+14);
+  ctx.textAlign='left';
+}
+
+// ── KING LYN NPC ──────────────────────────────────────────────────────────────
+function drawKingLyn(wx,wy){
+  const lyn=NPCS[0];
+  const cx=lyn.tx*TILE-wx+TILE/2, cy=lyn.ty*TILE-wy+TILE/2;
+  const bob=Math.sin(Date.now()/550)*1.5;
+
+  // Legs — armored greaves
+  ctx.fillStyle='#5a6a7a';ctx.fillRect(cx-8,cy+26+bob,7,12);ctx.fillRect(cx+1,cy+26+bob,7,12);
+  ctx.fillStyle='#3a4a5a';ctx.fillRect(cx-9,cy+36+bob,9,6);ctx.fillRect(cx,cy+36+bob,9,6);
+  ctx.fillStyle='rgba(255,255,255,0.15)';ctx.fillRect(cx-7,cy+27+bob,2,10);ctx.fillRect(cx+2,cy+27+bob,2,10);
+
+  // Body — plate armour
+  ctx.fillStyle='#5a6a7a';ctx.fillRect(cx-10,cy+12+bob,20,16);
+  ctx.fillStyle='#8a9aaa';ctx.fillRect(cx-8,cy+13+bob,6,12);ctx.fillRect(cx+2,cy+13+bob,6,12);
+  ctx.fillStyle='#4a5a6a';ctx.fillRect(cx-5,cy+10+bob,10,5);
+  ctx.fillStyle='#5a6a7a';ctx.fillRect(cx-15,cy+12+bob,7,8);ctx.fillRect(cx+8,cy+12+bob,7,8);
+  ctx.fillStyle='#7a8a9a';ctx.fillRect(cx-14,cy+13+bob,5,6);ctx.fillRect(cx+9,cy+13+bob,5,6);
+  ctx.fillStyle='#5a6a7a';ctx.fillRect(cx-16,cy+18+bob,6,10);ctx.fillRect(cx+10,cy+18+bob,6,10);
+  ctx.fillStyle='#3a4a5a';ctx.fillRect(cx-17,cy+26+bob,8,5);ctx.fillRect(cx+9,cy+26+bob,8,5);
+
+  // Purple cape / gold emblem
+  ctx.fillStyle='#5a0a8a';ctx.fillRect(cx-10,cy+14+bob,5,14);ctx.fillRect(cx+5,cy+14+bob,5,14);
+  ctx.fillStyle='#f0c040';ctx.fillRect(cx-3,cy+15+bob,6,6);ctx.fillRect(cx-1,cy+13+bob,2,10);ctx.fillRect(cx-4,cy+17+bob,8,2);
+
+  // Head
+  ctx.fillStyle='#f0c090';ctx.fillRect(cx-6,cy+2+bob,12,11);
+  ctx.fillStyle='#1a1a2e';ctx.fillRect(cx-4,cy+6+bob,3,3);ctx.fillRect(cx+1,cy+6+bob,3,3);
+  ctx.fillStyle='#c0a060';ctx.fillRect(cx-5,cy+9+bob,10,5);ctx.fillRect(cx-3,cy+13+bob,6,4);
+
+  // Crown
+  ctx.fillStyle='#f0c040';
+  ctx.fillRect(cx-8,cy-2+bob,16,5);
+  ctx.fillRect(cx-8,cy-10+bob,4,8);ctx.fillRect(cx-3,cy-13+bob,3,11);
+  ctx.fillRect(cx,cy-15+bob,3,13);
+  ctx.fillRect(cx+3,cy-13+bob,3,11);ctx.fillRect(cx+4,cy-10+bob,4,8);
+  ctx.fillStyle='#cc2244';ctx.beginPath();ctx.arc(cx-6,cy-2+bob,2.5,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#2244cc';ctx.beginPath();ctx.arc(cx,cy-2+bob,2.5,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#22aa44';ctx.beginPath();ctx.arc(cx+6,cy-2+bob,2.5,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,0.28)';ctx.fillRect(cx-7,cy-2+bob,14,2);
+
+  // Sceptre
+  ctx.fillStyle='#8b6010';ctx.fillRect(cx+14,cy+8+bob,4,28);
+  ctx.fillStyle='#f0c040';ctx.fillRect(cx+12,cy+4+bob,8,6);
+  ctx.fillStyle='#cc2244';ctx.beginPath();ctx.arc(cx+16,cy+2+bob,5,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,0.4)';ctx.beginPath();ctx.arc(cx+14,cy+0+bob,2,0,Math.PI*2);ctx.fill();
+
+  // Proximity name tag
+  const dist=Math.hypot(playerX-(lyn.tx*TILE+TILE/2),playerY-(lyn.ty*TILE+TILE/2));
+  if(dist<160){
+    ctx.fillStyle='rgba(13,10,24,0.88)';ctx.fillRect(cx-36,cy-32+bob,72,14);
+    ctx.fillStyle='#f0c040';ctx.font='6px "Press Start 2P"';ctx.textAlign='center';ctx.fillText('KING LYN',cx,cy-22+bob);
+    ctx.fillStyle='rgba(240,192,64,0.65)';ctx.font='5px "Press Start 2P"';ctx.fillText('[A] TALK',cx,cy-12+bob);
+    ctx.textAlign='left';
+  }
+}
+
+// ── MAIN DRAW ─────────────────────────────────────────────────────────────────
+function drawWorld(){
+  const W=canvas.width,H=canvas.height,wx=camX,wy=camY;
+  // Stone wall background
+  ctx.fillStyle='#141010';ctx.fillRect(0,0,W,H);
+
+  const stX=Math.max(0,Math.floor(wx/TILE));
+  const stY=Math.max(0,Math.floor(wy/TILE));
+  const enX=Math.min(WORLD_W-1,Math.ceil((wx+W)/TILE));
+  const enY=Math.min(WORLD_H-1,Math.ceil((wy+H)/TILE));
+
+  for(let ty=stY;ty<=enY;ty++){
+    for(let tx=stX;tx<=enX;tx++){
+      const sx=tx*TILE-wx,sy=ty*TILE-wy;
+      const room=getRoomAt(tx,ty);
+      const cor=isCorridorAt(tx,ty);
+      if(room){
+        drawFloorTile(sx,sy,tx,ty,room);
+        drawWalls(sx,sy,tx,ty,room);
+      } else if(cor){
+        ctx.fillStyle='#2a2018';ctx.fillRect(sx,sy,TILE,TILE);
+        if((tx+ty)%3===0){ctx.fillStyle='rgba(0,0,0,0.14)';ctx.fillRect(sx+3,sy+3,TILE-6,TILE-6);}
+        ctx.fillStyle='rgba(0,0,0,0.22)';ctx.fillRect(sx,sy,TILE,1);ctx.fillRect(sx,sy,1,TILE);
+      } else {
+        // Outer stone wall
+        ctx.fillStyle=(tx+ty)%2===0?'#1c1810':'#161410';ctx.fillRect(sx,sy,TILE,TILE);
+        ctx.fillStyle='rgba(0,0,0,0.38)';ctx.fillRect(sx,sy,TILE,2);
+        const off=Math.floor(ty%2)*18;ctx.fillRect(sx+(off%TILE),sy,2,TILE);
+      }
+    }
+  }
+
+  // Room details
+  drawThroneRoom(wx,wy);
+  drawLibrary(wx,wy);
+  drawTreasury(wx,wy);
+  drawArmory(wx,wy);
+  drawBarracks(wx,wy);
+  drawBanquetHall(wx,wy);
+  drawDungeon(wx,wy);
+
+  // Exit sign + King Lyn
+  drawExitSign(wx,wy);
+  drawKingLyn(wx,wy);
+
+  // Player shadow
+  const ppx=playerX-wx,ppy=playerY-wy;
+  ctx.fillStyle='rgba(0,0,0,0.3)';ctx.beginPath();ctx.ellipse(ppx,ppy+7,11,4,0,0,Math.PI*2);ctx.fill();
+}
+
+// ── PLAYER ────────────────────────────────────────────────────────────────────
+function drawPlayer(){
+  pCtx.clearRect(0,0,32,48);const cx=16,f=Math.floor(frame%4);
+  const lo=moving?[[-4,0],[4,0],[-2,-3],[2,-3]][f]:[0,0];
+  pCtx.fillStyle='#1a3060';
+  pCtx.fillRect(cx-8,30+(moving&&f%2===0?lo[1]:-lo[1]),7,10);
+  pCtx.fillRect(cx+1,30+(moving&&f%2===1?lo[1]:-lo[1]),7,10);
+  pCtx.fillStyle='#2a1808';
+  pCtx.fillRect(cx-9,39+(moving&&f%2===0?lo[1]:-lo[1]),9,5);
+  pCtx.fillRect(cx,39+(moving&&f%2===1?lo[1]:-lo[1]),9,5);
+  pCtx.fillStyle='#4080ff';pCtx.fillRect(cx-9,18,18,14);
+  const arm=moving?Math.sin(frame*0.8)*3:0;
+  pCtx.fillStyle='#4080ff';pCtx.fillRect(cx-14,19+arm,6,10);pCtx.fillRect(cx+8,19-arm,6,10);
+  pCtx.fillStyle='#f5c5a3';pCtx.fillRect(cx-8,4,16,16);
+  pCtx.fillStyle='#3a2010';pCtx.fillRect(cx-8,4,16,6);pCtx.fillRect(cx-10,6,4,8);
+  pCtx.fillStyle='#1a1a2e';if(facing!=='up'){pCtx.fillRect(cx-5,13,3,3);pCtx.fillRect(cx+2,13,3,3);}
+  pCtx.fillStyle='#c04020';pCtx.fillRect(cx+7,18,8,12);
+}
+
+// ── CAMERA ────────────────────────────────────────────────────────────────────
+function updateCamera(){
+  const W=canvas.width,H=canvas.height;
+  let tx=playerX-W/2,ty=playerY-H/2;
+  tx=Math.max(0,Math.min(PW-W,tx));ty=Math.max(0,Math.min(PH-H,ty));
+  camX+=(tx-camX)*0.1;camY+=(ty-camY)*0.1;
+}
+
+// ── INTERACTABLES ─────────────────────────────────────────────────────────────
+function distToTile(tx,ty){return Math.hypot(playerX-(tx*TILE+TILE/2),playerY-(ty*TILE+TILE/2));}
+function getNearestInteractable(){
+  let best=null,bestD=120;
+  NPCS.forEach(n=>{const d=distToTile(n.tx,n.ty);if(d<bestD){bestD=d;best={type:'npc',obj:n};}});
+  SIGNS.forEach(s=>{const d=distToTile(s.tx,s.ty);if(d<bestD){bestD=d;best={type:'sign',obj:s};}});
+  return best;
+}
+function getRoomAt2(tx,ty){return ROOMS.find(r=>tx>=r.x&&tx<r.x+r.w&&ty>=r.y&&ty<r.y+r.h)||null;}
+
+// ── PLAYER UPDATE ─────────────────────────────────────────────────────────────
+function updatePlayer(){
+  if(dialogOpen||menuOpen) return;
+  const SPEED=3;let dx=0,dy=0;
+  if(keys.up){dy=-SPEED;facing='up';}if(keys.down){dy=SPEED;facing='down';}
+  if(keys.left){dx=-SPEED;facing='left';}if(keys.right){dx=SPEED;facing='right';}
+  moving=dx!==0||dy!==0;
+  if(moving){
+    const nx=Math.max(TILE,Math.min(PW-TILE,playerX+dx));
+    const ny=Math.max(TILE,Math.min(PH-TILE,playerY+dy));
+    const tx=Math.floor(nx/TILE),ty=Math.floor(ny/TILE);
+    if(isWalkable(tx,ty)){playerX=nx;playerY=ny;}
+    if(++frameTimer>=FRAME_RATE){frame++;frameTimer=0;}
+  }
+  const nearest=getNearestInteractable();
+  if(nearest!==activeInteractable){
+    activeInteractable=nearest;
+    if(nearest) showZoneLabel(nearest.obj.label);
+    else hideZoneLabel();
+  }
+  const room=getRoomAt2(Math.floor(playerX/TILE),Math.floor(playerY/TILE));
+  if(room&&!dialogOpen) document.getElementById('hud-title').textContent=room.label.replace(/[^\w\s\/]/g,'').trim();
+}
+
+// ── DIALOG ────────────────────────────────────────────────────────────────────
+function showZoneLabel(label){
+  const el=document.getElementById('zone-label');el.textContent=label;el.style.opacity='1';
+  clearTimeout(zoneLabelTimer);zoneLabelTimer=setTimeout(()=>{if(!dialogOpen)el.style.opacity='0';},2800);
+}
+function hideZoneLabel(){document.getElementById('zone-label').style.opacity='0';}
+
+function handleA(){
+  if(menuOpen){menuSelectCurrent();return;}
+  if(dialogOpen){
+    if(activeInteractable&&activeInteractable.type==='npc'){
+      const npc=activeInteractable.obj;
+      npc.dialogIdx=(npc.dialogIdx+1)%npc.dialogs.length;
+      document.getElementById('dialog-body').textContent=npc.dialogs[npc.dialogIdx].body;
+      return;
+    }
+    const links=document.querySelectorAll('.dialog-link');
+    if(links.length===1){links[0].click();}else{closeDialog();}
+    return;
+  }
+  if(activeInteractable) openDialog(activeInteractable);
+}
+function handleB(){if(menuOpen){closeMenu();return;}if(dialogOpen){closeDialog();return;}}
+
+function openDialog(interactable){
+  dialogOpen=true;
+  const linksEl=document.getElementById('dialog-links');linksEl.innerHTML='';
+  if(interactable.type==='npc'){
+    const npc=interactable.obj;
+    document.getElementById('dialog-title').textContent=npc.title;
+    document.getElementById('dialog-body').textContent=npc.dialogs[npc.dialogIdx].body;
+    const hint=document.createElement('span');
+    hint.style.cssText='font-family:VT323,monospace;font-size:16px;color:#a09070;display:block;margin-top:4px;';
+    hint.textContent='[A] Next  [B] Close';linksEl.appendChild(hint);
+  } else {
+    const sign=interactable.obj;
+    document.getElementById('dialog-title').textContent=sign.title;
+    document.getElementById('dialog-body').textContent=sign.body;
+    sign.links.forEach(l=>{
+      const a=document.createElement('a');a.className='dialog-link';a.textContent=l.label;
+      a.href=l.local?GameState.withState(l.href):l.href;
+      if(!l.local)a.target='_blank';linksEl.appendChild(a);
+    });
+  }
+  document.getElementById('dialog-box').style.display='block';
+  document.getElementById('zone-label').style.opacity='0';
+}
+function closeDialog(){dialogOpen=false;document.getElementById('dialog-box').style.display='none';}
+
+// ── MENU ──────────────────────────────────────────────────────────────────────
+function toggleMenu(){menuOpen?closeMenu():openMenu();}
+function openMenu(){
+  if(dialogOpen)closeDialog();menuOpen=true;
+  document.getElementById('menu-overlay').style.display='flex';
+  menuItems=Array.from(document.querySelectorAll('.menu-item'));menuIdx=0;updateMenuCursor();
+  document.getElementById('menu-btn').classList.add('pressed');
+}
+function closeMenu(){menuOpen=false;document.getElementById('menu-overlay').style.display='none';document.getElementById('menu-btn').classList.remove('pressed');}
+function updateMenuCursor(){
+  menuItems.forEach((item,i)=>{
+    item.classList.toggle('selected',i===menuIdx);
+    item.querySelectorAll('.mcs').forEach(s=>s.remove());
+    if(i===menuIdx){const s=document.createElement('span');s.className='mcs';s.textContent='▶ ';s.style.color='var(--gold)';item.insertBefore(s,item.children[1]);}
+  });
+}
+function menuSelectCurrent(){if(menuItems[menuIdx])menuItems[menuIdx].click();}
+
+// ── INPUT ─────────────────────────────────────────────────────────────────────
+document.addEventListener('keydown',e=>{
+  if(menuOpen){
+    if(e.key==='ArrowUp'||e.key==='w'){menuIdx=Math.max(0,menuIdx-1);updateMenuCursor();e.preventDefault();return;}
+    if(e.key==='ArrowDown'||e.key==='s'){menuIdx=Math.min(menuItems.length-1,menuIdx+1);updateMenuCursor();e.preventDefault();return;}
+    if(e.key==='Enter'||e.key===' '){handleA();e.preventDefault();return;}
+    if(e.key==='Escape'||e.key==='b'||e.key==='B'){handleB();e.preventDefault();return;}
+    return;
+  }
+  if(e.key==='ArrowUp'||e.key==='w'||e.key==='W')keys.up=true;
+  if(e.key==='ArrowDown'||e.key==='s'||e.key==='S')keys.down=true;
+  if(e.key==='ArrowLeft')keys.left=true;if(e.key==='ArrowRight')keys.right=true;
+  if(e.key==='Enter'||e.key===' '||e.key==='a'||e.key==='A'){handleA();e.preventDefault();}
+  if(e.key==='Escape'||e.key==='b'||e.key==='B')handleB();
+  if(e.key==='m'||e.key==='M')toggleMenu();
+  if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key))e.preventDefault();
+});
+document.addEventListener('keyup',e=>{
+  if(e.key==='ArrowUp'||e.key==='w'||e.key==='W')keys.up=false;
+  if(e.key==='ArrowDown'||e.key==='s'||e.key==='S')keys.down=false;
+  if(e.key==='ArrowLeft')keys.left=false;if(e.key==='ArrowRight')keys.right=false;
+});
+function setupDpad(){
+  document.querySelectorAll('.dpad-btn').forEach(btn=>{
+    const dir=btn.dataset.dir;
+    btn.addEventListener('touchstart',e=>{e.preventDefault();keys[dir]=true;btn.classList.add('pressing');},{passive:false});
+    btn.addEventListener('touchend',e=>{e.preventDefault();keys[dir]=false;btn.classList.remove('pressing');},{passive:false});
+    btn.addEventListener('touchcancel',e=>{e.preventDefault();keys[dir]=false;btn.classList.remove('pressing');},{passive:false});
+    btn.addEventListener('mousedown',e=>{e.preventDefault();keys[dir]=true;btn.classList.add('pressing');});
+  });
+  document.addEventListener('mouseup',()=>{document.querySelectorAll('.dpad-btn').forEach(btn=>{keys[btn.dataset.dir]=false;btn.classList.remove('pressing');});});
+}
+setupDpad();
+canvas.addEventListener('click',()=>handleA());
+document.addEventListener('mousemove',e=>{const c=document.getElementById('cursor');if(c){c.style.left=e.clientX+'px';c.style.top=e.clientY+'px';}});
+
+// ── GAME LOOP ─────────────────────────────────────────────────────────────────
+function gameLoop(){
+  updatePlayer();updateCamera();
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  drawWorld();drawPlayer();
+  const pe=document.getElementById('player');
+  pe.style.left=(playerX-camX)+'px';pe.style.top=(playerY-camY)+'px';
+  requestAnimationFrame(gameLoop);
+}
+window.addEventListener('load',()=>resize());
+requestAnimationFrame(gameLoop);
+</script>
+</body>
+</html>
