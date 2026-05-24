@@ -1412,6 +1412,220 @@ function drawWaterLabel(wx,wy,zone){
   }
 }
 
+function drawTownSquare(wx,wy,zone){
+  const bx=zone.x*TILE-wx, by=zone.y*TILE-wy, bw=zone.w*TILE, bh=zone.h*TILE;
+  const midX=bx+bw/2, midY=by+bh/2;
+  const t=Date.now();
+
+  // === GROUND — cobblestone plaza ===
+  // Base warm stone
+  ctx.fillStyle='#b89c74'; ctx.fillRect(bx,by,bw,bh);
+  // Cobble grid — offset rows for realism
+  for(let gy=by;gy<by+bh;gy+=10){
+    const row=Math.floor((gy-by)/10);
+    for(let gx=bx+(row%2)*7;gx<bx+bw;gx+=14){
+      ctx.fillStyle=pseudoRand(Math.floor(gx),Math.floor(gy))>0.5?'#c4a87e':'#aa9060';
+      ctx.fillRect(gx,gy,12,8);
+      // mortar lines
+      ctx.fillStyle='#8a7048';
+      ctx.fillRect(gx,gy,12,1);   // top mortar
+      ctx.fillRect(gx,gy,1,8);    // left mortar
+    }
+  }
+
+  // === PERIMETER LOW WALL (decorative border) ===
+  const wallT=4;
+  ctx.fillStyle='#c8a870'; ctx.fillRect(bx,by,bw,wallT);          // top
+  ctx.fillRect(bx,by+bh-wallT,bw,wallT);                           // bottom
+  ctx.fillRect(bx,by,wallT,bh);                                     // left
+  ctx.fillRect(bx+bw-wallT,by,wallT,bh);                           // right
+  ctx.fillStyle='#8a6840';
+  ctx.fillRect(bx,by+wallT,bw,1);
+  ctx.fillRect(bx,by+bh-wallT-1,bw,1);
+  ctx.fillRect(bx+wallT,by,1,bh);
+  ctx.fillRect(bx+bw-wallT-1,by,1,bh);
+
+  // === VENDOR STALLS ===
+  // Each stall: awning + table + goods
+  function drawStall(sx,sy,sw,sh,awningColor,awningStripe,label,goods){
+    // Table / counter
+    ctx.fillStyle='#7a5428'; ctx.fillRect(sx,sy+sh*0.45,sw,sh*0.3);
+    ctx.fillStyle='#5c3c18'; ctx.fillRect(sx,sy+sh*0.75,sw,sh*0.12);
+    // Legs
+    ctx.fillStyle='#4a3010';
+    ctx.fillRect(sx+4,sy+sh*0.75,4,sh*0.25);
+    ctx.fillRect(sx+sw-8,sy+sh*0.75,4,sh*0.25);
+    // Awning frame poles
+    ctx.fillStyle='#5c3c18';
+    ctx.fillRect(sx+2,sy,4,sh*0.5);
+    ctx.fillRect(sx+sw-6,sy,4,sh*0.5);
+    // Awning canopy
+    ctx.fillStyle=awningColor;
+    ctx.beginPath();
+    ctx.moveTo(sx-4,sy+sh*0.1);
+    ctx.lineTo(sx+sw+4,sy+sh*0.1);
+    ctx.lineTo(sx+sw+6,sy+sh*0.42);
+    ctx.lineTo(sx-6,sy+sh*0.42);
+    ctx.closePath(); ctx.fill();
+    // Awning stripes
+    ctx.fillStyle=awningStripe;
+    const stripeW=7;
+    for(let s=sx;s<sx+sw+8;s+=stripeW*2){
+      ctx.fillRect(s-4,sy+sh*0.1,stripeW,sh*0.32);
+    }
+    // Valance (scalloped fringe)
+    ctx.fillStyle=awningColor;
+    for(let v=sx-5;v<sx+sw+6;v+=8){
+      ctx.beginPath();
+      ctx.arc(v+4,sy+sh*0.42,5,0,Math.PI); ctx.fill();
+    }
+    // Goods on table
+    ctx.font=`${Math.min(sh*0.22,12)}px serif`;
+    ctx.textAlign='center';
+    ctx.fillText(goods,sx+sw/2,sy+sh*0.55);
+    ctx.textAlign='left';
+  }
+
+  // Left stalls (top & bottom of left edge)
+  const sW=bw*0.22, sH=bh*0.34;
+  drawStall(bx+8, by+8,        sW, sH, '#c03030','#f06060','bread','🥖🧀');
+  drawStall(bx+8, by+bh-sH-8, sW, sH, '#208040','#50c060','veg',  '🥕🌽');
+
+  // Right stalls (top & bottom of right edge)
+  drawStall(bx+bw-sW-12, by+8,        sW, sH, '#6040c0','#9080f0','craft','🏺🪬');
+  drawStall(bx+bw-sW-12, by+bh-sH-8, sW, sH, '#c07820','#f0b040','spice','🌶️🧄');
+
+  // Top stall (center top)
+  const tW=bw*0.26, tH=bh*0.3;
+  drawStall(midX-tW/2, by+6, tW, tH, '#205090','#4080d0','fish','🐟🦐');
+
+  // === CENTRAL FOUNTAIN ===
+  const fr=Math.min(bw,bh)*0.17;   // fountain outer radius
+  const fcx=midX, fcy=midY+4;
+
+  // Outer basin shadow
+  ctx.fillStyle='rgba(0,0,0,0.22)';
+  ctx.beginPath(); ctx.ellipse(fcx+3,fcy+fr*0.35+3,fr+5,fr*0.38,0,0,Math.PI*2); ctx.fill();
+
+  // Outer basin rim
+  ctx.fillStyle='#c8b080';
+  ctx.beginPath(); ctx.ellipse(fcx,fcy,fr+4,fr*0.38+2,0,0,Math.PI*2); ctx.fill();
+
+  // Basin interior water
+  const waterPulse=Math.sin(t/600)*0.05;
+  const wg=ctx.createRadialGradient(fcx,fcy,2,fcx,fcy,fr);
+  wg.addColorStop(0,`hsla(200,70%,${55+waterPulse*20}%,1)`);
+  wg.addColorStop(0.6,`hsla(210,65%,${42+waterPulse*15}%,1)`);
+  wg.addColorStop(1,'hsla(215,60%,32%,1)');
+  ctx.fillStyle=wg;
+  ctx.beginPath(); ctx.ellipse(fcx,fcy,fr,fr*0.3,0,0,Math.PI*2); ctx.fill();
+
+  // Ripple rings
+  ctx.save();
+  [0.35,0.62,0.85].forEach((rf,i)=>{
+    const alpha=0.25+0.15*Math.sin(t/500+i*1.5);
+    ctx.strokeStyle=`rgba(200,230,255,${alpha})`;
+    ctx.lineWidth=1.2;
+    ctx.beginPath(); ctx.ellipse(fcx,fcy,fr*rf,fr*rf*0.3,0,0,Math.PI*2); ctx.stroke();
+  });
+  ctx.restore();
+
+  // Fountain central pedestal
+  ctx.fillStyle='#d4bc88';
+  ctx.beginPath(); ctx.ellipse(fcx,fcy-2,fr*0.14,fr*0.06,0,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#c8a870';
+  ctx.fillRect(fcx-4,fcy-fr*0.52,8,fr*0.5);
+  ctx.fillStyle='#dac890';
+  ctx.beginPath(); ctx.ellipse(fcx,fcy-fr*0.52,fr*0.18,fr*0.07,0,0,Math.PI*2); ctx.fill();
+
+  // Animated water jets (3 arcing streams)
+  ctx.save();
+  ctx.strokeStyle='rgba(160,210,255,0.75)'; ctx.lineWidth=2;
+  for(let j=0;j<3;j++){
+    const angle=(j/3)*Math.PI*2;
+    const waveOff=Math.sin(t/400+j*2)*3;
+    const jx=fcx+Math.cos(angle)*(fr*0.55);
+    const jy=fcy+Math.sin(angle)*(fr*0.22);
+    const cx1=fcx+Math.cos(angle+0.4)*(fr*0.22);
+    const cy1=fcy-fr*0.35+waveOff;
+    ctx.beginPath();
+    ctx.moveTo(fcx,fcy-fr*0.52);
+    ctx.quadraticCurveTo(cx1,cy1,jx,jy);
+    ctx.stroke();
+  }
+  // Splash droplets
+  ctx.fillStyle='rgba(200,235,255,0.7)';
+  for(let d=0;d<5;d++){
+    const da=(d/5)*Math.PI*2+t/1800;
+    const dr=fr*(0.55+0.12*Math.sin(t/300+d));
+    ctx.beginPath();
+    ctx.arc(fcx+Math.cos(da)*dr,fcy+Math.sin(da)*(dr*0.38),1.5,0,Math.PI*2);
+    ctx.fill();
+  }
+  ctx.restore();
+
+  // === PEOPLE / VISITORS (little pixel figures) ===
+  function drawPerson(px,py,bodyColor,headColor,walkPhase){
+    const bob=Math.sin(t/320+walkPhase)*1.5;
+    const legSwing=Math.sin(t/320+walkPhase);
+    // Shadow
+    ctx.fillStyle='rgba(0,0,0,0.18)';
+    ctx.beginPath(); ctx.ellipse(px,py+9,5,2,0,0,Math.PI*2); ctx.fill();
+    // Legs
+    ctx.fillStyle='#2a1a08';
+    ctx.fillRect(px-4,py+2+bob,3,6+legSwing*2);
+    ctx.fillRect(px+1,py+2+bob,3,6-legSwing*2);
+    // Body
+    ctx.fillStyle=bodyColor;
+    ctx.fillRect(px-5,py-4+bob,10,8);
+    // Arms
+    ctx.fillStyle=bodyColor;
+    ctx.fillRect(px-8,py-3+bob+legSwing*2,3,6);
+    ctx.fillRect(px+5,py-3+bob-legSwing*2,3,6);
+    // Head
+    ctx.fillStyle=headColor;
+    ctx.fillRect(px-4,py-12+bob,8,8);
+    // Eyes
+    ctx.fillStyle='#1a1a2e';
+    ctx.fillRect(px-2,py-9+bob,2,2);
+    ctx.fillRect(px+1,py-9+bob,2,2);
+  }
+
+  // Scatter 7 visitors around the square
+  const visitors=[
+    {px:bx+sW+22,        py:by+bh*0.28, body:'#6050a0',head:'#f5c5a3',phase:0},
+    {px:bx+sW+30,        py:by+bh*0.68, body:'#c04040',head:'#d4a070',phase:2},
+    {px:midX-28,         py:by+bh*0.2,  body:'#208050',head:'#f0c090',phase:4},
+    {px:midX+30,         py:by+bh*0.78, body:'#4070b0',head:'#e0b080',phase:1},
+    {px:bx+bw-sW-26,     py:by+bh*0.38, body:'#a06020',head:'#f5c5a3',phase:3},
+    {px:midX-14,         py:fcy+fr*0.55+14, body:'#905030',head:'#d4a870',phase:5},
+    {px:midX+20,         py:fcy-fr*0.55-12, body:'#507080',head:'#f0d0a0',phase:1.5},
+  ];
+  visitors.forEach(v=>drawPerson(v.px,v.py,v.body,v.head,v.phase));
+
+  // === SIGN — "TOWN SQUARE" label ===
+  const lblW=bw*0.54, lblH=18, lblX=midX-lblW/2, lblY=by+bh-26;
+  // Sign board (wooden plank style)
+  ctx.fillStyle='#7a5428'; ctx.fillRect(lblX-2,lblY-2,lblW+4,lblH+4);
+  ctx.fillStyle='#f0e8c0'; ctx.fillRect(lblX,lblY,lblW,lblH);
+  ctx.fillStyle='#e07030';  // border stripe
+  ctx.fillRect(lblX,lblY,lblW,2);
+  ctx.fillRect(lblX,lblY+lblH-2,lblW,2);
+  ctx.fillStyle='#1a1a2e';
+  ctx.font='bold 9px "Press Start 2P"'; ctx.textAlign='center';
+  ctx.fillText('TOWN SQUARE',midX,lblY+13);
+  ctx.textAlign='left';
+
+  // === PROXIMITY GLOW ===
+  const dist=distToZone(playerX,playerY,zone);
+  if(dist<120){
+    ctx.strokeStyle=zone.color; ctx.lineWidth=3;
+    ctx.globalAlpha=0.38+0.28*Math.sin(t/300);
+    ctx.strokeRect(bx-2,by-2,bw+4,bh+4);
+    ctx.globalAlpha=1; ctx.lineWidth=1;
+  }
+}
+
 function drawBuilding(wx,wy,zone){
   // Hall of Records gets the special NYPL treatment
   if(zone.id==='projects'){drawNYPLBuilding(wx,wy,zone);return;}
@@ -1419,6 +1633,8 @@ function drawBuilding(wx,wy,zone){
   if(zone.id==='story'){drawCastleBuilding(wx,wy,zone);return;}
   // Erebor Mountain gets the mountain treatment
   if(zone.id==='hobbies'){drawMountainBuilding(wx,wy,zone);return;}
+  // Town Square gets the market treatment
+  if(zone.id==='contact'){drawTownSquare(wx,wy,zone);return;}
 
   const bx=zone.x*TILE-wx,by=zone.y*TILE-wy,bw=zone.w*TILE,bh=zone.h*TILE;
   ctx.fillStyle='rgba(0,0,0,0.22)';ctx.fillRect(bx+6,by+bh-6,bw,12);
