@@ -395,7 +395,7 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
       <span class="menu-item-icon">⚔</span> HALL OF RECORDS
     </a>
     <a class="menu-item" href="https://www.andregurule.com/about" target="_blank">
-      <span class="menu-item-icon">📖</span> MY STORY
+      <span class="menu-item-icon">📖</span> CASTLE ANTHRAX
     </a>
     <a class="menu-item" href="https://www.andregurule.com/hobbies" target="_blank">
       <span class="menu-item-icon">🏕</span> HOBBIES
@@ -522,10 +522,10 @@ const ZONES=[
    title:'HALL OF RECORDS',
    body:'Both my professional and personal information can be found in the Hall of Records. Enter to learn more.',
    links:[{label:'📁 ENTER THE HALL',href:'andregurule-library.html',local:true}]},
-  {id:'story',label:'📖 MY STORY INN',x:2,y:4,w:6,h:5,color:'#4080ff',
-   title:'MY STORY INN',
+  {id:'story',label:'📖 CASTLE ANTHRAX',x:2,y:4,w:6,h:5,color:'#4080ff',
+   title:'CASTLE ANTHRAX',
    body:'Every great hero has an origin. Mine started with curiosity and a love of learning.',
-   links:[{label:'📖 READ MY STORY',href:'https://www.andregurule.com/about'}]},
+   links:[{label:'📖 READ CASTLE ANTHRAX',href:'https://www.andregurule.com/about'}]},
   {id:'hobbies',label:'🏕 HOBBIES OUTPOST',x:2,y:14,w:6,h:5,color:'#40c060',
    title:'HOBBIES OUTPOST',
    body:'Motorcycles, off-roading, LEGO, and the great outdoors. Life beyond the keyboard.',
@@ -587,7 +587,343 @@ function isInWater(tx,ty){
 }
 function isInBuildingZone(tx,ty){return ZONES.some(z=>tx>=z.x&&tx<z.x+z.w&&ty>=z.y&&ty<z.y+z.h);}
 
+function drawNYPLBuilding(wx,wy,zone){
+  const bx=zone.x*TILE-wx,by=zone.y*TILE-wy,bw=zone.w*TILE,bh=zone.h*TILE;
+  const midX=bx+bw/2;
+
+  // === DROP SHADOW ===
+  ctx.fillStyle='rgba(0,0,0,0.28)';ctx.fillRect(bx+8,by+bh-4,bw,10);
+
+  // === MAIN FACADE — warm limestone beige ===
+  const stoneLight='#d4c9a8',stoneMid='#c2b590',stoneDark='#a89872',stoneShad='#8a7a58';
+
+  // Base body
+  ctx.fillStyle=stoneMid;ctx.fillRect(bx,by+16,bw,bh-16);
+
+  // Slightly lighter central section (Beaux-Arts center pavilion)
+  ctx.fillStyle=stoneLight;ctx.fillRect(bx+bw*0.22,by+16,bw*0.56,bh-16);
+
+  // === CORNICE LINE (top horizontal band) ===
+  ctx.fillStyle=stoneLight;ctx.fillRect(bx,by+16,bw,6);
+  ctx.fillStyle=stoneDark;ctx.fillRect(bx,by+22,bw,3);
+
+  // === COLUMNS — evenly spaced, classic Beaux-Arts ===
+  // NYPL has 6 large columns across the facade
+  const colW=6,colH=bh-42,colY=by+26;
+  const colSpacing=bw/7;
+  for(let i=1;i<=6;i++){
+    const cx2=bx+colSpacing*i-colW/2;
+    // Column shaft (slightly lighter, with pixel shading)
+    ctx.fillStyle=stoneLight;ctx.fillRect(cx2,colY,colW,colH);
+    ctx.fillStyle=stoneDark;ctx.fillRect(cx2+colW-2,colY,2,colH); // shadow side
+    ctx.fillStyle='#e8dfc0';ctx.fillRect(cx2,colY,2,colH);        // highlight side
+    // Capital (top of column)
+    ctx.fillStyle=stoneMid;ctx.fillRect(cx2-2,colY-4,colW+4,4);
+    ctx.fillStyle=stoneLight;ctx.fillRect(cx2-1,colY-6,colW+2,2);
+    // Base
+    ctx.fillStyle=stoneMid;ctx.fillRect(cx2-2,colY+colH,colW+4,4);
+    ctx.fillStyle=stoneDark;ctx.fillRect(cx2-3,colY+colH+4,colW+6,3);
+  }
+
+  // === ENTABLATURE / FRIEZE (band above columns) ===
+  ctx.fillStyle=stoneMid;ctx.fillRect(bx,by+22,bw,26-22);
+  // Frieze inscription panel
+  ctx.fillStyle=stoneLight;ctx.fillRect(bx+4,by+26,bw-8,12);
+  ctx.fillStyle='#1a1a2e';ctx.font='bold 12px "Press Start 2P"';ctx.textAlign='center';
+  ctx.fillText('HALL OF RECORDS',midX,by+37);
+  ctx.textAlign='left';
+
+  // === ROOF BALUSTRADE (pixel-art railing at top) ===
+  ctx.fillStyle=stoneMid;ctx.fillRect(bx,by+8,bw,8);
+  ctx.fillStyle=stoneLight;ctx.fillRect(bx,by+8,bw,3);
+  ctx.fillStyle=stoneDark;ctx.fillRect(bx,by+14,bw,2);
+  // Baluster posts
+  for(let i=0;i<bw;i+=8){
+    ctx.fillStyle=stoneLight;ctx.fillRect(bx+i,by+9,4,5);
+    ctx.fillStyle=stoneDark;ctx.fillRect(bx+i+3,by+10,1,4);
+  }
+
+  // === PEDIMENT (triangular gable over center) ===
+  ctx.fillStyle=stoneLight;
+  ctx.beginPath();
+  ctx.moveTo(midX-bw*0.28,by+8);
+  ctx.lineTo(midX,by-2);
+  ctx.lineTo(midX+bw*0.28,by+8);
+  ctx.closePath();ctx.fill();
+  ctx.fillStyle=stoneDark;
+  ctx.beginPath();
+  ctx.moveTo(midX-bw*0.28,by+8);
+  ctx.lineTo(midX,by-2);
+  ctx.lineTo(midX+bw*0.28,by+8);
+  ctx.closePath();ctx.stroke();
+  // Inner pediment (recessed)
+  ctx.fillStyle=stoneMid;
+  ctx.beginPath();
+  ctx.moveTo(midX-bw*0.22,by+8);
+  ctx.lineTo(midX,by+2);
+  ctx.lineTo(midX+bw*0.22,by+8);
+  ctx.closePath();ctx.fill();
+  // Pediment pixel art lion silhouette (simplified)
+  ctx.fillStyle=stoneDark;
+  ctx.fillRect(midX-6,by+5,12,3);
+  ctx.fillRect(midX-4,by+3,8,2);
+  ctx.fillRect(midX-3,by+2,6,1);
+
+  const winColors=['#8ab4d8','#6a94b8','#4a7498'];
+
+  // === GRAND ENTRANCE (center archway) ===
+  const doorW=bw*0.22,doorH=bh*0.42,doorX=midX-doorW/2,doorY=by+bh-doorH;
+  // === SIDE WINDOWS — one large window each side of door, half door size ===
+  const swinW=doorW/2,swinH=doorH/2,swinY=doorY+(doorH-swinH)/2;
+  const swinGap=14;
+  // Left window
+  const lwinX=doorX-swinGap-swinW;
+  ctx.fillStyle=stoneDark;ctx.fillRect(lwinX-3,swinY-3,swinW+6,swinH+3);
+  ctx.fillStyle=winColors[0];ctx.fillRect(lwinX,swinY,swinW,swinH);
+  ctx.fillStyle=winColors[1];ctx.fillRect(lwinX,swinY,swinW,4);
+  ctx.fillStyle='rgba(255,255,255,0.22)';
+  ctx.fillRect(lwinX+swinW/2-1,swinY,2,swinH);
+  ctx.fillRect(lwinX,swinY+swinH/2-1,swinW,2);
+  ctx.fillStyle='rgba(200,230,255,0.12)';ctx.fillRect(lwinX+2,swinY+2,swinW/2-3,swinH/2-3);
+  ctx.fillStyle=stoneDark;ctx.fillRect(lwinX-3,swinY+swinH,swinW+6,3);
+  // Right window
+  const rwinX=doorX+doorW+swinGap;
+  ctx.fillStyle=stoneDark;ctx.fillRect(rwinX-3,swinY-3,swinW+6,swinH+3);
+  ctx.fillStyle=winColors[0];ctx.fillRect(rwinX,swinY,swinW,swinH);
+  ctx.fillStyle=winColors[1];ctx.fillRect(rwinX,swinY,swinW,4);
+  ctx.fillStyle='rgba(255,255,255,0.22)';
+  ctx.fillRect(rwinX+swinW/2-1,swinY,2,swinH);
+  ctx.fillRect(rwinX,swinY+swinH/2-1,swinW,2);
+  ctx.fillStyle='rgba(200,230,255,0.12)';ctx.fillRect(rwinX+2,swinY+2,swinW/2-3,swinH/2-3);
+  ctx.fillStyle=stoneDark;ctx.fillRect(rwinX-3,swinY+swinH,swinW+6,3);
+
+  // Door surround
+  ctx.fillStyle=stoneDark;ctx.fillRect(doorX-4,doorY-4,doorW+8,doorH+4);
+  // Door arch fill (dark interior)
+  ctx.fillStyle='#12100e';ctx.fillRect(doorX,doorY,doorW,doorH);
+  // Arched top of door
+  ctx.fillStyle='#12100e';
+  ctx.beginPath();
+  ctx.arc(doorX+doorW/2,doorY,doorW/2,Math.PI,0);
+  ctx.fill();
+  // Door columns (flanking)
+  ctx.fillStyle=stoneLight;ctx.fillRect(doorX-8,doorY,6,doorH);
+  ctx.fillStyle=stoneLight;ctx.fillRect(doorX+doorW+2,doorY,6,doorH);
+  // Door panel (dark wood doors, slightly open)
+  ctx.fillStyle='#3a2810';ctx.fillRect(doorX+2,doorY+8,doorW/2-3,doorH-8);
+  ctx.fillStyle='#4a3418';ctx.fillRect(doorX+doorW/2+1,doorY+8,doorW/2-3,doorH-8);
+  // Door knobs
+  ctx.fillStyle='#f0c040';ctx.fillRect(doorX+doorW/2-4,doorY+doorH/2,3,3);
+  ctx.fillRect(doorX+doorW/2+2,doorY+doorH/2,3,3);
+  // Transom window above door
+  ctx.fillStyle=winColors[1];ctx.fillRect(doorX+4,doorY-10,doorW-8,10);
+  ctx.fillStyle='rgba(255,255,255,0.2)';ctx.fillRect(doorX+doorW/2-1,doorY-10,2,10);
+
+  // === ENTRANCE STEPS ===
+  const stepsW=doorW+40,stepsX=midX-stepsW/2;
+  for(let s=0;s<4;s++){
+    ctx.fillStyle=s%2===0?stoneLight:stoneMid;
+    ctx.fillRect(stepsX+s*4,by+bh-s*3,stepsW-s*8,3);
+  }
+
+  // === SIDE WING DETAIL (Beaux-Arts projecting bays) ===
+  // Left wing slight shadow/depth
+  ctx.fillStyle=stoneShad;ctx.fillRect(bx,by+16,bw*0.12,bh-16);
+  // Right wing
+  ctx.fillStyle=stoneShad;ctx.fillRect(bx+bw*0.88,by+16,bw*0.12,bh-16);
+  // Wing corner quoins (alternating blocks)
+  for(let q=0;q<bh-16;q+=12){
+    ctx.fillStyle=q%24<12?stoneLight:stoneDark;
+    ctx.fillRect(bx,by+16+q,6,10);
+    ctx.fillRect(bx+bw-6,by+16+q,6,10);
+  }
+
+  // === NIGHT LIGHTING — warm lamp glow from entrance ===
+  ctx.save();
+  const grad=ctx.createRadialGradient(midX,by+bh,8,midX,by+bh,70);
+  grad.addColorStop(0,'rgba(240,192,64,0.18)');
+  grad.addColorStop(1,'rgba(240,192,64,0)');
+  ctx.fillStyle=grad;ctx.fillRect(midX-70,by+bh-40,140,50);
+  ctx.restore();
+
+  // === PROXIMITY GLOW ===
+  const dist=distToZone(playerX,playerY,zone);
+  if(dist<120){
+    ctx.strokeStyle=zone.color;ctx.lineWidth=3;
+    ctx.globalAlpha=0.38+0.28*Math.sin(Date.now()/300);
+    ctx.strokeRect(bx-2,by-4,bw+4,bh+6);
+    ctx.globalAlpha=1;ctx.lineWidth=1;
+  }
+}
+
+function drawCastleBuilding(wx,wy,zone){
+  const bx=zone.x*TILE-wx,by=zone.y*TILE-wy,bw=zone.w*TILE,bh=zone.h*TILE;
+  const midX=bx+bw/2;
+
+  // === DROP SHADOW ===
+  ctx.fillStyle='rgba(0,0,0,0.3)';ctx.fillRect(bx+8,by+bh-4,bw,12);
+
+  // === STONE PALETTE ===
+  const stoneBase='#6e6e7e',stoneLt='#8a8a9a',stoneDk='#4a4a58',stoneSh='#3a3a46',mortar='#2e2e3a';
+
+  // === MAIN KEEP — central tall tower ===
+  const keepW=bw*0.38,keepX=midX-keepW/2,keepTop=by-8;
+  ctx.fillStyle=stoneBase;ctx.fillRect(keepX,keepTop,keepW,bh+8);
+  // Keep shading: left face darker
+  ctx.fillStyle=stoneDk;ctx.fillRect(keepX,keepTop,6,bh+8);
+  ctx.fillStyle=stoneLt;ctx.fillRect(keepX+keepW-6,keepTop,6,bh+8);
+
+  // === SIDE TOWERS ===
+  const twrW=bw*0.22,twrH=bh*0.82,twrTop=by+bh-twrH;
+  // Left tower
+  ctx.fillStyle=stoneDk;ctx.fillRect(bx,twrTop,twrW,twrH);
+  ctx.fillStyle=stoneBase;ctx.fillRect(bx+4,twrTop,twrW-8,twrH);
+  ctx.fillStyle=stoneLt;ctx.fillRect(bx+twrW-5,twrTop,5,twrH);
+  // Right tower
+  ctx.fillStyle=stoneDk;ctx.fillRect(bx+bw-twrW,twrTop,twrW,twrH);
+  ctx.fillStyle=stoneBase;ctx.fillRect(bx+bw-twrW+4,twrTop,twrW-8,twrH);
+  ctx.fillStyle=stoneLt;ctx.fillRect(bx+bw-5,twrTop,5,twrH);
+
+  // === CONNECTING CURTAIN WALL ===
+  const wallTop=by+bh*0.28,wallH=bh-wallTop+by;
+  ctx.fillStyle=stoneDk;ctx.fillRect(bx+twrW,wallTop,bw-twrW*2,wallH);
+  ctx.fillStyle=stoneBase;ctx.fillRect(bx+twrW+3,wallTop,bw-twrW*2-6,wallH);
+
+  // === STONE BLOCK TEXTURE — horizontal mortar lines ===
+  ctx.fillStyle=mortar;
+  for(let ry=twrTop;ry<by+bh;ry+=10){
+    ctx.fillRect(bx,ry,bw,2);
+  }
+  // Vertical mortar (offset per row for ashlar pattern)
+  for(let ry=twrTop;ry<by+bh;ry+=10){
+    const offset=(Math.floor((ry-twrTop)/10)%2)*18;
+    for(let rx=bx+offset;rx<bx+bw;rx+=36){
+      ctx.fillRect(rx,ry,2,10);
+    }
+  }
+
+  // === MERLONS (battlements) on keep top ===
+  const merlW=10,merlH=14,merlGap=8;
+  for(let mx=keepX+4;mx<keepX+keepW-merlW;mx+=merlW+merlGap){
+    ctx.fillStyle=stoneBase;ctx.fillRect(mx,keepTop-merlH,merlW,merlH);
+    ctx.fillStyle=stoneLt;ctx.fillRect(mx,keepTop-merlH,3,merlH);
+    ctx.fillStyle=stoneDk;ctx.fillRect(mx+merlW-3,keepTop-merlH,3,merlH);
+    ctx.fillStyle=mortar;ctx.fillRect(mx,keepTop-merlH,merlW,2);
+  }
+
+  // === MERLONS on side towers ===
+  const smW=8,smH=11,smGap=6;
+  // Left tower battlements
+  for(let mx=bx+2;mx<bx+twrW-smW;mx+=smW+smGap){
+    ctx.fillStyle=stoneDk;ctx.fillRect(mx,twrTop-smH,smW,smH);
+    ctx.fillStyle=stoneBase;ctx.fillRect(mx+2,twrTop-smH,smW-4,smH);
+    ctx.fillStyle=mortar;ctx.fillRect(mx,twrTop-smH,smW,2);
+  }
+  // Right tower battlements
+  for(let mx=bx+bw-twrW+2;mx<bx+bw-smW;mx+=smW+smGap){
+    ctx.fillStyle=stoneDk;ctx.fillRect(mx,twrTop-smH,smW,smH);
+    ctx.fillStyle=stoneBase;ctx.fillRect(mx+2,twrTop-smH,smW-4,smH);
+    ctx.fillStyle=mortar;ctx.fillRect(mx,twrTop-smH,smW,2);
+  }
+  // Curtain wall merlons
+  for(let mx=bx+twrW+4;mx<bx+bw-twrW-smW;mx+=smW+smGap){
+    ctx.fillStyle=stoneDk;ctx.fillRect(mx,wallTop-smH,smW,smH);
+    ctx.fillStyle=stoneBase;ctx.fillRect(mx+2,wallTop-smH,smW-4,smH);
+  }
+
+  // === TOWER WINDOWS (arrow slits) ===
+  // Left tower slit
+  ctx.fillStyle='#1a1a2e';ctx.fillRect(bx+twrW/2-2,twrTop+twrH*0.3,4,14);
+  ctx.fillRect(bx+twrW/2-6,twrTop+twrH*0.3+5,12,4);
+  // Right tower slit
+  ctx.fillRect(bx+bw-twrW/2-2,twrTop+twrH*0.3,4,14);
+  ctx.fillRect(bx+bw-twrW/2-6,twrTop+twrH*0.3+5,12,4);
+
+  // === KEEP WINDOWS ===
+  // Large arched window upper keep
+  const kwW=14,kwH=22,kwX=midX-kwW/2,kwY=keepTop+10;
+  ctx.fillStyle='#1a1a2e';ctx.fillRect(kwX,kwY,kwW,kwH);
+  ctx.beginPath();ctx.arc(kwX+kwW/2,kwY,kwW/2,Math.PI,0);ctx.fill();
+  // Warm glow inside (torch light)
+  ctx.fillStyle='rgba(255,160,40,0.25)';ctx.fillRect(kwX+2,kwY+2,kwW-4,kwH-4);
+  ctx.fillStyle=stoneDk;ctx.fillRect(kwX-2,kwY+kwH,kwW+4,3);
+  // Smaller lower keep window
+  const lkwY=keepTop+kwH+26;
+  ctx.fillStyle='#1a1a2e';ctx.fillRect(kwX+3,lkwY,kwW-6,14);
+  ctx.beginPath();ctx.arc(midX,lkwY,(kwW-6)/2,Math.PI,0);ctx.fill();
+  ctx.fillStyle='rgba(255,160,40,0.2)';ctx.fillRect(kwX+5,lkwY+2,kwW-10,10);
+
+  // === PORTCULLIS GATE (center bottom) ===
+  const gateW=bw*0.2,gateH=bh*0.38,gateX=midX-gateW/2,gateY=by+bh-gateH;
+  // Gate arch surround
+  ctx.fillStyle=stoneDk;ctx.fillRect(gateX-5,gateY-5,gateW+10,gateH+5);
+  // Gate arch interior
+  ctx.fillStyle='#100e0c';ctx.fillRect(gateX,gateY,gateW,gateH);
+  ctx.beginPath();ctx.arc(gateX+gateW/2,gateY,gateW/2,Math.PI,0);ctx.fill();
+  // Portcullis bars (vertical iron bars)
+  ctx.fillStyle='#2a2830';
+  for(let bar=gateX+4;bar<gateX+gateW-2;bar+=7){
+    ctx.fillRect(bar,gateY,3,gateH);
+  }
+  // Horizontal portcullis crossbars
+  ctx.fillStyle='#2a2830';
+  for(let hbar=gateY+8;hbar<gateY+gateH-4;hbar+=12){
+    ctx.fillRect(gateX,hbar,gateW,3);
+  }
+  // Gate keystone
+  ctx.fillStyle=stoneLt;ctx.fillRect(midX-4,gateY-5,8,6);
+
+  // === DRAWBRIDGE ===
+  ctx.fillStyle='#5c3d1e';ctx.fillRect(gateX+2,by+bh-6,gateW-4,6);
+  ctx.fillStyle='#3a2810';ctx.fillRect(gateX+2,by+bh-6,4,6);
+  ctx.fillRect(gateX+gateW-6,by+bh-6,4,6);
+  // Drawbridge chains
+  ctx.strokeStyle='#888';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(gateX+4,gateY);ctx.lineTo(gateX+4,by+bh-6);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(gateX+gateW-4,gateY);ctx.lineTo(gateX+gateW-4,by+bh-6);ctx.stroke();
+  ctx.lineWidth=1;
+
+  // === BANNER / FLAG on keep ===
+  const flagX=midX-2,flagY=keepTop-merlH-18;
+  ctx.fillStyle='#8a0a0a';ctx.fillRect(flagX,flagY,2,18); // pole
+  ctx.fillStyle=zone.color;ctx.fillRect(flagX+2,flagY,16,11); // banner
+  ctx.fillStyle='#aa1414';ctx.fillRect(flagX+2,flagY,16,4);   // stripe
+  ctx.fillStyle='#f0c040';ctx.fillRect(flagX+4,flagY+4,5,5);  // emblem
+
+  // === LABEL BANNER (scroll above gate) ===
+  ctx.fillStyle='#f0e8c0';ctx.fillRect(bx+6,by+22,bw-12,26);
+  ctx.fillStyle='#c8a850';ctx.fillRect(bx+6,by+22,bw-12,3);
+  ctx.fillStyle='#c8a850';ctx.fillRect(bx+6,by+45,bw-12,3);
+  ctx.fillStyle='#1a1a2e';ctx.font='12px "Press Start 2P"';ctx.textAlign='center';
+  ctx.fillText(zone.label.replace(/[^\w\s]/g,'').trim().slice(0,20).toUpperCase(),midX,by+39);
+  ctx.textAlign='left';
+
+  // === TORCH GLOW at gate sides ===
+  ctx.save();
+  const glL=ctx.createRadialGradient(gateX-4,gateY+gateH*0.4,2,gateX-4,gateY+gateH*0.4,28);
+  glL.addColorStop(0,'rgba(255,140,20,0.22)');glL.addColorStop(1,'rgba(255,140,20,0)');
+  ctx.fillStyle=glL;ctx.fillRect(gateX-32,gateY,60,gateH);
+  const glR=ctx.createRadialGradient(gateX+gateW+4,gateY+gateH*0.4,2,gateX+gateW+4,gateY+gateH*0.4,28);
+  glR.addColorStop(0,'rgba(255,140,20,0.22)');glR.addColorStop(1,'rgba(255,140,20,0)');
+  ctx.fillStyle=glR;ctx.fillRect(gateX+gateW-28,gateY,60,gateH);
+  ctx.restore();
+
+  // === PROXIMITY GLOW ===
+  const dist=distToZone(playerX,playerY,zone);
+  if(dist<120){
+    ctx.strokeStyle=zone.color;ctx.lineWidth=3;
+    ctx.globalAlpha=0.38+0.28*Math.sin(Date.now()/300);
+    ctx.strokeRect(bx-2,by-merlH-4,bw+4,bh+merlH+6);
+    ctx.globalAlpha=1;ctx.lineWidth=1;
+  }
+}
+
 function drawBuilding(wx,wy,zone){
+  // Hall of Records gets the special NYPL treatment
+  if(zone.id==='projects'){drawNYPLBuilding(wx,wy,zone);return;}
+  // Castle Anthrax gets the castle treatment
+  if(zone.id==='story'){drawCastleBuilding(wx,wy,zone);return;}
+
   const bx=zone.x*TILE-wx,by=zone.y*TILE-wy,bw=zone.w*TILE,bh=zone.h*TILE;
   ctx.fillStyle='rgba(0,0,0,0.22)';ctx.fillRect(bx+6,by+bh-6,bw,12);
   ctx.fillStyle=zone.color;ctx.fillRect(bx,by+22,bw,bh-22);
