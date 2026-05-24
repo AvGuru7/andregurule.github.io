@@ -1,0 +1,1238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Andre Gurule — Portfolio World</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --gold:#f0c040; --gold2:#c8982a;
+  --ui-bg:#0d0a18; --ui-text:#f0e8c0; --ui-dim:#a09070;
+  --btn-red:#aa2244; --btn-red-hi:#cc4466;
+  --ctrl-body:#2e2e34; --ctrl-hi:#3a3a42; --ctrl-edge:#222;
+}
+body{
+  background:#1a1a2e;
+  font-family:'Press Start 2P',monospace;
+  overflow:hidden;width:100vw;height:100vh;
+  -webkit-tap-highlight-color:transparent;
+}
+
+canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;touch-action:none;}
+#player{position:absolute;image-rendering:pixelated;z-index:10;transform:translate(-50%,-50%);pointer-events:none;}
+#player canvas{display:block;image-rendering:pixelated;}
+
+/* ── HUD ── */
+#hud{
+  position:fixed;top:10px;left:10px;z-index:100;
+  background:var(--ui-bg);border:3px solid var(--gold);padding:8px 13px;
+}
+#hud::before{content:'';position:absolute;inset:2px;border:1px solid rgba(240,192,64,0.25);pointer-events:none;}
+#hud-name{font-size:clamp(5px,1.1vw,8px);color:var(--gold);margin-bottom:4px;letter-spacing:1px;}
+#hud-title{font-family:'VT323',monospace;font-size:clamp(13px,2.4vw,17px);color:#a0d8ff;line-height:1.2;}
+
+/* ── MINIMAP ── */
+#minimap{
+  position:fixed;top:10px;right:10px;
+  width:clamp(80px,13vw,118px);height:clamp(60px,10vw,88px);
+  background:var(--ui-bg);border:3px solid var(--gold);z-index:100;overflow:hidden;
+}
+#minimap canvas{width:100%;height:100%;image-rendering:pixelated;}
+#minimap-label{position:absolute;bottom:2px;left:50%;transform:translateX(-50%);font-size:clamp(4px,0.7vw,5px);color:var(--gold);}
+
+/* ── ZONE LABEL ── */
+#zone-label{
+  position:fixed;bottom:clamp(155px,22vh,200px);left:50%;transform:translateX(-50%);
+  font-size:clamp(8px,1.8vw,13px);color:var(--gold);
+  text-shadow:0 0 16px rgba(240,192,64,0.8);
+  z-index:50;pointer-events:none;opacity:0;transition:opacity 0.3s;
+  text-align:center;padding:0 12px;
+  top:auto;
+}
+
+/* ── DIALOG ── */
+#dialog-box{
+  position:fixed;bottom:clamp(170px,26vh,220px);left:50%;transform:translateX(-50%);
+  width:min(640px,92vw);
+  background:var(--ui-bg);border:4px solid var(--gold);
+  padding:clamp(13px,2.2vh,20px) clamp(14px,2.5vw,22px);
+  z-index:200;display:none;
+}
+#dialog-box::before{content:'';position:absolute;inset:2px;border:2px solid rgba(240,192,64,0.28);pointer-events:none;}
+#dialog-title{
+  font-size:clamp(7px,1.2vw,10px);color:var(--gold);margin-bottom:9px;
+  display:flex;align-items:center;gap:10px;
+}
+#dialog-title::before{content:'▶';color:#ff6060;font-size:8px;animation:blink 0.8s step-end infinite;}
+#dialog-body{font-family:'VT323',monospace;font-size:clamp(16px,3vw,20px);color:var(--ui-text);line-height:1.5;min-height:48px;}
+#dialog-links{display:none;}
+.dialog-link{
+  font-family:'Press Start 2P',monospace;font-size:clamp(5px,0.9vw,7px);
+  color:var(--ui-bg);background:var(--gold);border:none;
+  padding:clamp(6px,1vh,8px) clamp(9px,1.5vw,12px);
+  cursor:pointer;text-decoration:none;display:inline-block;touch-action:manipulation;
+}
+.dialog-link:hover,.dialog-link:active{background:#fff3a0;}
+#btn-hint{
+  margin-top:10px;font-size:clamp(8px,1.4vw,11px);color:var(--ui-dim);
+  display:flex;gap:14px;flex-wrap:wrap;
+}
+.hint-key{
+  display:inline-flex;align-items:center;gap:5px;
+}
+.hint-badge{
+  background:#222;border:1.5px solid var(--gold2);color:var(--gold);
+  padding:4px 8px;border-radius:2px;font-size:inherit;
+}
+
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+/* ── MENU OVERLAY ── */
+#menu-overlay{
+  position:fixed;inset:0;
+  background:rgba(10,8,24,0.92);
+  backdrop-filter:blur(4px);
+  z-index:500;display:none;
+  align-items:center;justify-content:center;
+}
+#menu-box{
+  background:var(--ui-bg);
+  border:4px solid var(--gold);
+  padding:clamp(20px,4vw,36px) clamp(24px,5vw,44px);
+  min-width:clamp(240px,50vw,400px);
+  position:relative;
+}
+#menu-box::before{content:'';position:absolute;inset:3px;border:1px solid rgba(240,192,64,0.22);pointer-events:none;}
+#menu-title{
+  font-size:clamp(8px,1.5vw,12px);color:var(--gold);
+  text-align:center;margin-bottom:clamp(18px,3vh,28px);
+  letter-spacing:2px;
+}
+#menu-title::before{content:'★ ';}
+#menu-title::after{content:' ★';}
+.menu-item{
+  display:block;width:100%;
+  font-family:'Press Start 2P',monospace;
+  font-size:clamp(7px,1.2vw,10px);
+  color:var(--ui-text);
+  background:transparent;border:none;
+  padding:clamp(10px,1.8vh,16px) clamp(12px,2vw,20px);
+  text-align:left;cursor:pointer;
+  border-left:3px solid transparent;
+  text-decoration:none;display:flex;
+  align-items:center;gap:12px;
+  transition:color 0.1s,border-color 0.1s,background 0.1s;
+  letter-spacing:0.5px;line-height:1.5;
+  touch-action:manipulation;
+}
+.menu-item:hover,.menu-item:active,.menu-item.selected{
+  color:var(--gold);border-left-color:var(--gold);
+  background:rgba(240,192,64,0.06);
+}
+.menu-item-icon{font-size:12px;width:20px;text-align:center;flex-shrink:0;}
+#menu-divider{height:1px;background:rgba(240,192,64,0.18);margin:clamp(8px,1.5vh,14px) 0;}
+#menu-close-hint{
+  text-align:center;margin-top:clamp(12px,2vh,20px);
+  font-size:clamp(5px,0.8vw,7px);color:var(--ui-dim);
+}
+.hint-badge-sm{
+  background:#222;border:1.5px solid #555;color:#aaa;
+  padding:1px 5px;border-radius:2px;font-size:inherit;
+}
+#menu-cursor{color:var(--gold);font-size:10px;margin-right:4px;}
+
+/* ── CURSOR (desktop) ── */
+@media(pointer:fine){
+  body{cursor:none;}
+  #cursor{position:fixed;width:12px;height:12px;border:2px solid var(--gold);pointer-events:none;z-index:9999;transform:translate(-50%,-50%);}
+}
+@media(pointer:coarse){#cursor{display:none;}}
+
+/* ══════════════════════════════════════════
+   NES CONTROLLER — always visible
+══════════════════════════════════════════ */
+#nes-controller{
+  position:fixed;
+  bottom:0;
+  left:0; right:0;
+  z-index:300;
+  display:flex;
+  flex-direction:column;align-items:center;
+  gap:8px;
+  background:#0d0a18;
+  padding:clamp(8px,1.5vh,16px) 0 clamp(8px,1.5vh,14px);
+  border-top:2px solid #2a2040;
+}
+
+/* Controller body — NES flat rectangle style */
+#controller-body{
+  position:relative;
+  width:clamp(388.8px,60.75vw,518.4px);
+  height:clamp(90px,14vw,120px);
+  background:linear-gradient(180deg,#3a3a40 0%,#2e2e34 60%,#252528 100%);
+  /* NES had very slight rounding only on the outer corners */
+  border-radius:6px 6px 10px 10px;
+  border:2px solid #555;
+  box-shadow:
+    0 4px 18px rgba(0,0,0,0.7),
+    0 8px 32px rgba(0,0,0,0.4),
+    inset 0 1px 0 rgba(255,255,255,0.08),
+    inset 0 -2px 0 rgba(0,0,0,0.5);
+  display:flex;align-items:center;
+  justify-content:space-between;
+  padding:0 clamp(18px,4vw,28px);
+  gap:0;
+}
+
+/* NES-style ridge line across the top of the controller */
+#controller-body::before{
+  content:'';position:absolute;
+  top:10px;left:12px;right:12px;height:2px;
+  background:rgba(255,255,255,0.05);
+  border-radius:1px;
+}
+
+/* NES-style subtle label area in the center bottom */
+#controller-body::after{
+  content:'';position:absolute;
+  bottom:8px;left:50%;transform:translateX(-50%);
+  width:clamp(60px,12vw,90px);height:6px;
+  background:rgba(255,255,255,0.04);
+  border-radius:3px;
+}
+
+/* ── D-PAD ── */
+#dpad{
+  position:relative;
+  width:clamp(70px,13vw,96px);
+  height:clamp(70px,13vw,96px);
+  flex-shrink:0;
+}
+.dpad-h,.dpad-v{
+  position:absolute;
+  background:linear-gradient(180deg,#4c4c56,#38383f);
+  border:2.5px solid #1a1a20;border-radius:3px;
+}
+.dpad-h{
+  left:0;right:0;top:33.3%;bottom:33.3%;
+  box-shadow:inset 0 2px 0 rgba(255,255,255,0.09),inset 0 -2px 0 rgba(0,0,0,0.4);
+}
+.dpad-v{
+  top:0;bottom:0;left:33.3%;right:33.3%;
+  box-shadow:inset 2px 0 0 rgba(255,255,255,0.09),inset -2px 0 0 rgba(0,0,0,0.4);
+}
+.dpad-center{
+  position:absolute;left:33.3%;right:33.3%;top:33.3%;bottom:33.3%;
+  background:#3c3c44;border-radius:2px;z-index:2;
+}
+.dpad-btn{
+  position:absolute;z-index:3;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;user-select:none;touch-action:none;
+  -webkit-tap-highlight-color:transparent;
+}
+#btn-up   {top:0;left:33.3%;right:33.3%;height:33.3%;}
+#btn-down {bottom:0;left:33.3%;right:33.3%;height:33.3%;}
+#btn-left {left:0;top:33.3%;bottom:33.3%;width:33.3%;}
+#btn-right{right:0;top:33.3%;bottom:33.3%;width:33.3%;}
+
+#btn-up::after   {content:'▲';}
+#btn-down::after {content:'▼';}
+#btn-left::after {content:'◀';}
+#btn-right::after{content:'▶';}
+.dpad-btn::after{font-size:clamp(8px,1.6vw,12px);color:rgba(255,255,255,0.3);}
+.dpad-btn.pressing::after{color:var(--gold);text-shadow:0 0 7px var(--gold);}
+
+/* ── CENTER SECTION ── */
+#center-section{
+  display:flex;flex-direction:column;
+  align-items:center;gap:clamp(6px,1.2vw,10px);
+  flex-shrink:0;
+  margin-left:clamp(8px,2vw,16px);
+  margin-right:clamp(0px,1vw,8px);
+}
+
+/* SELECT / START small oval buttons */
+#select-start-row{
+  display:flex;gap:clamp(8px,1.8vw,14px);align-items:center;
+}
+.ss-btn{
+  width:clamp(32px,6vw,46px);height:clamp(10px,2vw,14px);
+  background:linear-gradient(180deg,#3a3a42,#28282e);
+  border:1.5px solid #1a1a20;border-radius:clamp(5px,1vw,7px);
+  box-shadow:0 2px 0 rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.07);
+  cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+  display:flex;align-items:center;justify-content:center;
+  transition:transform 0.06s,box-shadow 0.06s;
+}
+.ss-btn:active,.ss-btn.pressed{transform:translateY(1px);box-shadow:none;}
+.ss-label{
+  font-family:'Press Start 2P',monospace;
+  font-size:clamp(4px,0.8vw,6px);
+  color:#666;letter-spacing:0.5px;margin-top:clamp(2px,0.5vh,4px);
+  text-align:center;
+}
+
+/* MENU button */
+#menu-btn-wrap{
+  display:flex;flex-direction:column;align-items:center;
+  position:relative;
+}
+#menu-btn{
+  width:clamp(36px,6.5vw,50px);height:clamp(36px,6.5vw,50px);
+  border-radius:50%;
+  background:radial-gradient(circle at 42% 38%,#4a4a54,#26262e);
+  border:2.5px solid #1a1a20;
+  box-shadow:
+    0 3px 0 rgba(0,0,0,0.55),
+    inset 0 1px 0 rgba(255,255,255,0.1),
+    0 0 0 3px rgba(240,192,64,0.15);
+  cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+  display:flex;align-items:center;justify-content:center;
+  transition:transform 0.06s,box-shadow 0.06s;
+}
+#menu-btn:hover{box-shadow:0 3px 0 rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.1),0 0 0 4px rgba(240,192,64,0.35);}
+#menu-btn:active,#menu-btn.pressed{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,0.55);}
+#menu-btn-icon{
+  font-family:'Press Start 2P',monospace;
+  font-size:clamp(5px,0.9vw,7px);color:rgba(240,192,64,0.85);
+  letter-spacing:0.5px;line-height:1.3;text-align:center;
+}
+#menu-btn-label{
+  font-family:'Press Start 2P',monospace;
+  font-size:clamp(4px,0.7vw,5px);color:var(--gold2);
+  margin-top:4px;letter-spacing:0.5px;
+}
+
+/* ── A / B BUTTONS ── */
+#ab-buttons{
+  display:flex;gap:clamp(8px,1.8vw,14px);align-items:center;flex-shrink:0;
+  transform:rotate(-18deg);
+}
+.ab-btn{
+  width:clamp(36px,6.5vw,50px);height:clamp(36px,6.5vw,50px);
+  border-radius:50%;border:2.5px solid #1a1a20;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Press Start 2P',monospace;font-size:clamp(9px,1.6vw,12px);
+  cursor:pointer;touch-action:manipulation;user-select:none;
+  box-shadow:0 4px 0 rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.15);
+  transition:transform 0.06s,box-shadow 0.06s;
+  -webkit-tap-highlight-color:transparent;
+}
+.ab-btn:active,.ab-btn.pressed{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,0.55);}
+#btn-b{background:radial-gradient(circle at 40% 35%,var(--btn-red-hi),var(--btn-red));color:rgba(255,255,255,0.85);}
+#btn-a{background:radial-gradient(circle at 40% 35%,var(--btn-red-hi),var(--btn-red));color:rgba(255,255,255,0.85);}
+
+/* Button label under A/B */
+.ab-label-row{
+  display:flex;gap:clamp(8px,1.8vw,14px);
+  transform:rotate(-18deg);
+  margin-top:clamp(2px,0.5vh,4px);
+}
+.ab-label{
+  font-family:'Press Start 2P',monospace;
+  font-size:clamp(4px,0.7vw,5px);color:#555;
+  width:clamp(36px,6.5vw,50px);text-align:center;
+}
+
+/* Wrap ab column */
+#ab-col{display:flex;flex-direction:column;align-items:center;flex-shrink:0;}
+
+/* ── CONTROLLER HINT ── */
+#ctrl-hint{
+  font-family:'VT323',monospace;
+  font-size:clamp(10px,1.8vw,13px);
+  color:var(--gold);text-align:center;opacity:0.75;
+}
+
+/* loading screen lives in loading.html */
+</style>
+</head>
+<body>
+
+<div id="cursor"></div>
+
+<canvas id="world-canvas"></canvas>
+<div id="player"><canvas id="player-canvas" width="32" height="48"></canvas></div>
+
+<!-- HUD -->
+<div id="hud">
+  <div id="hud-name">ANDRE GURULE</div>
+  <div id="hud-title">Welcome!<br>Please excuse the mess.<br>Site under construction.</div>
+</div>
+
+<!-- Minimap -->
+<div id="minimap">
+  <canvas id="minimap-canvas" width="120" height="90"></canvas>
+  <div id="minimap-label">MAP</div>
+</div>
+
+<!-- Zone label -->
+<div id="zone-label"></div>
+
+<!-- Dialog -->
+<div id="dialog-box">
+  <div id="dialog-title">LOADING...</div>
+  <div id="dialog-body"></div>
+  <div id="dialog-links"></div>
+  <div id="btn-hint">
+    <span class="hint-key"><span class="hint-badge">A</span> select / enter</span>
+    <span class="hint-key"><span class="hint-badge">B</span> close</span>
+    <span class="hint-key"><span class="hint-badge">MENU</span> navigation</span>
+  </div>
+</div>
+
+<!-- Menu overlay -->
+<div id="menu-overlay">
+  <div id="menu-box">
+    <div id="menu-title">NAVIGATION</div>
+    <a class="menu-item selected" href="world.html">
+      <span class="menu-item-icon">🗺</span><span id="menu-cursor">▶</span> WORLD MAP
+    </a>
+    <a class="menu-item" href="andregurule-library.html">
+      <span class="menu-item-icon">⚔</span> HALL OF RECORDS
+    </a>
+    <a class="menu-item" href="https://www.andregurule.com/about" target="_blank">
+      <span class="menu-item-icon">📖</span> CASTLE ANTHRAX
+    </a>
+    <a class="menu-item" href="https://www.andregurule.com/hobbies" target="_blank">
+      <span class="menu-item-icon">🏕</span> HOBBIES
+    </a>
+    <a class="menu-item" href="https://www.andregurule.com/blog" target="_blank">
+      <span class="menu-item-icon">📜</span> BLOG
+    </a>
+    <div id="menu-divider"></div>
+    <a class="menu-item" href="https://linkedin.com/in/andregurule" target="_blank">
+      <span class="menu-item-icon">💼</span> LINKEDIN
+    </a>
+    <div id="menu-close-hint">
+      <span class="hint-badge-sm">B</span> or <span class="hint-badge-sm">MENU</span> to close
+      &nbsp;·&nbsp;
+      <span class="hint-badge-sm">↑↓</span> to navigate
+      &nbsp;·&nbsp;
+      <span class="hint-badge-sm">A</span> to select
+    </div>
+  </div>
+</div>
+
+<!-- NES Controller -->
+<div id="nes-controller">
+  <div id="controller-body">
+
+    <!-- D-Pad -->
+    <div id="dpad">
+      <div class="dpad-h"></div>
+      <div class="dpad-v"></div>
+      <div class="dpad-center"></div>
+      <div class="dpad-btn" id="btn-up"    data-dir="up"></div>
+      <div class="dpad-btn" id="btn-down"  data-dir="down"></div>
+      <div class="dpad-btn" id="btn-left"  data-dir="left"></div>
+      <div class="dpad-btn" id="btn-right" data-dir="right"></div>
+    </div>
+
+    <!-- Center section: SELECT | MENU | START -->
+    <div id="center-section">
+      <div id="menu-btn-wrap">
+        <div id="menu-btn" onclick="toggleMenu()">
+          <div id="menu-btn-icon">MENU</div>
+        </div>
+        <div id="menu-btn-label">MENU</div>
+      </div>
+      <div id="select-start-row">
+        <div style="display:flex;flex-direction:column;align-items:center;">
+          <div class="ss-btn" id="btn-select"></div>
+          <div class="ss-label">SELECT</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;">
+          <div class="ss-btn" id="btn-start" onclick="handleA()"></div>
+          <div class="ss-label">START</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- A / B buttons -->
+    <div id="ab-col">
+      <div id="ab-buttons">
+        <div class="ab-btn" id="btn-b" onclick="handleB()">B</div>
+        <div class="ab-btn" id="btn-a" onclick="handleA()">A</div>
+      </div>
+      <div class="ab-label-row">
+        <div class="ab-label">BACK</div>
+        <div class="ab-label">SELECT</div>
+      </div>
+    </div>
+
+  </div>
+  <div id="ctrl-hint">D-PAD / ARROW KEYS · A=ENTER · B=BACK · MENU=NAV</div>
+</div>
+
+<script>
+const TILE=48,WORLD_W=32,WORLD_H=24;
+const PW=WORLD_W*TILE,PH=WORLD_H*TILE;
+// ── GAME STATE — read from URL params (set by loading.html, passed between pages) ──
+const _p = new URLSearchParams(window.location.search);
+const GameState = {
+  points:   parseInt(_p.get('points')  || '0', 10),
+  visited:  _p.get('visited')   ? _p.get('visited').split(',').filter(Boolean)  : [],
+  unlocked: _p.get('unlocked')  ? _p.get('unlocked').split(',').filter(Boolean) : [],
+
+  // Mark a zone as visited and award points
+  visitZone(id, pts = 10){
+    if(!this.visited.includes(id)){
+      this.visited.push(id);
+      this.points += pts;
+    }
+  },
+
+  // Unlock a secret (e.g. 'g14')
+  unlock(key){
+    if(!this.unlocked.includes(key)) this.unlocked.push(key);
+  },
+
+  // Serialize to query string — append to any outgoing href
+  toParams(){
+    return new URLSearchParams({
+      points:   this.points,
+      visited:  this.visited.join(','),
+      unlocked: this.unlocked.join(',')
+    }).toString();
+  },
+
+  // Rewrite a local href to carry state forward
+  withState(href){
+    return href + (href.includes('?') ? '&' : '?') + this.toParams();
+  }
+};
+
+let camX=0,camY=0;
+let playerX=16*TILE,playerY=9*TILE;
+let facing='down',moving=false,frame=0,frameTimer=0;
+const FRAME_RATE=8;
+let dialogOpen=false,menuOpen=false,activeZone=null,zoneLabelTimer=0;
+const keys={up:false,down:false,left:false,right:false};
+
+// Menu keyboard navigation
+let menuItems=[];
+let menuIdx=0;
+
+const ZONES=[
+  {id:'projects',label:'⚔ HALL OF RECORDS',x:22,y:4,w:6,h:5,color:'#e84393',
+   title:'HALL OF RECORDS',
+   body:'Both my professional and personal information can be found in the Hall of Records. Enter to learn more.',
+   links:[{label:'📁 ENTER THE HALL',href:'andregurule-library.html',local:true}]},
+  {id:'story',label:'📖 CASTLE ANTHRAX',x:2,y:4,w:6,h:5,color:'#4080ff',
+   title:'CASTLE ANTHRAX',
+   body:'Every great hero has an origin. Mine started with curiosity and a love of learning.',
+   links:[{label:'📖 READ CASTLE ANTHRAX',href:'https://www.andregurule.com/about'}]},
+  {id:'hobbies',label:'🏕 HOBBIES OUTPOST',x:2,y:14,w:6,h:5,color:'#40c060',
+   title:'HOBBIES OUTPOST',
+   body:'Motorcycles, off-roading, LEGO, and the great outdoors. Life beyond the keyboard.',
+   links:[{label:'🏕 MY HOBBIES',href:'https://www.andregurule.com/hobbies'}]},
+  {id:'blog',label:'📜 SCROLL LIBRARY',x:22,y:14,w:6,h:5,color:'#f0c040',
+   title:'THE SCROLL LIBRARY',
+   body:'I enjoy learning and sharing what I know. Check out my blog — or "ramblings" as I call them.',
+   links:[{label:'📜 READ THE BLOG',href:'https://www.andregurule.com/blog'}]},
+  {id:'contact',label:'💌 TOWN SQUARE',x:13,y:10,w:6,h:4,color:'#e07030',
+   title:'TOWN SQUARE — CONTACT',
+   body:'Ready to start a quest together? I\'m open to new opportunities and collaborations.',
+   links:[
+     {label:'💼 LINKEDIN',href:'https://linkedin.com/in/andregurule'},
+     {label:'✉ EMAIL',   href:'mailto:hello@andregurule.com'}
+   ]},
+];
+
+const canvas=document.getElementById('world-canvas');
+const ctx=canvas.getContext('2d');
+ctx.imageSmoothingEnabled=false;
+const playerCanvas=document.getElementById('player-canvas');
+const pCtx=playerCanvas.getContext('2d');
+pCtx.imageSmoothingEnabled=false;
+const minimapCanvas=document.getElementById('minimap-canvas');
+const mCtx=minimapCanvas.getContext('2d');
+
+// Height of the reserved controller zone at the bottom of the screen
+function ctrlHeight(){
+  const ctrl=document.getElementById('nes-controller');
+  if(!ctrl)return 0;
+  // total height including bottom gap
+  return ctrl.offsetHeight + parseInt(getComputedStyle(ctrl).bottom||'0') + 16;
+}
+
+function resize(){
+  canvas.width=window.innerWidth;
+  canvas.height=window.innerHeight - ctrlHeight();
+  ctx.imageSmoothingEnabled=false;
+}
+resize();window.addEventListener('resize',resize);
+
+function pseudoRand(x,y,seed=42){const n=Math.sin(x*127.1+y*311.7+seed*74.3)*43758.5453;return n-Math.floor(n);}
+function shadeColor(hex,amt){
+  let r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  r=Math.max(0,Math.min(255,r+amt));g=Math.max(0,Math.min(255,g+amt));b=Math.max(0,Math.min(255,b+amt));
+  return`rgb(${r},${g},${b})`;
+}
+function distToZone(px,py,zone){
+  return Math.hypot(px-(zone.x*TILE+zone.w*TILE/2),py-(zone.y*TILE+zone.h*TILE/2));
+}
+function isOnPath(tx,ty){
+  if(ty>=11&&ty<=12&&tx>=1&&tx<=30)return true;
+  if(tx>=15&&tx<=16&&ty>=1&&ty<=22)return true;
+  return false;
+}
+function isInWater(tx,ty){
+  const dx=(tx-12)/2.5,dy=(ty-6)/2;if(dx*dx+dy*dy<1)return true;
+  const dx2=(tx-20)/2,dy2=(ty-19)/1.5;return dx2*dx2+dy2*dy2<1;
+}
+function isInBuildingZone(tx,ty){return ZONES.some(z=>tx>=z.x&&tx<z.x+z.w&&ty>=z.y&&ty<z.y+z.h);}
+
+function drawNYPLBuilding(wx,wy,zone){
+  const bx=zone.x*TILE-wx,by=zone.y*TILE-wy,bw=zone.w*TILE,bh=zone.h*TILE;
+  const midX=bx+bw/2;
+
+  // === DROP SHADOW ===
+  ctx.fillStyle='rgba(0,0,0,0.28)';ctx.fillRect(bx+8,by+bh-4,bw,10);
+
+  // === MAIN FACADE — warm limestone beige ===
+  const stoneLight='#d4c9a8',stoneMid='#c2b590',stoneDark='#a89872',stoneShad='#8a7a58';
+
+  // Base body
+  ctx.fillStyle=stoneMid;ctx.fillRect(bx,by+16,bw,bh-16);
+
+  // Slightly lighter central section (Beaux-Arts center pavilion)
+  ctx.fillStyle=stoneLight;ctx.fillRect(bx+bw*0.22,by+16,bw*0.56,bh-16);
+
+  // === CORNICE LINE (top horizontal band) ===
+  ctx.fillStyle=stoneLight;ctx.fillRect(bx,by+16,bw,6);
+  ctx.fillStyle=stoneDark;ctx.fillRect(bx,by+22,bw,3);
+
+  // === COLUMNS — evenly spaced, classic Beaux-Arts ===
+  // NYPL has 6 large columns across the facade
+  const colW=6,colH=bh-42,colY=by+26;
+  const colSpacing=bw/7;
+  for(let i=1;i<=6;i++){
+    const cx2=bx+colSpacing*i-colW/2;
+    // Column shaft (slightly lighter, with pixel shading)
+    ctx.fillStyle=stoneLight;ctx.fillRect(cx2,colY,colW,colH);
+    ctx.fillStyle=stoneDark;ctx.fillRect(cx2+colW-2,colY,2,colH); // shadow side
+    ctx.fillStyle='#e8dfc0';ctx.fillRect(cx2,colY,2,colH);        // highlight side
+    // Capital (top of column)
+    ctx.fillStyle=stoneMid;ctx.fillRect(cx2-2,colY-4,colW+4,4);
+    ctx.fillStyle=stoneLight;ctx.fillRect(cx2-1,colY-6,colW+2,2);
+    // Base
+    ctx.fillStyle=stoneMid;ctx.fillRect(cx2-2,colY+colH,colW+4,4);
+    ctx.fillStyle=stoneDark;ctx.fillRect(cx2-3,colY+colH+4,colW+6,3);
+  }
+
+  // === ENTABLATURE / FRIEZE (band above columns) ===
+  ctx.fillStyle=stoneMid;ctx.fillRect(bx,by+22,bw,26-22);
+  // Frieze inscription panel
+  ctx.fillStyle=stoneLight;ctx.fillRect(bx+4,by+26,bw-8,12);
+  ctx.fillStyle='#1a1a2e';ctx.font='bold 12px "Press Start 2P"';ctx.textAlign='center';
+  ctx.fillText('HALL OF RECORDS',midX,by+37);
+  ctx.textAlign='left';
+
+  // === ROOF BALUSTRADE (pixel-art railing at top) ===
+  ctx.fillStyle=stoneMid;ctx.fillRect(bx,by+8,bw,8);
+  ctx.fillStyle=stoneLight;ctx.fillRect(bx,by+8,bw,3);
+  ctx.fillStyle=stoneDark;ctx.fillRect(bx,by+14,bw,2);
+  // Baluster posts
+  for(let i=0;i<bw;i+=8){
+    ctx.fillStyle=stoneLight;ctx.fillRect(bx+i,by+9,4,5);
+    ctx.fillStyle=stoneDark;ctx.fillRect(bx+i+3,by+10,1,4);
+  }
+
+  // === PEDIMENT (triangular gable over center) ===
+  ctx.fillStyle=stoneLight;
+  ctx.beginPath();
+  ctx.moveTo(midX-bw*0.28,by+8);
+  ctx.lineTo(midX,by-2);
+  ctx.lineTo(midX+bw*0.28,by+8);
+  ctx.closePath();ctx.fill();
+  ctx.fillStyle=stoneDark;
+  ctx.beginPath();
+  ctx.moveTo(midX-bw*0.28,by+8);
+  ctx.lineTo(midX,by-2);
+  ctx.lineTo(midX+bw*0.28,by+8);
+  ctx.closePath();ctx.stroke();
+  // Inner pediment (recessed)
+  ctx.fillStyle=stoneMid;
+  ctx.beginPath();
+  ctx.moveTo(midX-bw*0.22,by+8);
+  ctx.lineTo(midX,by+2);
+  ctx.lineTo(midX+bw*0.22,by+8);
+  ctx.closePath();ctx.fill();
+  // Pediment pixel art lion silhouette (simplified)
+  ctx.fillStyle=stoneDark;
+  ctx.fillRect(midX-6,by+5,12,3);
+  ctx.fillRect(midX-4,by+3,8,2);
+  ctx.fillRect(midX-3,by+2,6,1);
+
+  const winColors=['#8ab4d8','#6a94b8','#4a7498'];
+
+  // === GRAND ENTRANCE (center archway) ===
+  const doorW=bw*0.22,doorH=bh*0.42,doorX=midX-doorW/2,doorY=by+bh-doorH;
+  // === SIDE WINDOWS — one large window each side of door, half door size ===
+  const swinW=doorW/2,swinH=doorH/2,swinY=doorY+(doorH-swinH)/2;
+  const swinGap=14;
+  // Left window
+  const lwinX=doorX-swinGap-swinW;
+  ctx.fillStyle=stoneDark;ctx.fillRect(lwinX-3,swinY-3,swinW+6,swinH+3);
+  ctx.fillStyle=winColors[0];ctx.fillRect(lwinX,swinY,swinW,swinH);
+  ctx.fillStyle=winColors[1];ctx.fillRect(lwinX,swinY,swinW,4);
+  ctx.fillStyle='rgba(255,255,255,0.22)';
+  ctx.fillRect(lwinX+swinW/2-1,swinY,2,swinH);
+  ctx.fillRect(lwinX,swinY+swinH/2-1,swinW,2);
+  ctx.fillStyle='rgba(200,230,255,0.12)';ctx.fillRect(lwinX+2,swinY+2,swinW/2-3,swinH/2-3);
+  ctx.fillStyle=stoneDark;ctx.fillRect(lwinX-3,swinY+swinH,swinW+6,3);
+  // Right window
+  const rwinX=doorX+doorW+swinGap;
+  ctx.fillStyle=stoneDark;ctx.fillRect(rwinX-3,swinY-3,swinW+6,swinH+3);
+  ctx.fillStyle=winColors[0];ctx.fillRect(rwinX,swinY,swinW,swinH);
+  ctx.fillStyle=winColors[1];ctx.fillRect(rwinX,swinY,swinW,4);
+  ctx.fillStyle='rgba(255,255,255,0.22)';
+  ctx.fillRect(rwinX+swinW/2-1,swinY,2,swinH);
+  ctx.fillRect(rwinX,swinY+swinH/2-1,swinW,2);
+  ctx.fillStyle='rgba(200,230,255,0.12)';ctx.fillRect(rwinX+2,swinY+2,swinW/2-3,swinH/2-3);
+  ctx.fillStyle=stoneDark;ctx.fillRect(rwinX-3,swinY+swinH,swinW+6,3);
+
+  // Door surround
+  ctx.fillStyle=stoneDark;ctx.fillRect(doorX-4,doorY-4,doorW+8,doorH+4);
+  // Door arch fill (dark interior)
+  ctx.fillStyle='#12100e';ctx.fillRect(doorX,doorY,doorW,doorH);
+  // Arched top of door
+  ctx.fillStyle='#12100e';
+  ctx.beginPath();
+  ctx.arc(doorX+doorW/2,doorY,doorW/2,Math.PI,0);
+  ctx.fill();
+  // Door columns (flanking)
+  ctx.fillStyle=stoneLight;ctx.fillRect(doorX-8,doorY,6,doorH);
+  ctx.fillStyle=stoneLight;ctx.fillRect(doorX+doorW+2,doorY,6,doorH);
+  // Door panel (dark wood doors, slightly open)
+  ctx.fillStyle='#3a2810';ctx.fillRect(doorX+2,doorY+8,doorW/2-3,doorH-8);
+  ctx.fillStyle='#4a3418';ctx.fillRect(doorX+doorW/2+1,doorY+8,doorW/2-3,doorH-8);
+  // Door knobs
+  ctx.fillStyle='#f0c040';ctx.fillRect(doorX+doorW/2-4,doorY+doorH/2,3,3);
+  ctx.fillRect(doorX+doorW/2+2,doorY+doorH/2,3,3);
+  // Transom window above door
+  ctx.fillStyle=winColors[1];ctx.fillRect(doorX+4,doorY-10,doorW-8,10);
+  ctx.fillStyle='rgba(255,255,255,0.2)';ctx.fillRect(doorX+doorW/2-1,doorY-10,2,10);
+
+  // === ENTRANCE STEPS ===
+  const stepsW=doorW+40,stepsX=midX-stepsW/2;
+  for(let s=0;s<4;s++){
+    ctx.fillStyle=s%2===0?stoneLight:stoneMid;
+    ctx.fillRect(stepsX+s*4,by+bh-s*3,stepsW-s*8,3);
+  }
+
+  // === SIDE WING DETAIL (Beaux-Arts projecting bays) ===
+  // Left wing slight shadow/depth
+  ctx.fillStyle=stoneShad;ctx.fillRect(bx,by+16,bw*0.12,bh-16);
+  // Right wing
+  ctx.fillStyle=stoneShad;ctx.fillRect(bx+bw*0.88,by+16,bw*0.12,bh-16);
+  // Wing corner quoins (alternating blocks)
+  for(let q=0;q<bh-16;q+=12){
+    ctx.fillStyle=q%24<12?stoneLight:stoneDark;
+    ctx.fillRect(bx,by+16+q,6,10);
+    ctx.fillRect(bx+bw-6,by+16+q,6,10);
+  }
+
+  // === NIGHT LIGHTING — warm lamp glow from entrance ===
+  ctx.save();
+  const grad=ctx.createRadialGradient(midX,by+bh,8,midX,by+bh,70);
+  grad.addColorStop(0,'rgba(240,192,64,0.18)');
+  grad.addColorStop(1,'rgba(240,192,64,0)');
+  ctx.fillStyle=grad;ctx.fillRect(midX-70,by+bh-40,140,50);
+  ctx.restore();
+
+  // === PROXIMITY GLOW ===
+  const dist=distToZone(playerX,playerY,zone);
+  if(dist<120){
+    ctx.strokeStyle=zone.color;ctx.lineWidth=3;
+    ctx.globalAlpha=0.38+0.28*Math.sin(Date.now()/300);
+    ctx.strokeRect(bx-2,by-4,bw+4,bh+6);
+    ctx.globalAlpha=1;ctx.lineWidth=1;
+  }
+}
+
+function drawCastleBuilding(wx,wy,zone){
+  const bx=zone.x*TILE-wx,by=zone.y*TILE-wy,bw=zone.w*TILE,bh=zone.h*TILE;
+  const midX=bx+bw/2;
+
+  // === DROP SHADOW ===
+  ctx.fillStyle='rgba(0,0,0,0.3)';ctx.fillRect(bx+8,by+bh-4,bw,12);
+
+  // === STONE PALETTE ===
+  const stoneBase='#6e6e7e',stoneLt='#8a8a9a',stoneDk='#4a4a58',stoneSh='#3a3a46',mortar='#2e2e3a';
+
+  // === MAIN KEEP — central tall tower ===
+  const keepW=bw*0.38,keepX=midX-keepW/2,keepTop=by-8;
+  ctx.fillStyle=stoneBase;ctx.fillRect(keepX,keepTop,keepW,bh+8);
+  // Keep shading: left face darker
+  ctx.fillStyle=stoneDk;ctx.fillRect(keepX,keepTop,6,bh+8);
+  ctx.fillStyle=stoneLt;ctx.fillRect(keepX+keepW-6,keepTop,6,bh+8);
+
+  // === SIDE TOWERS ===
+  const twrW=bw*0.22,twrH=bh*0.82,twrTop=by+bh-twrH;
+  // Left tower
+  ctx.fillStyle=stoneDk;ctx.fillRect(bx,twrTop,twrW,twrH);
+  ctx.fillStyle=stoneBase;ctx.fillRect(bx+4,twrTop,twrW-8,twrH);
+  ctx.fillStyle=stoneLt;ctx.fillRect(bx+twrW-5,twrTop,5,twrH);
+  // Right tower
+  ctx.fillStyle=stoneDk;ctx.fillRect(bx+bw-twrW,twrTop,twrW,twrH);
+  ctx.fillStyle=stoneBase;ctx.fillRect(bx+bw-twrW+4,twrTop,twrW-8,twrH);
+  ctx.fillStyle=stoneLt;ctx.fillRect(bx+bw-5,twrTop,5,twrH);
+
+  // === CONNECTING CURTAIN WALL ===
+  const wallTop=by+bh*0.28,wallH=bh-wallTop+by;
+  ctx.fillStyle=stoneDk;ctx.fillRect(bx+twrW,wallTop,bw-twrW*2,wallH);
+  ctx.fillStyle=stoneBase;ctx.fillRect(bx+twrW+3,wallTop,bw-twrW*2-6,wallH);
+
+  // === STONE BLOCK TEXTURE — horizontal mortar lines ===
+  ctx.fillStyle=mortar;
+  for(let ry=twrTop;ry<by+bh;ry+=10){
+    ctx.fillRect(bx,ry,bw,2);
+  }
+  // Vertical mortar (offset per row for ashlar pattern)
+  for(let ry=twrTop;ry<by+bh;ry+=10){
+    const offset=(Math.floor((ry-twrTop)/10)%2)*18;
+    for(let rx=bx+offset;rx<bx+bw;rx+=36){
+      ctx.fillRect(rx,ry,2,10);
+    }
+  }
+
+  // === MERLONS (battlements) on keep top ===
+  const merlW=10,merlH=14,merlGap=8;
+  for(let mx=keepX+4;mx<keepX+keepW-merlW;mx+=merlW+merlGap){
+    ctx.fillStyle=stoneBase;ctx.fillRect(mx,keepTop-merlH,merlW,merlH);
+    ctx.fillStyle=stoneLt;ctx.fillRect(mx,keepTop-merlH,3,merlH);
+    ctx.fillStyle=stoneDk;ctx.fillRect(mx+merlW-3,keepTop-merlH,3,merlH);
+    ctx.fillStyle=mortar;ctx.fillRect(mx,keepTop-merlH,merlW,2);
+  }
+
+  // === MERLONS on side towers ===
+  const smW=8,smH=11,smGap=6;
+  // Left tower battlements
+  for(let mx=bx+2;mx<bx+twrW-smW;mx+=smW+smGap){
+    ctx.fillStyle=stoneDk;ctx.fillRect(mx,twrTop-smH,smW,smH);
+    ctx.fillStyle=stoneBase;ctx.fillRect(mx+2,twrTop-smH,smW-4,smH);
+    ctx.fillStyle=mortar;ctx.fillRect(mx,twrTop-smH,smW,2);
+  }
+  // Right tower battlements
+  for(let mx=bx+bw-twrW+2;mx<bx+bw-smW;mx+=smW+smGap){
+    ctx.fillStyle=stoneDk;ctx.fillRect(mx,twrTop-smH,smW,smH);
+    ctx.fillStyle=stoneBase;ctx.fillRect(mx+2,twrTop-smH,smW-4,smH);
+    ctx.fillStyle=mortar;ctx.fillRect(mx,twrTop-smH,smW,2);
+  }
+  // Curtain wall merlons
+  for(let mx=bx+twrW+4;mx<bx+bw-twrW-smW;mx+=smW+smGap){
+    ctx.fillStyle=stoneDk;ctx.fillRect(mx,wallTop-smH,smW,smH);
+    ctx.fillStyle=stoneBase;ctx.fillRect(mx+2,wallTop-smH,smW-4,smH);
+  }
+
+  // === TOWER WINDOWS (arrow slits) ===
+  // Left tower slit
+  ctx.fillStyle='#1a1a2e';ctx.fillRect(bx+twrW/2-2,twrTop+twrH*0.3,4,14);
+  ctx.fillRect(bx+twrW/2-6,twrTop+twrH*0.3+5,12,4);
+  // Right tower slit
+  ctx.fillRect(bx+bw-twrW/2-2,twrTop+twrH*0.3,4,14);
+  ctx.fillRect(bx+bw-twrW/2-6,twrTop+twrH*0.3+5,12,4);
+
+  // === KEEP WINDOWS ===
+  // Large arched window upper keep
+  const kwW=14,kwH=22,kwX=midX-kwW/2,kwY=keepTop+10;
+  ctx.fillStyle='#1a1a2e';ctx.fillRect(kwX,kwY,kwW,kwH);
+  ctx.beginPath();ctx.arc(kwX+kwW/2,kwY,kwW/2,Math.PI,0);ctx.fill();
+  // Warm glow inside (torch light)
+  ctx.fillStyle='rgba(255,160,40,0.25)';ctx.fillRect(kwX+2,kwY+2,kwW-4,kwH-4);
+  ctx.fillStyle=stoneDk;ctx.fillRect(kwX-2,kwY+kwH,kwW+4,3);
+  // Smaller lower keep window
+  const lkwY=keepTop+kwH+26;
+  ctx.fillStyle='#1a1a2e';ctx.fillRect(kwX+3,lkwY,kwW-6,14);
+  ctx.beginPath();ctx.arc(midX,lkwY,(kwW-6)/2,Math.PI,0);ctx.fill();
+  ctx.fillStyle='rgba(255,160,40,0.2)';ctx.fillRect(kwX+5,lkwY+2,kwW-10,10);
+
+  // === PORTCULLIS GATE (center bottom) ===
+  const gateW=bw*0.2,gateH=bh*0.38,gateX=midX-gateW/2,gateY=by+bh-gateH;
+  // Gate arch surround
+  ctx.fillStyle=stoneDk;ctx.fillRect(gateX-5,gateY-5,gateW+10,gateH+5);
+  // Gate arch interior
+  ctx.fillStyle='#100e0c';ctx.fillRect(gateX,gateY,gateW,gateH);
+  ctx.beginPath();ctx.arc(gateX+gateW/2,gateY,gateW/2,Math.PI,0);ctx.fill();
+  // Portcullis bars (vertical iron bars)
+  ctx.fillStyle='#2a2830';
+  for(let bar=gateX+4;bar<gateX+gateW-2;bar+=7){
+    ctx.fillRect(bar,gateY,3,gateH);
+  }
+  // Horizontal portcullis crossbars
+  ctx.fillStyle='#2a2830';
+  for(let hbar=gateY+8;hbar<gateY+gateH-4;hbar+=12){
+    ctx.fillRect(gateX,hbar,gateW,3);
+  }
+  // Gate keystone
+  ctx.fillStyle=stoneLt;ctx.fillRect(midX-4,gateY-5,8,6);
+
+  // === DRAWBRIDGE ===
+  ctx.fillStyle='#5c3d1e';ctx.fillRect(gateX+2,by+bh-6,gateW-4,6);
+  ctx.fillStyle='#3a2810';ctx.fillRect(gateX+2,by+bh-6,4,6);
+  ctx.fillRect(gateX+gateW-6,by+bh-6,4,6);
+  // Drawbridge chains
+  ctx.strokeStyle='#888';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(gateX+4,gateY);ctx.lineTo(gateX+4,by+bh-6);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(gateX+gateW-4,gateY);ctx.lineTo(gateX+gateW-4,by+bh-6);ctx.stroke();
+  ctx.lineWidth=1;
+
+  // === BANNER / FLAG on keep ===
+  const flagX=midX-2,flagY=keepTop-merlH-18;
+  ctx.fillStyle='#8a0a0a';ctx.fillRect(flagX,flagY,2,18); // pole
+  ctx.fillStyle=zone.color;ctx.fillRect(flagX+2,flagY,16,11); // banner
+  ctx.fillStyle='#aa1414';ctx.fillRect(flagX+2,flagY,16,4);   // stripe
+  ctx.fillStyle='#f0c040';ctx.fillRect(flagX+4,flagY+4,5,5);  // emblem
+
+  // === LABEL BANNER (scroll above gate) ===
+  ctx.fillStyle='#f0e8c0';ctx.fillRect(bx+6,by+22,bw-12,26);
+  ctx.fillStyle='#c8a850';ctx.fillRect(bx+6,by+22,bw-12,3);
+  ctx.fillStyle='#c8a850';ctx.fillRect(bx+6,by+45,bw-12,3);
+  ctx.fillStyle='#1a1a2e';ctx.font='12px "Press Start 2P"';ctx.textAlign='center';
+  ctx.fillText(zone.label.replace(/[^\w\s]/g,'').trim().slice(0,20).toUpperCase(),midX,by+39);
+  ctx.textAlign='left';
+
+  // === TORCH GLOW at gate sides ===
+  ctx.save();
+  const glL=ctx.createRadialGradient(gateX-4,gateY+gateH*0.4,2,gateX-4,gateY+gateH*0.4,28);
+  glL.addColorStop(0,'rgba(255,140,20,0.22)');glL.addColorStop(1,'rgba(255,140,20,0)');
+  ctx.fillStyle=glL;ctx.fillRect(gateX-32,gateY,60,gateH);
+  const glR=ctx.createRadialGradient(gateX+gateW+4,gateY+gateH*0.4,2,gateX+gateW+4,gateY+gateH*0.4,28);
+  glR.addColorStop(0,'rgba(255,140,20,0.22)');glR.addColorStop(1,'rgba(255,140,20,0)');
+  ctx.fillStyle=glR;ctx.fillRect(gateX+gateW-28,gateY,60,gateH);
+  ctx.restore();
+
+  // === PROXIMITY GLOW ===
+  const dist=distToZone(playerX,playerY,zone);
+  if(dist<120){
+    ctx.strokeStyle=zone.color;ctx.lineWidth=3;
+    ctx.globalAlpha=0.38+0.28*Math.sin(Date.now()/300);
+    ctx.strokeRect(bx-2,by-merlH-4,bw+4,bh+merlH+6);
+    ctx.globalAlpha=1;ctx.lineWidth=1;
+  }
+}
+
+function drawBuilding(wx,wy,zone){
+  // Hall of Records gets the special NYPL treatment
+  if(zone.id==='projects'){drawNYPLBuilding(wx,wy,zone);return;}
+  // Castle Anthrax gets the castle treatment
+  if(zone.id==='story'){drawCastleBuilding(wx,wy,zone);return;}
+
+  const bx=zone.x*TILE-wx,by=zone.y*TILE-wy,bw=zone.w*TILE,bh=zone.h*TILE;
+  ctx.fillStyle='rgba(0,0,0,0.22)';ctx.fillRect(bx+6,by+bh-6,bw,12);
+  ctx.fillStyle=zone.color;ctx.fillRect(bx,by+22,bw,bh-22);
+  ctx.fillStyle=shadeColor(zone.color,-40);ctx.fillRect(bx,by+bh-14,bw,14);
+  for(let wx2=bx+14;wx2<bx+bw-20;wx2+=28){for(let wy2=by+38;wy2<by+bh-16;wy2+=24){
+    ctx.fillStyle='#fffde0';ctx.fillRect(wx2,wy2,13,13);
+    ctx.fillStyle='#ffe060';ctx.fillRect(wx2+6,wy2,7,13);ctx.fillRect(wx2,wy2+6,13,7);
+  }}
+  const rc=shadeColor(zone.color,-60),midX=bx+bw/2;
+  for(let row=0;row<22;row+=4){const w2=(row/22)*bw;ctx.fillStyle=rc;ctx.fillRect(midX-w2/2,by+row,w2,4);}
+  ctx.fillStyle=shadeColor(zone.color,-80);ctx.fillRect(bx+bw/2-10,by+bh-28,20,28);
+  ctx.fillStyle='#1a1a2e';ctx.fillRect(bx+bw/2-6,by+bh-24,10,20);
+  ctx.fillStyle='#f0e8c0';ctx.fillRect(bx+6,by+22,bw-12,26);
+  ctx.fillStyle='#1a1a2e';ctx.font='12px "Press Start 2P"';ctx.textAlign='center';
+  ctx.fillText(zone.label.replace(/[^\w\s]/g,'').trim().slice(0,20).toUpperCase(),bx+bw/2,by+39);
+  ctx.textAlign='left';
+  const dist=distToZone(playerX,playerY,zone);
+  if(dist<120){
+    ctx.strokeStyle=zone.color;ctx.lineWidth=3;
+    ctx.globalAlpha=0.38+0.28*Math.sin(Date.now()/300);
+    ctx.strokeRect(bx-2,by-2,bw+4,bh+4);
+    ctx.globalAlpha=1;ctx.lineWidth=1;
+  }
+}
+
+function drawWorld(){
+  const W=canvas.width,H=canvas.height,wx=camX,wy=camY;
+  const skyColors=['#1a1a2e','#1a2040','#1e2850'];
+  skyColors.forEach((c,i)=>{ctx.fillStyle=c;ctx.fillRect(0,i*(H*0.33),W,H*0.35);});
+  const peaks=[0.05,0.18,0.3,0.45,0.58,0.72,0.88,0.96];
+  const heights=[0.35,0.28,0.42,0.25,0.38,0.3,0.42,0.26];
+  peaks.forEach((p,i)=>{
+    const mx=(p*PW-wx*0.14)%(W+200)-100,mh=heights[i]*H*0.58,my=H*0.1;
+    ctx.fillStyle='#3a2e24';ctx.beginPath();ctx.moveTo(mx-mh*0.7,my+mh);ctx.lineTo(mx,my);ctx.lineTo(mx+mh*0.7,my+mh);ctx.fill();
+    ctx.fillStyle='#d8d8e8';ctx.beginPath();ctx.moveTo(mx-mh*0.14,my+mh*0.2);ctx.lineTo(mx,my);ctx.lineTo(mx+mh*0.14,my+mh*0.2);ctx.fill();
+  });
+  const stX=Math.floor(wx/TILE),stY=Math.floor(wy/TILE);
+  const enX=Math.ceil((wx+W)/TILE),enY=Math.ceil((wy+H)/TILE);
+  for(let ty=stY;ty<=enY;ty++){for(let tx=stX;tx<=enX;tx++){
+    const sx=tx*TILE-wx,sy=ty*TILE-wy,r=pseudoRand(tx,ty);
+    if(isInBuildingZone(tx,ty))continue;
+    if(isInWater(tx,ty)){
+      const wa=Math.sin(Date.now()/800+tx*0.5+ty*0.3)*0.08;
+      ctx.fillStyle=`hsl(210,70%,${32+wa*10}%)`;ctx.fillRect(sx,sy,TILE,TILE);
+      if((tx+ty+Math.floor(Date.now()/400))%3===0){ctx.fillStyle='rgba(255,255,255,0.13)';ctx.fillRect(sx+4,sy+TILE/2,TILE-8,3);}
+    }else if(isOnPath(tx,ty)){
+      ctx.fillStyle=r>0.5?'#c4a35a':'#b89448';ctx.fillRect(sx,sy,TILE,TILE);
+      if(r>0.7){ctx.fillStyle='rgba(0,0,0,0.1)';ctx.fillRect(sx+TILE/2,sy+TILE/2,5,5);}
+    }else{
+      ctx.fillStyle=r>0.6?'#3a7520':r>0.3?'#2d6518':'#255512';ctx.fillRect(sx,sy,TILE,TILE);
+      if(r>0.8){ctx.fillStyle='#4a8530';ctx.fillRect(sx+8,sy+4,4,8);ctx.fillRect(sx+20,sy+12,4,8);}
+      if(r>0.9){ctx.fillStyle=pseudoRand(tx,ty,7)>0.5?'#e84393':'#f0c040';ctx.fillRect(sx+16,sy+8,5,5);}
+    }
+  }}
+  for(let ty=0;ty<WORLD_H;ty++){for(let tx=0;tx<WORLD_W;tx++){
+    const r=pseudoRand(tx,ty,99);
+    if(r>0.83&&!isOnPath(tx,ty)&&!isInWater(tx,ty)&&!isInBuildingZone(tx,ty)&&
+       !ZONES.some(z=>tx>=z.x-1&&tx<z.x+z.w+1&&ty>=z.y-1&&ty<z.y+z.h+1)){
+      const sx=tx*TILE-wx,sy=ty*TILE-wy;
+      if(sx<-TILE*2||sx>W+TILE*2||sy<-TILE*2||sy>H+TILE*2)continue;
+      const h=34+r*18,cx=sx+TILE/2,cy=sy+TILE-4;
+      ctx.fillStyle='#5c3d1e';ctx.fillRect(cx-4,cy-h*0.38,8,h*0.38);
+      ctx.fillStyle='#255512';ctx.beginPath();ctx.arc(cx,cy-h*0.48,h*0.36,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#2d6518';ctx.beginPath();ctx.arc(cx-4,cy-h*0.53,h*0.28,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#3a7520';ctx.beginPath();ctx.arc(cx+2,cy-h*0.58,h*0.22,0,Math.PI*2);ctx.fill();
+    }
+  }}
+  ZONES.forEach(z=>drawBuilding(wx,wy,z));
+  const ppx=playerX-wx,ppy=playerY-wy;
+  ctx.fillStyle='rgba(0,0,0,0.28)';ctx.beginPath();ctx.ellipse(ppx,ppy+7,11,4,0,0,Math.PI*2);ctx.fill();
+}
+
+function drawPlayer(){
+  pCtx.clearRect(0,0,32,48);const cx=16,f=Math.floor(frame%4);
+  const lo=moving?[[-4,0],[4,0],[-2,-3],[2,-3]][f]:[0,0];
+  pCtx.fillStyle='#1a3060';
+  pCtx.fillRect(cx-8,30+(moving&&f%2===0?lo[1]:-lo[1]),7,10);
+  pCtx.fillRect(cx+1,30+(moving&&f%2===1?lo[1]:-lo[1]),7,10);
+  pCtx.fillStyle='#2a1808';
+  pCtx.fillRect(cx-9,39+(moving&&f%2===0?lo[1]:-lo[1]),9,5);
+  pCtx.fillRect(cx,39+(moving&&f%2===1?lo[1]:-lo[1]),9,5);
+  pCtx.fillStyle='#4080ff';pCtx.fillRect(cx-9,18,18,14);
+  const arm=moving?Math.sin(frame*0.8)*3:0;
+  pCtx.fillStyle='#4080ff';pCtx.fillRect(cx-14,19+arm,6,10);pCtx.fillRect(cx+8,19-arm,6,10);
+  pCtx.fillStyle='#f5c5a3';pCtx.fillRect(cx-8,4,16,16);
+  pCtx.fillStyle='#3a2010';pCtx.fillRect(cx-8,4,16,6);pCtx.fillRect(cx-10,6,4,8);
+  pCtx.fillStyle='#1a1a2e';if(facing!=='up'){pCtx.fillRect(cx-5,13,3,3);pCtx.fillRect(cx+2,13,3,3);}
+  pCtx.fillStyle='#c04020';pCtx.fillRect(cx+7,18,8,12);
+}
+
+function drawMinimap(){
+  mCtx.fillStyle='#2d5a1b';mCtx.fillRect(0,0,120,90);
+  const sX=120/PW,sY=90/PH;
+  mCtx.fillStyle='#1565c0';
+  mCtx.beginPath();mCtx.ellipse(12*TILE*sX,6*TILE*sY,2.5*TILE*sX,2*TILE*sY,0,0,Math.PI*2);mCtx.fill();
+  mCtx.beginPath();mCtx.ellipse(20*TILE*sX,19*TILE*sY,2*TILE*sX,1.5*TILE*sY,0,0,Math.PI*2);mCtx.fill();
+  mCtx.fillStyle='#c4a35a';
+  mCtx.fillRect(0,11*TILE*sY,120,2*TILE*sY);mCtx.fillRect(15*TILE*sX,0,2*TILE*sX,90);
+  ZONES.forEach(z=>{mCtx.fillStyle=z.color;mCtx.fillRect(z.x*TILE*sX,z.y*TILE*sY,z.w*TILE*sX,z.h*TILE*sY);});
+  mCtx.fillStyle='#fff';mCtx.fillRect(playerX*sX-2,playerY*sY-2,4,4);
+}
+
+function updateCamera(){
+  const W=canvas.width,H=canvas.height;
+  let tx=playerX-W/2,ty=playerY-H/2;
+  tx=Math.max(0,Math.min(PW-W,tx));
+  ty=Math.max(0,Math.min(PH-H,ty));
+  camX+=(tx-camX)*0.1;camY+=(ty-camY)*0.1;
+}
+
+function updatePlayer(){
+  if(dialogOpen||menuOpen)return;
+  const SPEED=3;let dx=0,dy=0;
+  if(keys.up){dy=-SPEED;facing='up';}
+  if(keys.down){dy=SPEED;facing='down';}
+  if(keys.left){dx=-SPEED;facing='left';}
+  if(keys.right){dx=SPEED;facing='right';}
+  moving=dx!==0||dy!==0;
+  if(moving){
+    const nx=Math.max(TILE,Math.min(PW-TILE,playerX+dx));
+    const ny=Math.max(TILE,Math.min(PH-TILE,playerY+dy));
+    const tx=Math.floor(nx/TILE),ty=Math.floor(ny/TILE);
+    if(!ZONES.some(z=>tx>=z.x&&tx<z.x+z.w&&ty>=z.y&&ty<z.y+z.h)){playerX=nx;playerY=ny;}
+    if(++frameTimer>=FRAME_RATE){frame++;frameTimer=0;}
+  }
+  let nearest=null,minDist=140;
+  ZONES.forEach(z=>{const d=distToZone(playerX,playerY,z);if(d<minDist){minDist=d;nearest=z;}});
+  if(nearest&&nearest!==activeZone){activeZone=nearest;showZoneLabel(nearest.label);}
+  else if(!nearest&&activeZone){activeZone=null;hideZoneLabel();}
+}
+
+function showZoneLabel(label){
+  const el=document.getElementById('zone-label');
+  el.textContent=label;el.style.opacity='1';
+  clearTimeout(zoneLabelTimer);
+  zoneLabelTimer=setTimeout(()=>{if(!dialogOpen)el.style.opacity='0';},2800);
+}
+function hideZoneLabel(){document.getElementById('zone-label').style.opacity='0';}
+
+// ── A button: SELECT / ENTER ──
+function handleA(){
+  if(menuOpen){menuSelectCurrent();return;}
+  if(dialogOpen){
+    // If there's exactly one link, follow it; otherwise just close
+    const links=document.querySelectorAll('.dialog-link');
+    if(links.length===1){links[0].click();}
+    else{closeDialog();}
+    return;
+  }
+  if(activeZone){openDialog(activeZone);}
+}
+
+// ── B button: CLOSE / BACK ──
+function handleB(){
+  if(menuOpen){closeMenu();return;}
+  if(dialogOpen){closeDialog();return;}
+  // No-op when world is open
+}
+
+function openDialog(zone){
+  dialogOpen=true;
+  GameState.visitZone(zone.id);  // track visit + award points
+  document.getElementById('dialog-title').textContent=zone.title;
+  document.getElementById('dialog-body').textContent=zone.body;
+  const linksEl=document.getElementById('dialog-links');
+  linksEl.innerHTML='';
+  zone.links.forEach(l=>{
+    const a=document.createElement('a');
+    a.className='dialog-link';a.textContent=l.label;
+    a.href=l.local ? GameState.withState(l.href) : l.href;
+    if(!l.local)a.target='_blank';
+    linksEl.appendChild(a);
+  });
+  document.getElementById('dialog-box').style.display='block';
+  document.getElementById('zone-label').style.opacity='0';
+}
+function closeDialog(){
+  dialogOpen=false;
+  document.getElementById('dialog-box').style.display='none';
+}
+
+// ── MENU ──
+function toggleMenu(){
+  menuOpen?closeMenu():openMenu();
+}
+function openMenu(){
+  if(dialogOpen)closeDialog();
+  menuOpen=true;
+  document.getElementById('menu-overlay').style.display='flex';
+  menuItems=Array.from(document.querySelectorAll('.menu-item'));
+  menuIdx=0;
+  updateMenuCursor();
+  document.getElementById('menu-btn').classList.add('pressed');
+}
+function closeMenu(){
+  menuOpen=false;
+  document.getElementById('menu-overlay').style.display='none';
+  document.getElementById('menu-btn').classList.remove('pressed');
+}
+function updateMenuCursor(){
+  menuItems.forEach((item,i)=>{
+    item.classList.toggle('selected',i===menuIdx);
+    const cur=item.querySelector('#menu-cursor');
+    if(cur)cur.remove();
+    if(i===menuIdx){
+      const span=document.createElement('span');
+      span.id='menu-cursor';span.textContent='▶ ';span.style.color='var(--gold)';
+      item.insertBefore(span,item.children[1]);
+    }
+  });
+}
+function menuSelectCurrent(){
+  if(menuItems[menuIdx])menuItems[menuIdx].click();
+}
+
+// ── KEYBOARD ──
+document.addEventListener('keydown',e=>{
+  // Menu navigation
+  if(menuOpen){
+    if(e.key==='ArrowUp'||e.key==='w'){menuIdx=Math.max(0,menuIdx-1);updateMenuCursor();e.preventDefault();return;}
+    if(e.key==='ArrowDown'||e.key==='s'){menuIdx=Math.min(menuItems.length-1,menuIdx+1);updateMenuCursor();e.preventDefault();return;}
+    if(e.key==='Enter'||e.key===' '){handleA();e.preventDefault();return;}
+    if(e.key==='Escape'||e.key==='b'||e.key==='B'){handleB();e.preventDefault();return;}
+    return;
+  }
+  if(e.key==='ArrowUp'||e.key==='w'||e.key==='W')keys.up=true;
+  if(e.key==='ArrowDown'||e.key==='s'||e.key==='S')keys.down=true;
+  if(e.key==='ArrowLeft')keys.left=true;
+  if(e.key==='ArrowRight')keys.right=true;
+  if(e.key==='Enter'||e.key===' '||e.key==='a'||e.key==='A'){handleA();e.preventDefault();}
+  if(e.key==='Escape'||e.key==='b'||e.key==='B'){handleB();}
+  if(e.key==='m'||e.key==='M'){toggleMenu();}
+  if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key))e.preventDefault();
+});
+document.addEventListener('keyup',e=>{
+  if(e.key==='ArrowUp'||e.key==='w'||e.key==='W')keys.up=false;
+  if(e.key==='ArrowDown'||e.key==='s'||e.key==='S')keys.down=false;
+  if(e.key==='ArrowLeft')keys.left=false;
+  if(e.key==='ArrowRight')keys.right=false;
+});
+
+// ── D-PAD TOUCH / MOUSE ──
+// Called immediately so buttons work as soon as page loads
+function setupDpad(){
+  document.querySelectorAll('.dpad-btn').forEach(btn=>{
+    const dir=btn.dataset.dir;
+
+    // Touch — mobile/tablet
+    btn.addEventListener('touchstart',e=>{
+      e.preventDefault();
+      keys[dir]=true;
+      btn.classList.add('pressing');
+    },{passive:false});
+    btn.addEventListener('touchend',e=>{
+      e.preventDefault();
+      keys[dir]=false;
+      btn.classList.remove('pressing');
+    },{passive:false});
+    btn.addEventListener('touchcancel',e=>{
+      e.preventDefault();
+      keys[dir]=false;
+      btn.classList.remove('pressing');
+    },{passive:false});
+
+    // Mouse — desktop: press on mousedown
+    btn.addEventListener('mousedown',e=>{
+      e.preventDefault();
+      keys[dir]=true;
+      btn.classList.add('pressing');
+    });
+  });
+
+  // Single global mouseup releases ALL directions so
+  // moving the cursor off the button never gets stuck
+  document.addEventListener('mouseup',()=>{
+    document.querySelectorAll('.dpad-btn').forEach(btn=>{
+      keys[btn.dataset.dir]=false;
+      btn.classList.remove('pressing');
+    });
+  });
+}
+
+// Attach D-pad events
+setupDpad();
+
+// Canvas click = A button behavior
+canvas.addEventListener('click',()=>{ handleA(); });
+
+// Cursor
+document.addEventListener('mousemove',e=>{
+  const c=document.getElementById('cursor');
+  if(c){c.style.left=e.clientX+'px';c.style.top=e.clientY+'px';}
+});
+
+function gameLoop(){
+  updatePlayer();updateCamera();
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  drawWorld();drawPlayer();
+  const ppx=playerX-camX,ppy=playerY-camY;
+  const pe=document.getElementById('player');
+  pe.style.left=ppx+'px';pe.style.top=ppy+'px';
+  drawMinimap();
+  requestAnimationFrame(gameLoop);
+}
+
+// Start the loop immediately
+requestAnimationFrame(gameLoop);
+// Re-measure once fonts/layout settle
+window.addEventListener('load',()=>{ resize(); });
+</script>
+</body>
+</html>
