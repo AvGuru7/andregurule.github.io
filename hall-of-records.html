@@ -300,13 +300,14 @@ html, body {
   width:100%; height:100%; padding:8px 6px; overflow:hidden;
 }
 .book-title-text {
-  font-family:'Press Start 2P',monospace;
-  font-size: var(--book-font);
-  color:rgba(255,255,255,0.93);
+  font-family:'Playfair Display',serif;
+  font-size: calc(var(--book-font) * 1.55);
+  font-weight:700;
+  color:rgba(255,255,255,0.96);
   writing-mode:vertical-rl; text-orientation:mixed; transform:rotate(180deg);
-  text-shadow:1px 1px 0 rgba(0,0,0,0.55);
+  text-shadow:1px 1px 2px rgba(0,0,0,0.5);
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-  max-height:90%; line-height:1.3; letter-spacing:0.4px;
+  max-height:90%; line-height:1.2; letter-spacing:0.5px;
 }
 .book.filler { cursor:default; }
 .book.filler:hover, .book.filler:active { transform:none; box-shadow:2px 0 0 rgba(0,0,0,0.38); }
@@ -339,8 +340,8 @@ html, body {
 #npc-wrap:active { transform:scale(0.97); }
 #npc-canvas {
   display:block; image-rendering:pixelated;
-  width: clamp(54px,7vw,88px);
-  height: clamp(68px,9vw,110px);
+  width: clamp(80px,10vw,130px);
+  height: clamp(100px,13vw,164px);
   filter:drop-shadow(0 6px 12px rgba(0,0,0,0.18));
 }
 #npc-bubble {
@@ -348,7 +349,7 @@ html, body {
   border-radius:10px 10px 10px 2px;
   padding: clamp(4px,0.6vh,7px) clamp(8px,1vw,12px);
   font-family:'Press Start 2P',monospace;
-  font-size:clamp(4.5px,0.65vw,7px);
+  font-size:clamp(5.5px,0.8vw,8px);
   color:var(--text-dark); white-space:nowrap; margin-bottom:6px;
   box-shadow:0 3px 10px rgba(0,0,0,0.1);
   animation:npc-float 2.6s ease-in-out infinite;
@@ -884,32 +885,22 @@ const PROJECTS = [
     desc:'Throughout my entire adult career, I have been involved in training and adult learning. Since 2021, I have been involved in the ground-up development of training programs for multiple companies.',
     tags:['LMS','Learning Management System','Learning','Development','Adult Learning'],
     color:'#2a5ed0', dark:'#14317a', link:'training-portfolio.html' },
-  { id:'proj2', row:1,
-    title:'Marketing Video Portfolio', subtitle:'Role  ·  Year',
-    desc:'Description coming soon.',
-    tags:['Tag'],
-    color:'#22a060', dark:'#115030', link:'#' },
-  { id:'proj3', row:1,
-    title:'My Story', subtitle:'Role  ·  Year',
-    desc:'Description coming soon.',
-    tags:['Tag'],
-    color:'#d85020', dark:'#7a2808', link:'#' },
   { id:'proj4', row:1,
     title:'My Reading List', subtitle:'Role  ·  Year',
     desc:'Description coming soon.',
     tags:['Tag'],
     color:'#8030b8', dark:'#481868', link:'#' },
-  { id:'proj5', row:1,
-    title:'Personal Videos', subtitle:'Role  ·  Year',
+  { id:'proj3', row:1,
+    title:'My Story', subtitle:'Role  ·  Year',
     desc:'Description coming soon.',
     tags:['Tag'],
-    color:'#b87818', dark:'#6a4008', link:'#' },
-  { id:'proj6', row:2,
-    title:'Photography', subtitle:'Role  ·  Year',
+    color:'#d85020', dark:'#7a2808', link:'#' },
+  { id:'proj6', row:1,
+    title:'My Media', subtitle:'Role  ·  Year',
     desc:'Description coming soon.',
     tags:['Tag'],
     color:'#1488b8', dark:'#085068', link:'#' },
-  { id:'proj7', row:2,
+  { id:'proj7', row:1,
     title:'Misc.', subtitle:'Role  ·  Year',
     desc:'Description coming soon.',
     tags:['Tag'],
@@ -1164,16 +1155,16 @@ function typeText(el, text){ el.textContent=''; let i=0; const iv=setInterval(()
 function drawNPC() {
   const c=document.getElementById('npc-canvas'), ctx=c.getContext('2d');
   ctx.imageSmoothingEnabled=false; ctx.clearRect(0,0,70,88);
-  // Skirt
-  ctx.fillStyle='#8b4513';
+  // Skirt — burgundy
+  ctx.fillStyle='#7a2040';
   for(let i=0;i<5;i++) ctx.fillRect(10+i*2,52+i*3,50-i*4,36-i*3);
-  // Cardigan
-  ctx.fillStyle='#a0522d'; ctx.fillRect(18,40,34,26);
-  ctx.fillStyle='#b86030'; ctx.fillRect(18,40,7,20);
+  // Cardigan — deep teal
+  ctx.fillStyle='#2a6e7a'; ctx.fillRect(18,40,34,26);
+  ctx.fillStyle='#1a4a54'; ctx.fillRect(18,40,7,20);
   ctx.fillStyle='#fff8f0'; ctx.fillRect(28,40,14,8);
   ctx.fillStyle='#f0c040'; ctx.fillRect(33,44,4,4);
-  // Arms + hands
-  ctx.fillStyle='#a0522d'; ctx.fillRect(6,42,12,22); ctx.fillRect(52,42,12,22);
+  // Arms + hands — teal sleeves
+  ctx.fillStyle='#2a6e7a'; ctx.fillRect(6,42,12,22); ctx.fillRect(52,42,12,22);
   ctx.fillStyle='#f5c5a3'; ctx.fillRect(6,62,11,7); ctx.fillRect(53,62,11,7);
   // Book
   ctx.fillStyle='#2a5ed0'; ctx.fillRect(0,48,16,20);
