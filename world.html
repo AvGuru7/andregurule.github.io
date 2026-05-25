@@ -1968,6 +1968,7 @@ function drawWorldItems(wx,wy){
   WORLD_ITEMS.forEach(item=>{
     if(GameState.hasItem(item.id))return;
     if(item.requires&&!GameState.hasItem(item.requires))return; // hidden until prereq met
+    const sx=item.worldTile.tx*TILE-wx+TILE/2;
     const sy=item.worldTile.ty*TILE-wy+TILE/2;
     if(sx<-TILE||sx>canvas.width+TILE||sy<-TILE||sy>canvas.height+TILE)return;
     // Shadow
@@ -2037,6 +2038,7 @@ function nearestWorldItem(){
   WORLD_ITEMS.forEach(item=>{
     if(GameState.hasItem(item.id))return;
     if(item.requires&&!GameState.hasItem(item.requires))return; // not yet visible
+    const ix=item.worldTile.tx*TILE+TILE/2;
     const iy=item.worldTile.ty*TILE+TILE/2;
     const d=Math.hypot(playerX-ix,playerY-iy);
     if(d<bestDist){bestDist=d;best=item;}
