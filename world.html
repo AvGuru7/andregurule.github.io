@@ -518,8 +518,8 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
     <a class="menu-item" href="https://www.andregurule.com/hobbies" target="_blank">
       <span class="menu-item-icon">⛰</span> EREBOR MOUNTAIN
     </a>
-    <a class="menu-item" href="https://www.andregurule.com/blog" target="_blank">
-      <span class="menu-item-icon">📜</span> BLOG
+    <a class="menu-item" href="under-construction.html">
+      <span class="menu-item-icon">📜</span> LIBRARY
     </a>
     <div id="menu-divider"></div>
     <a class="menu-item" href="https://www.andregurule.com/hobbies" target="_blank">
@@ -794,6 +794,16 @@ const ITEMS=[
    hint:'Bring something beautiful to King Lyn.',
    spawnPage:null,
    worldTile:null},
+
+  {id:'sapphire',     icon:'💎', label:'Sapphire',             category:'key',
+   points:75, page:'World Map',
+   riddle:false, hint:null,
+   worldTile:{tx:28,ty:5}},   // east side of Hall of Records
+
+  {id:'ruby',         icon:'🔴', label:'Ruby',                 category:'key',
+   points:75, page:'World Map',
+   riddle:false, hint:null,
+   worldTile:{tx:4,ty:22}},   // south of Erebor Mountain
 ];
 
 // Items that live on the world map as pickable sprites
@@ -1955,19 +1965,68 @@ document.addEventListener('mousemove',e=>{
 // ── DRAW WORLD ITEMS (sprites on the map) ──
 function drawWorldItems(wx,wy){
   WORLD_ITEMS.forEach(item=>{
-    if(GameState.hasItem(item.id))return; // already collected — don't draw
+    if(GameState.hasItem(item.id))return;
     const sx=item.worldTile.tx*TILE-wx+TILE/2;
     const sy=item.worldTile.ty*TILE-wy+TILE/2;
-    // Only draw if on screen
     if(sx<-TILE||sx>canvas.width+TILE||sy<-TILE||sy>canvas.height+TILE)return;
     // Shadow
     ctx.fillStyle='rgba(0,0,0,0.25)';
     ctx.beginPath();ctx.ellipse(sx,sy+14,10,4,0,0,Math.PI*2);ctx.fill();
-    // Item emoji — pixel style, no glow
-    ctx.font=`${TILE*0.55}px serif`;
-    ctx.textAlign='center';ctx.textBaseline='middle';
-    ctx.fillText(item.icon,sx,sy);
-    ctx.textAlign='left';ctx.textBaseline='alphabetic';
+
+    if(item.id==='ruby'){
+      // Pixel art red gemstone — diamond cut shape
+      const gx=sx, gy=sy-4, s=10;
+      // Bottom facets (dark)
+      ctx.fillStyle='#8b0000';
+      ctx.beginPath();
+      ctx.moveTo(gx,       gy+s*1.4); // bottom point
+      ctx.lineTo(gx-s*0.7, gy+s*0.3);
+      ctx.lineTo(gx,       gy+s*0.5);
+      ctx.closePath(); ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(gx,       gy+s*1.4);
+      ctx.lineTo(gx+s*0.7, gy+s*0.3);
+      ctx.lineTo(gx,       gy+s*0.5);
+      ctx.closePath(); ctx.fill();
+      // Main body (mid red)
+      ctx.fillStyle='#cc1111';
+      ctx.beginPath();
+      ctx.moveTo(gx-s*0.7, gy+s*0.3);
+      ctx.lineTo(gx-s,     gy-s*0.2);
+      ctx.lineTo(gx,       gy+s*0.5);
+      ctx.closePath(); ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(gx+s*0.7, gy+s*0.3);
+      ctx.lineTo(gx+s,     gy-s*0.2);
+      ctx.lineTo(gx,       gy+s*0.5);
+      ctx.closePath(); ctx.fill();
+      // Top table facets
+      ctx.fillStyle='#e83030';
+      ctx.beginPath();
+      ctx.moveTo(gx-s*0.45, gy-s*0.9);
+      ctx.lineTo(gx-s,      gy-s*0.2);
+      ctx.lineTo(gx,        gy+s*0.5);
+      ctx.lineTo(gx+s,      gy-s*0.2);
+      ctx.lineTo(gx+s*0.45, gy-s*0.9);
+      ctx.closePath(); ctx.fill();
+      // Table (top flat face) — brightest
+      ctx.fillStyle='#ff6060';
+      ctx.beginPath();
+      ctx.moveTo(gx-s*0.45, gy-s*0.9);
+      ctx.lineTo(gx+s*0.45, gy-s*0.9);
+      ctx.lineTo(gx+s*0.2,  gy-s*1.4);
+      ctx.lineTo(gx-s*0.2,  gy-s*1.4);
+      ctx.closePath(); ctx.fill();
+      // Highlight sparkle
+      ctx.fillStyle='rgba(255,200,200,0.85)';
+      ctx.fillRect(gx-s*0.15, gy-s*1.3, 3, 3);
+    } else {
+      // Default: emoji sprite
+      ctx.font=`${TILE*0.55}px serif`;
+      ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText(item.icon,sx,sy);
+      ctx.textAlign='left';ctx.textBaseline='alphabetic';
+    }
   });
 }
 
