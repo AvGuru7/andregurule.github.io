@@ -1,0 +1,1400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lake Tahoe — Andre Gurule</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --gold: #f0c040;
+    --ui-bg: #0d0a18;
+    --ui-text: #f0e8c0;
+    --lake-dark: #0a2a5a;
+    --lake-mid: #1040a0;
+    --lake-light: #2060d0;
+    --controller-h: 110px;
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    overflow: hidden;
+    background: #0d1a10;
+    font-family: 'Press Start 2P', monospace;
+    color: var(--ui-text);
+  }
+
+  #gameCanvas {
+    display: block;
+    width: 100%;
+    height: calc(100vh - var(--controller-h));
+    image-rendering: pixelated;
+    cursor: crosshair;
+  }
+
+  /* ── HUD ── */
+  #hud {
+    position: fixed;
+    top: 10px; left: 10px;
+    display: flex; gap: 8px; align-items: center;
+    z-index: 100;
+    pointer-events: none;
+  }
+  #pointsBadge {
+    background: rgba(13,10,24,0.85);
+    border: 2px solid var(--gold);
+    padding: 4px 10px;
+    font-size: clamp(7px, 1.5vw, 10px);
+    color: var(--gold);
+    border-radius: 4px;
+  }
+
+  /* ── DIALOG BOX ── */
+  #dialogBox {
+    display: none;
+    position: fixed;
+    bottom: calc(var(--controller-h) + 12px);
+    left: 50%; transform: translateX(-50%);
+    width: min(640px, 94vw);
+    background: var(--ui-bg);
+    border: 3px solid var(--gold);
+    border-radius: 6px;
+    padding: 14px 18px 12px;
+    z-index: 200;
+    font-family: 'VT323', monospace;
+    font-size: clamp(16px, 3.5vw, 22px);
+    color: var(--ui-text);
+    line-height: 1.5;
+  }
+  #dialogBox .speaker {
+    color: var(--gold);
+    font-size: clamp(13px, 2.5vw, 17px);
+    margin-bottom: 6px;
+    font-family: 'Press Start 2P', monospace;
+  }
+  #dialogBox .prompt {
+    color: #a0c0ff;
+    font-size: clamp(12px, 2vw, 14px);
+    margin-top: 8px;
+    font-family: 'Press Start 2P', monospace;
+  }
+
+  /* ── MENU OVERLAY ── */
+  #menuOverlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(13,10,24,0.92);
+    z-index: 300;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+  }
+  #menuOverlay.open { display: flex; }
+  #menuOverlay h2 {
+    font-size: clamp(12px, 2.5vw, 18px);
+    color: var(--gold);
+    margin-bottom: 10px;
+    letter-spacing: 2px;
+  }
+  .menu-btn {
+    background: transparent;
+    border: 2px solid var(--gold);
+    color: var(--ui-text);
+    font-family: 'Press Start 2P', monospace;
+    font-size: clamp(9px, 1.8vw, 12px);
+    padding: 10px 28px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    border-radius: 4px;
+    text-decoration: none;
+    display: block;
+    text-align: center;
+    min-width: 220px;
+  }
+  .menu-btn:hover { background: var(--gold); color: var(--ui-bg); }
+
+  /* ── NES CONTROLLER ── */
+  #controller {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: var(--controller-h);
+    background: #1a1a2e;
+    border-top: 3px solid #2a2a4e;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 clamp(12px, 4vw, 40px);
+    z-index: 150;
+    border-radius: 6px 6px 10px 10px;
+    user-select: none;
+  }
+
+  /* D-pad */
+  .dpad {
+    display: grid;
+    grid-template-columns: repeat(3, 32px);
+    grid-template-rows: repeat(3, 32px);
+    gap: 2px;
+  }
+  .dpad-btn {
+    background: #2c2c50;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--ui-text);
+    font-size: 14px;
+    transition: background 0.08s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .dpad-btn:active, .dpad-btn.pressed { background: #4a4a80; }
+  .dpad-center { background: #222240; cursor: default; }
+
+  /* Center group */
+  .center-group {
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+  }
+  .menu-circle {
+    width: 46px; height: 46px;
+    border-radius: 50%;
+    background: #111128;
+    border: 3px solid var(--gold);
+    box-shadow: 0 0 8px var(--gold);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+    color: var(--gold);
+    transition: box-shadow 0.1s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .menu-circle:active { box-shadow: 0 0 18px var(--gold); }
+  .menu-label-below {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+    color: var(--gold);
+    letter-spacing: 1px;
+  }
+  .small-btns {
+    display: flex; gap: 10px; margin-top: 2px;
+  }
+  .oval-btn {
+    background: #2c2c50;
+    border: 2px solid #3a3a60;
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 6px;
+    color: #8888bb;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .oval-btn:active { background: #4a4a80; }
+
+  /* A/B buttons */
+  .ab-group {
+    display: flex; gap: 10px; align-items: flex-end; transform: rotate(-18deg);
+  }
+  .ab-btn {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: #c0202a;
+    border: none;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    color: #fff;
+    cursor: pointer;
+    box-shadow: 0 3px 0 #7a0010;
+    transition: box-shadow 0.08s, transform 0.08s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .ab-btn:active { box-shadow: none; transform: translateY(2px); }
+</style>
+</head>
+<body>
+
+<!-- HUD -->
+<div id="hud">
+  <div id="pointsBadge">★ <span id="pointsDisplay">0</span></div>
+</div>
+
+<!-- Dialog -->
+<div id="dialogBox">
+  <div class="speaker" id="dialogSpeaker"></div>
+  <div id="dialogText"></div>
+  <div class="prompt" id="dialogPrompt"></div>
+</div>
+
+<!-- Menu Overlay -->
+<div id="menuOverlay">
+  <h2>⚓ LAKE TAHOE</h2>
+  <a class="menu-btn" id="menuWorldLink" href="index.html#spawn=lake-tahoe">🗺 WORLD MAP</a>
+  <a class="menu-btn" href="andregurule-library.html">📚 HALL OF RECORDS</a>
+  <a class="menu-btn" href="castle-anthrax.html">🏰 CASTLE ANTHRAX</a>
+  <button class="menu-btn" id="menuClose">✕ CLOSE</button>
+</div>
+
+<!-- Canvas -->
+<canvas id="gameCanvas"></canvas>
+
+<!-- NES Controller -->
+<div id="controller">
+  <!-- D-pad -->
+  <div class="dpad">
+    <div></div>
+    <button class="dpad-btn" id="btn-up">▲</button>
+    <div></div>
+    <button class="dpad-btn" id="btn-left">◀</button>
+    <div class="dpad-center"></div>
+    <button class="dpad-btn" id="btn-right">▶</button>
+    <div></div>
+    <button class="dpad-btn" id="btn-down">▼</button>
+    <div></div>
+  </div>
+
+  <!-- Center -->
+  <div class="center-group">
+    <button class="menu-circle" id="btnMenu">MENU</button>
+    <div class="menu-label-below">MENU</div>
+    <div class="small-btns">
+      <button class="oval-btn" id="btnSelect">SELECT</button>
+      <button class="oval-btn" id="btnStart">START</button>
+    </div>
+  </div>
+
+  <!-- A/B -->
+  <div class="ab-group">
+    <button class="ab-btn" id="btnB">B</button>
+    <button class="ab-btn" id="btnA">A</button>
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+//  GAME STATE (URL-param based)
+// ─────────────────────────────────────────────
+const GameState = (() => {
+  const params = new URLSearchParams(location.search);
+  let points   = parseInt(params.get('points') || '0', 10);
+  let visited  = (params.get('visited') || '').split(',').filter(Boolean);
+  let unlocked = (params.get('unlocked') || '').split(',').filter(Boolean);
+  let items    = (params.get('items') || '').split(',').filter(Boolean);
+
+  const toParams = () => {
+    const p = new URLSearchParams();
+    p.set('points',   points);
+    p.set('visited',  visited.join(','));
+    p.set('unlocked', unlocked.join(','));
+    p.set('items',    items.join(','));
+    return p.toString();
+  };
+
+  const withState = href => {
+    const sep = href.includes('?') ? '&' : '?';
+    const hash = href.includes('#') ? '#' + href.split('#')[1] : '';
+    const base = href.split('#')[0];
+    return base + sep + toParams() + hash;
+  };
+
+  const visitZone = (id, pts) => {
+    if (!visited.includes(id)) { visited.push(id); points += pts; }
+  };
+  const unlock  = key => { if (!unlocked.includes(key)) unlocked.push(key); };
+  const hasItem = id  => items.includes(id);
+  const collectItem = (id, pts = 0) => {
+    if (items.includes(id)) return false;
+    items.push(id); points += pts; return true;
+  };
+  const consumeItem = id => { items = items.filter(x => x !== id); };
+
+  return { get points(){ return points; }, visited, unlocked, items,
+           toParams, withState, visitZone, unlock, hasItem, collectItem, consumeItem };
+})();
+
+// Rewrite menu links with state
+document.querySelectorAll('#menuOverlay a.menu-btn').forEach(a => {
+  a.href = GameState.withState(a.getAttribute('href'));
+});
+document.getElementById('pointsDisplay').textContent = GameState.points;
+
+// ─────────────────────────────────────────────
+//  CANVAS SETUP
+// ─────────────────────────────────────────────
+const canvas = document.getElementById('gameCanvas');
+const ctx    = canvas.getContext('2d');
+const CTRL_H = 110;
+
+function resize() {
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight - CTRL_H;
+}
+resize();
+window.addEventListener('resize', () => { resize(); });
+
+// ─────────────────────────────────────────────
+//  LAKE TAHOE SHAPE (normalized 0–1 polygon)
+//  Approximates real Tahoe outline — elongated N-S, slightly crescent
+// ─────────────────────────────────────────────
+// Points go clockwise from top-center
+const LAKE_POLY_NORM = [
+  [0.46, 0.04], // North tip
+  [0.54, 0.04],
+  [0.63, 0.08],
+  [0.70, 0.13],
+  [0.74, 0.20],
+  [0.76, 0.28],
+  [0.75, 0.36],
+  [0.73, 0.44],
+  [0.72, 0.52],
+  [0.74, 0.60],
+  [0.73, 0.68],
+  [0.70, 0.76],
+  [0.64, 0.84],  // SE
+  [0.56, 0.89],
+  [0.50, 0.92],  // South — boat landing area
+  [0.44, 0.89],
+  [0.36, 0.84],
+  [0.30, 0.76],
+  [0.27, 0.68],
+  [0.26, 0.60],
+  [0.28, 0.52],
+  [0.27, 0.44],
+  [0.25, 0.36],
+  [0.24, 0.28],
+  [0.26, 0.20],
+  [0.30, 0.13],
+  [0.37, 0.08],
+];
+
+// ─────────────────────────────────────────────
+//  WORLD COORDINATES  (lake fills most of canvas)
+// ─────────────────────────────────────────────
+let W, H, LAKE_MARGIN, lakePoly;
+
+function computeLakeGeometry() {
+  W = canvas.width;
+  H = canvas.height;
+  LAKE_MARGIN = Math.min(W, H) * 0.06;
+  lakePoly = LAKE_POLY_NORM.map(([nx, ny]) => [
+    LAKE_MARGIN + nx * (W - 2 * LAKE_MARGIN),
+    LAKE_MARGIN + ny * (H - 2 * LAKE_MARGIN)
+  ]);
+}
+computeLakeGeometry();
+window.addEventListener('resize', computeLakeGeometry);
+
+// Point-in-polygon (ray casting)
+function pointInPoly(px, py, poly) {
+  let inside = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const [xi, yi] = poly[i], [xj, yj] = poly[j];
+    const intersect = ((yi > py) !== (yj > py)) &&
+      (px < (xj - xi) * (py - yi) / (yj - yi) + xi);
+    if (intersect) inside = !inside;
+  }
+  return inside;
+}
+
+// ─────────────────────────────────────────────
+//  PLAYER
+// ─────────────────────────────────────────────
+// Spawn at south boat landing (~50%, 88% of lake area)
+function lakePoint(nx, ny) {
+  computeLakeGeometry();
+  return {
+    x: LAKE_MARGIN + nx * (W - 2 * LAKE_MARGIN),
+    y: LAKE_MARGIN + ny * (H - 2 * LAKE_MARGIN)
+  };
+}
+
+const PLAYER_SPEED = 2.8;
+let playerX, playerY;
+function resetPlayerPos() {
+  const pt = lakePoint(0.50, 0.85);
+  playerX = pt.x;
+  playerY = pt.y;
+}
+resetPlayerPos();
+window.addEventListener('resize', () => {
+  const pt = lakePoint(0.50, 0.85);
+  playerX = pt.x;
+  playerY = pt.y;
+});
+
+let playerDir = 'up'; // up/down/left/right
+let playerFrame = 0;
+let frameTimer = 0;
+
+// ─────────────────────────────────────────────
+//  NPCs
+// ─────────────────────────────────────────────
+const NPCS = [
+  {
+    id: 'fish',
+    label: '🐟 LAKE TROUT',
+    nx: 0.52, ny: 0.42,  // near center
+    dialog: [
+      "Blub blub! Splish splash...",
+      "I am the legendary Lake Tahoe trout!",
+      "I've been swimming these 1,645 feet of crystal water for ages.",
+      "They say the lake is so clear you can see 70 feet down.",
+      "Not that you'd want to — it's COLD down there. Blub!"
+    ]
+  },
+  {
+    id: 'bear',
+    label: '🐻 SIERRA BEAR',
+    nx: 0.69, ny: 0.48, // east shore
+    dialog: [
+      "GRRRR... oh. Hello there.",
+      "Don't mind me, I'm just fishing.",
+      "These are MY mountains. The Sierra Nevada.",
+      "Andre used to hike up here. Left good snacks behind.",
+      "Respect the wilderness. Pack it in, pack it out. GRRRR."
+    ]
+  },
+  {
+    id: 'fisherman',
+    label: '🎣 OLD PETE',
+    nx: 0.48, ny: 0.76,  // south end
+    dialog: [
+      "Mornin'! Nice kayak you got there.",
+      "Been fishin' Tahoe for 30 years.",
+      "The big ones are out near the middle — but don't tell anyone.",
+      "Andre grew up coming to this lake every summer.",
+      "Something about this place clears your head right up.",
+      "Now shush — you're scaring my fish!"
+    ]
+  }
+];
+
+let npcDialogIdx = {};
+let activeDialog = null; // { npcId, pageIndex }
+let dialogPages = [];
+
+// ─────────────────────────────────────────────
+//  BOAT LANDING (exit zone at south)
+// ─────────────────────────────────────────────
+// Normalized center of landing
+const LANDING = { nx: 0.50, ny: 0.93, r: 36 };
+
+// ─────────────────────────────────────────────
+//  DECORATIONS (trees, boulders, cabins)
+//  All defined in normalized coords so they scale
+// ─────────────────────────────────────────────
+const DECO = {
+  pines: [
+    // North
+    [0.20,0.00],[0.30,0.01],[0.40,0.00],[0.50,0.00],[0.60,0.00],[0.70,0.01],[0.80,0.00],
+    [0.15,0.03],[0.35,0.02],[0.55,0.02],[0.75,0.02],[0.85,0.03],
+    [0.10,0.06],[0.20,0.05],[0.80,0.05],[0.90,0.06],
+    // West
+    [0.05,0.10],[0.08,0.15],[0.05,0.20],[0.08,0.25],[0.05,0.30],[0.08,0.35],
+    [0.05,0.40],[0.08,0.45],[0.05,0.50],[0.07,0.56],[0.05,0.62],[0.08,0.68],
+    [0.10,0.73],[0.12,0.78],[0.15,0.82],[0.18,0.86],[0.22,0.90],
+    // East
+    [0.92,0.10],[0.88,0.15],[0.92,0.20],[0.88,0.25],[0.92,0.30],
+    [0.88,0.35],[0.92,0.40],[0.88,0.47],[0.92,0.53],[0.88,0.60],
+    [0.90,0.66],[0.86,0.72],[0.88,0.78],[0.82,0.84],[0.78,0.90],
+    // South corners
+    [0.05,0.85],[0.08,0.90],[0.05,0.95],[0.92,0.85],[0.88,0.90],[0.92,0.95],
+    [0.25,0.96],[0.35,0.97],[0.60,0.97],[0.70,0.96],[0.80,0.96],
+  ],
+  boulders: [
+    [0.22,0.07],[0.40,0.03],[0.60,0.03],[0.78,0.07],
+    [0.12,0.20],[0.88,0.22],[0.10,0.50],[0.90,0.50],
+    [0.15,0.75],[0.85,0.75],[0.20,0.92],[0.80,0.92],
+    [0.07,0.35],[0.93,0.35],[0.07,0.60],[0.93,0.60],
+  ],
+  cabins: [
+    [0.14,0.30],[0.86,0.28],[0.12,0.62],[0.85,0.65],
+  ]
+};
+
+// ─────────────────────────────────────────────
+//  WAVE ANIMATION
+// ─────────────────────────────────────────────
+let waveOffset = 0;
+let fishBobOffset = 0;
+
+// ─────────────────────────────────────────────
+//  INPUT
+// ─────────────────────────────────────────────
+const keys = {};
+document.addEventListener('keydown', e => {
+  keys[e.key] = true;
+  if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) e.preventDefault();
+  if (e.key === 'm' || e.key === 'M') toggleMenu();
+  if (e.key === 'Escape' || e.key === 'b' || e.key === 'B') {
+    closeDialog(); closeMenu();
+  }
+  if (e.key === 'Enter' || e.key === ' ' || e.key === 'a' || e.key === 'A') {
+    handleInteract();
+  }
+});
+document.addEventListener('keyup', e => { keys[e.key] = false; });
+document.addEventListener('mouseup', () => { Object.keys(keys).forEach(k => { keys[k] = false; }); });
+
+// D-pad
+const dpadMap = {
+  'btn-up':    'ArrowUp',
+  'btn-down':  'ArrowDown',
+  'btn-left':  'ArrowLeft',
+  'btn-right': 'ArrowRight'
+};
+Object.entries(dpadMap).forEach(([id, key]) => {
+  const btn = document.getElementById(id);
+  if (!btn) return;
+  const down = () => { keys[key] = true; };
+  const up   = () => { keys[key] = false; };
+  btn.addEventListener('pointerdown', down);
+  btn.addEventListener('pointerup',   up);
+  btn.addEventListener('pointerleave',up);
+});
+
+document.getElementById('btnA').addEventListener('click', handleInteract);
+document.getElementById('btnB').addEventListener('click', () => { closeDialog(); closeMenu(); });
+document.getElementById('btnMenu').addEventListener('click', toggleMenu);
+document.getElementById('menuClose').addEventListener('click', closeMenu);
+document.getElementById('btnStart').addEventListener('click', handleInteract);
+
+canvas.addEventListener('click', handleInteract);
+
+// ─────────────────────────────────────────────
+//  MENU
+// ─────────────────────────────────────────────
+let menuOpen = false;
+function toggleMenu() { menuOpen ? closeMenu() : openMenu(); }
+function openMenu() {
+  menuOpen = true;
+  document.getElementById('menuOverlay').classList.add('open');
+  document.querySelectorAll('#menuOverlay a.menu-btn').forEach(a => {
+    a.href = GameState.withState(a.getAttribute('href') || a.href.split('?')[0]);
+  });
+}
+function closeMenu() {
+  menuOpen = false;
+  document.getElementById('menuOverlay').classList.remove('open');
+}
+
+// ─────────────────────────────────────────────
+//  DIALOG
+// ─────────────────────────────────────────────
+function openDialog(npcId, pages) {
+  dialogPages = pages;
+  const idx = npcDialogIdx[npcId] || 0;
+  const npc = NPCS.find(n => n.id === npcId);
+  activeDialog = { npcId, pageIndex: idx };
+  const box = document.getElementById('dialogBox');
+  box.style.display = 'block';
+  document.getElementById('dialogSpeaker').textContent = npc.label;
+  document.getElementById('dialogText').textContent = pages[idx];
+  const isLast = idx >= pages.length - 1;
+  document.getElementById('dialogPrompt').textContent = isLast ? '[ A / ▶ Close ]' : '[ A / ▶ Next ]';
+}
+
+function advanceDialog() {
+  if (!activeDialog) return;
+  const { npcId, pageIndex } = activeDialog;
+  const nextIdx = pageIndex + 1;
+  if (nextIdx >= dialogPages.length) {
+    npcDialogIdx[npcId] = 0;
+    closeDialog();
+  } else {
+    npcDialogIdx[npcId] = nextIdx;
+    activeDialog.pageIndex = nextIdx;
+    document.getElementById('dialogText').textContent = dialogPages[nextIdx];
+    const isLast = nextIdx >= dialogPages.length - 1;
+    document.getElementById('dialogPrompt').textContent = isLast ? '[ A / ▶ Close ]' : '[ A / ▶ Next ]';
+  }
+}
+
+function closeDialog() {
+  activeDialog = null;
+  document.getElementById('dialogBox').style.display = 'none';
+}
+
+// ─────────────────────────────────────────────
+//  INTERACT
+// ─────────────────────────────────────────────
+function handleInteract() {
+  if (menuOpen) { closeMenu(); return; }
+  if (activeDialog) { advanceDialog(); return; }
+
+  // Check boat landing exit
+  const lp = lakePoint(LANDING.nx, LANDING.ny);
+  if (Math.hypot(playerX - lp.x, playerY - lp.y) < LANDING.r + 24) {
+    navigate(GameState.withState('index.html#spawn=lake-tahoe'));
+    return;
+  }
+
+  // Check NPCs
+  for (const npc of NPCS) {
+    const np = lakePoint(npc.nx, npc.ny);
+    if (Math.hypot(playerX - np.x, playerY - np.y) < 60) {
+      openDialog(npc.id, npc.dialog);
+      return;
+    }
+  }
+}
+
+function navigate(href) {
+  window.location.href = href;
+}
+
+// ─────────────────────────────────────────────
+//  UPDATE
+// ─────────────────────────────────────────────
+function update(dt) {
+  if (menuOpen || activeDialog) return;
+
+  let dx = 0, dy = 0;
+  if (keys['ArrowUp']    || keys['w']) { dy = -1; playerDir = 'up'; }
+  if (keys['ArrowDown']  || keys['s']) { dy =  1; playerDir = 'down'; }
+  if (keys['ArrowLeft']  || keys['a']) { dx = -1; playerDir = 'left'; }
+  if (keys['ArrowRight'] || keys['d']) { dx =  1; playerDir = 'right'; }
+
+  if (dx !== 0 && dy !== 0) { dx *= 0.707; dy *= 0.707; }
+
+  const spd = PLAYER_SPEED;
+  const nx = playerX + dx * spd;
+  const ny = playerY + dy * spd;
+
+  if (pointInPoly(nx, ny, lakePoly)) {
+    playerX = nx;
+    playerY = ny;
+  } else if (pointInPoly(nx, playerY, lakePoly)) {
+    playerX = nx;
+  } else if (pointInPoly(playerX, ny, lakePoly)) {
+    playerY = ny;
+  }
+
+  // Animate
+  if (dx !== 0 || dy !== 0) {
+    frameTimer += dt;
+    if (frameTimer > 200) { playerFrame = (playerFrame + 1) % 4; frameTimer = 0; }
+  } else {
+    playerFrame = 0;
+  }
+
+  waveOffset += dt * 0.0008;
+  fishBobOffset = Math.sin(Date.now() * 0.002) * 3;
+  document.getElementById('pointsDisplay').textContent = GameState.points;
+}
+
+// ─────────────────────────────────────────────
+//  DRAW HELPERS
+// ─────────────────────────────────────────────
+function drawPineTree(cx, cy, h) {
+  const w = h * 0.55;
+  // Shadow
+  ctx.save();
+  ctx.globalAlpha = 0.18;
+  ctx.fillStyle = '#000';
+  ctx.beginPath();
+  ctx.ellipse(cx + 2, cy + h * 0.05, w * 0.35, h * 0.08, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  // Trunk
+  ctx.fillStyle = '#6b3a1f';
+  ctx.fillRect(cx - h * 0.06, cy - h * 0.05, h * 0.12, h * 0.2);
+
+  // Layers of foliage (darker evergreen)
+  const layers = [
+    { y: 0.00, wr: 1.00, fill: '#1a4a1a' },
+    { y: 0.20, wr: 0.82, fill: '#1e5a1e' },
+    { y: 0.38, wr: 0.64, fill: '#246424' },
+    { y: 0.54, wr: 0.46, fill: '#2a6e2a' },
+    { y: 0.68, wr: 0.30, fill: '#307830' },
+  ];
+  for (const l of layers) {
+    ctx.fillStyle = l.fill;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - h + l.y * h * 0.7);
+    ctx.lineTo(cx - w * l.wr, cy - h * 0.1 + l.y * h * 0.7);
+    ctx.lineTo(cx + w * l.wr, cy - h * 0.1 + l.y * h * 0.7);
+    ctx.closePath();
+    ctx.fill();
+    // Snow caps on top two layers
+    if (l.y < 0.22) {
+      ctx.fillStyle = 'rgba(230,240,255,0.55)';
+      ctx.beginPath();
+      ctx.moveTo(cx, cy - h + l.y * h * 0.7);
+      ctx.lineTo(cx - w * l.wr * 0.35, cy - h * 0.1 + l.y * h * 0.7 - h * 0.06);
+      ctx.lineTo(cx + w * l.wr * 0.35, cy - h * 0.1 + l.y * h * 0.7 - h * 0.06);
+      ctx.closePath();
+      ctx.fill();
+    }
+  }
+}
+
+function drawGraniteBoulder(cx, cy, r) {
+  // Shadow
+  ctx.save();
+  ctx.globalAlpha = 0.2;
+  ctx.fillStyle = '#000';
+  ctx.beginPath();
+  ctx.ellipse(cx + 3, cy + r * 0.3, r * 1.1, r * 0.35, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  // Main boulder
+  const grad = ctx.createRadialGradient(cx - r * 0.25, cy - r * 0.25, r * 0.1, cx, cy, r * 1.1);
+  grad.addColorStop(0, '#d8d0c8');
+  grad.addColorStop(0.5, '#b0a898');
+  grad.addColorStop(1, '#787060');
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.ellipse(cx, cy, r, r * 0.72, -0.2, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Highlight
+  ctx.fillStyle = 'rgba(255,255,255,0.22)';
+  ctx.beginPath();
+  ctx.ellipse(cx - r * 0.28, cy - r * 0.22, r * 0.35, r * 0.18, -0.4, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Cracks
+  ctx.strokeStyle = 'rgba(80,72,64,0.4)';
+  ctx.lineWidth = 0.8;
+  ctx.beginPath();
+  ctx.moveTo(cx - r * 0.1, cy - r * 0.1);
+  ctx.lineTo(cx + r * 0.3, cy + r * 0.25);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(cx - r * 0.3, cy + r * 0.1);
+  ctx.lineTo(cx + r * 0.05, cy - r * 0.3);
+  ctx.stroke();
+}
+
+function drawLogCabin(cx, cy, w, h) {
+  // Shadow
+  ctx.save();
+  ctx.globalAlpha = 0.2;
+  ctx.fillStyle = '#000';
+  ctx.beginPath();
+  ctx.ellipse(cx + w * 0.05, cy + h * 0.08, w * 0.55, h * 0.15, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  // Walls (log texture)
+  const wallGrad = ctx.createLinearGradient(cx - w/2, cy - h/2, cx + w/2, cy - h/2);
+  wallGrad.addColorStop(0, '#7a4a20');
+  wallGrad.addColorStop(0.5, '#9a6030');
+  wallGrad.addColorStop(1, '#6a3a10');
+  ctx.fillStyle = wallGrad;
+  ctx.fillRect(cx - w/2, cy - h * 0.65, w, h * 0.65);
+
+  // Log lines
+  ctx.strokeStyle = '#5a3010';
+  ctx.lineWidth = 1.5;
+  for (let i = 1; i < 5; i++) {
+    const ly = cy - h * 0.65 + i * (h * 0.65 / 5);
+    ctx.beginPath();
+    ctx.moveTo(cx - w/2, ly);
+    ctx.lineTo(cx + w/2, ly);
+    ctx.stroke();
+  }
+
+  // Roof
+  ctx.fillStyle = '#4a2808';
+  ctx.beginPath();
+  ctx.moveTo(cx - w * 0.62, cy - h * 0.65);
+  ctx.lineTo(cx, cy - h);
+  ctx.lineTo(cx + w * 0.62, cy - h * 0.65);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = '#3a1f06';
+  ctx.beginPath();
+  ctx.moveTo(cx - w * 0.55, cy - h * 0.65);
+  ctx.lineTo(cx, cy - h * 0.95);
+  ctx.lineTo(cx + w * 0.55, cy - h * 0.65);
+  ctx.closePath();
+  ctx.fill();
+
+  // Door
+  ctx.fillStyle = '#3a2010';
+  ctx.fillRect(cx - w * 0.1, cy - h * 0.32, w * 0.2, h * 0.32);
+
+  // Window
+  ctx.fillStyle = '#ffd080';
+  ctx.globalAlpha = 0.7;
+  ctx.fillRect(cx + w * 0.18, cy - h * 0.52, w * 0.18, h * 0.2);
+  ctx.fillRect(cx - w * 0.36, cy - h * 0.52, w * 0.18, h * 0.2);
+  ctx.globalAlpha = 1;
+
+  // Chimney
+  ctx.fillStyle = '#6a6060';
+  ctx.fillRect(cx + w * 0.2, cy - h * 1.05, w * 0.12, h * 0.45);
+  // Smoke
+  ctx.fillStyle = 'rgba(200,200,200,0.3)';
+  for (let i = 0; i < 3; i++) {
+    const sy = cy - h * 1.05 - i * 6 - Math.sin(waveOffset * 3 + i) * 3;
+    ctx.beginPath();
+    ctx.arc(cx + w * 0.26 + Math.sin(waveOffset * 2 + i * 1.2) * 3, sy, 4 + i * 1.5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+function drawBoatLanding(cx, cy) {
+  const dw = 80, dh = 18;
+  // Dock posts
+  ctx.fillStyle = '#6b3a1f';
+  for (let i = -1; i <= 1; i++) {
+    ctx.fillRect(cx + i * 28 - 4, cy - 6, 8, 22);
+  }
+  // Dock planks
+  ctx.fillStyle = '#a06c30';
+  ctx.fillRect(cx - dw / 2, cy - 8, dw, dh);
+  // Plank lines
+  ctx.strokeStyle = '#7a4a1a';
+  ctx.lineWidth = 1.5;
+  for (let i = 0; i < 5; i++) {
+    ctx.beginPath();
+    ctx.moveTo(cx - dw / 2 + i * (dw / 4), cy - 8);
+    ctx.lineTo(cx - dw / 2 + i * (dw / 4), cy + dh - 8);
+    ctx.stroke();
+  }
+  // Sign
+  ctx.fillStyle = '#5a3010';
+  ctx.fillRect(cx - 36, cy - 28, 72, 18);
+  ctx.fillStyle = '#f0c040';
+  ctx.font = '7px "Press Start 2P", monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('BOAT LANDING', cx, cy - 15);
+  // Exit arrow
+  ctx.fillStyle = '#f0c040';
+  ctx.font = '9px "Press Start 2P", monospace';
+  ctx.fillText('▼ EXIT', cx, cy + 28);
+  ctx.textAlign = 'left';
+
+  // Glowing exit ring
+  const t = Date.now() * 0.003;
+  const alpha = 0.4 + 0.3 * Math.sin(t);
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.strokeStyle = '#f0c040';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(cx, cy + 10, 30, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawKayakPlayer(x, y, dir, frame) {
+  const t = Date.now() * 0.003;
+  const bob = Math.sin(t) * 1.5;
+  y += bob;
+
+  // Kayak body (light blue)
+  ctx.save();
+  ctx.translate(x, y);
+
+  const isH = dir === 'left' || dir === 'right';
+  if (isH) ctx.rotate(dir === 'right' ? 0.08 : -0.08);
+
+  // Kayak hull
+  ctx.fillStyle = '#5ab8e8';
+  ctx.beginPath();
+  if (dir === 'up' || dir === 'down') {
+    ctx.ellipse(0, 0, 10, 22, 0, 0, Math.PI * 2);
+  } else {
+    ctx.ellipse(0, 0, 22, 10, 0, 0, Math.PI * 2);
+  }
+  ctx.fill();
+
+  // Kayak shine
+  ctx.fillStyle = 'rgba(255,255,255,0.3)';
+  ctx.beginPath();
+  if (dir === 'up' || dir === 'down') {
+    ctx.ellipse(-3, -6, 4, 8, -0.2, 0, Math.PI * 2);
+  } else {
+    ctx.ellipse(-6, -3, 8, 4, -0.2, 0, Math.PI * 2);
+  }
+  ctx.fill();
+
+  // Kayak cockpit
+  ctx.fillStyle = '#d4a820';
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 7, 5, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Player figure (tiny pixel person)
+  ctx.fillStyle = '#f4a060'; // skin
+  ctx.beginPath();
+  ctx.arc(0, -4, 4, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Body
+  ctx.fillStyle = '#4060c0';
+  ctx.fillRect(-3, -1, 6, 7);
+
+  // Paddle animation
+  const paddleOffset = Math.sin(frame * Math.PI / 2) * 8;
+  ctx.strokeStyle = '#8b5a20';
+  ctx.lineWidth = 2;
+  if (dir === 'left' || dir === 'right') {
+    ctx.beginPath();
+    ctx.moveTo(-18 + (dir === 'right' ? paddleOffset : -paddleOffset), -paddleOffset * 0.5);
+    ctx.lineTo(18 + (dir === 'right' ? paddleOffset : -paddleOffset), paddleOffset * 0.5);
+    ctx.stroke();
+    // Paddle blades
+    ctx.fillStyle = '#c07030';
+    ctx.beginPath();
+    ctx.ellipse(-18 + (dir === 'right' ? paddleOffset : -paddleOffset), -paddleOffset * 0.5, 6, 3, 0.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(18 + (dir === 'right' ? paddleOffset : -paddleOffset), paddleOffset * 0.5, 6, 3, 0.5, 0, Math.PI * 2);
+    ctx.fill();
+  } else {
+    ctx.beginPath();
+    ctx.moveTo(-paddleOffset * 0.5, -18 + (dir === 'down' ? paddleOffset : -paddleOffset));
+    ctx.lineTo(paddleOffset * 0.5, 18 + (dir === 'down' ? paddleOffset : -paddleOffset));
+    ctx.stroke();
+    ctx.fillStyle = '#c07030';
+    ctx.beginPath();
+    ctx.ellipse(-paddleOffset * 0.5, -18 + (dir === 'down' ? paddleOffset : -paddleOffset), 3, 6, 0.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(paddleOffset * 0.5, 18 + (dir === 'down' ? paddleOffset : -paddleOffset), 3, 6, 0.5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Wake ripples
+  ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+  ctx.lineWidth = 1;
+  for (let i = 1; i <= 2; i++) {
+    ctx.beginPath();
+    ctx.ellipse(0, i * 12, 8 + i * 4, 3, 0, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
+function drawFishNPC(cx, cy) {
+  cy += fishBobOffset;
+  // Splash ripples
+  ctx.strokeStyle = 'rgba(100,180,255,0.35)';
+  ctx.lineWidth = 1.5;
+  for (let i = 1; i <= 3; i++) {
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, i * 12, i * 5, 0, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
+  // Fish body
+  ctx.save();
+  ctx.translate(cx, cy);
+  const fin = Math.sin(Date.now() * 0.004) * 0.15;
+  ctx.rotate(fin);
+
+  ctx.fillStyle = '#40a0d0';
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 14, 7, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Tail
+  ctx.fillStyle = '#2880b0';
+  ctx.beginPath();
+  ctx.moveTo(-14, 0);
+  ctx.lineTo(-22, -8);
+  ctx.lineTo(-22, 8);
+  ctx.closePath();
+  ctx.fill();
+
+  // Scales shine
+  ctx.fillStyle = 'rgba(150,230,255,0.4)';
+  ctx.beginPath();
+  ctx.ellipse(-2, -2, 6, 3, -0.3, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Eye
+  ctx.fillStyle = '#000';
+  ctx.beginPath();
+  ctx.arc(8, -2, 2.5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.arc(8.8, -2.5, 1, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Name label
+  ctx.fillStyle = 'rgba(13,10,24,0.75)';
+  ctx.fillRect(-28, 16, 56, 14);
+  ctx.fillStyle = '#80d0ff';
+  ctx.font = '6px "Press Start 2P", monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('LAKE TROUT', 0, 26);
+
+  ctx.restore();
+}
+
+function drawBearNPC(cx, cy) {
+  ctx.save();
+  ctx.translate(cx, cy);
+
+  // Body
+  ctx.fillStyle = '#6b3a1a';
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 16, 20, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Head
+  ctx.fillStyle = '#7a4420';
+  ctx.beginPath();
+  ctx.arc(0, -22, 14, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Ears
+  ctx.fillStyle = '#6b3a1a';
+  ctx.beginPath();
+  ctx.arc(-10, -32, 6, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(10, -32, 6, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Inner ears
+  ctx.fillStyle = '#d08060';
+  ctx.beginPath();
+  ctx.arc(-10, -32, 3.5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(10, -32, 3.5, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Eyes
+  ctx.fillStyle = '#1a0800';
+  ctx.beginPath();
+  ctx.arc(-5, -24, 2.5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(5, -24, 2.5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.arc(-4, -24.8, 1, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(6, -24.8, 1, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Snout
+  ctx.fillStyle = '#9a5a30';
+  ctx.beginPath();
+  ctx.ellipse(0, -17, 7, 5, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#3a1a08';
+  ctx.beginPath();
+  ctx.ellipse(0, -16, 3, 2, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Arms / fishing rod
+  ctx.fillStyle = '#6b3a1a';
+  ctx.beginPath();
+  ctx.ellipse(-20, -4, 6, 12, -0.8, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.strokeStyle = '#8b5a20';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(-24, -14);
+  ctx.lineTo(-38, -36);
+  ctx.stroke();
+  // Fishing line
+  ctx.strokeStyle = 'rgba(200,220,255,0.7)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(-38, -36);
+  const lineSwing = Math.sin(Date.now() * 0.0015) * 6;
+  ctx.lineTo(-44 + lineSwing, 14);
+  ctx.stroke();
+  // Float
+  ctx.fillStyle = '#e03020';
+  ctx.beginPath();
+  ctx.arc(-44 + lineSwing, 16, 3, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Name label
+  ctx.fillStyle = 'rgba(13,10,24,0.75)';
+  ctx.fillRect(-36, 22, 72, 14);
+  ctx.fillStyle = '#d0a060';
+  ctx.font = '6px "Press Start 2P", monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('SIERRA BEAR', 0, 32);
+
+  ctx.restore();
+}
+
+function drawFishermanNPC(cx, cy) {
+  ctx.save();
+  ctx.translate(cx, cy);
+
+  // Fishing boat
+  ctx.fillStyle = '#8b5a20';
+  ctx.beginPath();
+  ctx.moveTo(-30, 8);
+  ctx.lineTo(30, 8);
+  ctx.lineTo(22, 22);
+  ctx.lineTo(-22, 22);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = '#c07030';
+  ctx.fillRect(-30, 4, 60, 8);
+
+  // Body
+  ctx.fillStyle = '#3070a0';
+  ctx.beginPath();
+  ctx.ellipse(0, -8, 12, 16, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Head
+  ctx.fillStyle = '#f4a060';
+  ctx.beginPath();
+  ctx.arc(0, -26, 11, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Hat
+  ctx.fillStyle = '#d4a820';
+  ctx.fillRect(-14, -36, 28, 5);
+  ctx.fillRect(-9, -48, 18, 14);
+
+  // Eyes
+  ctx.fillStyle = '#1a0800';
+  ctx.beginPath();
+  ctx.arc(-4, -28, 2, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(4, -28, 2, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Fishing rod arm
+  ctx.fillStyle = '#f4a060';
+  ctx.beginPath();
+  ctx.ellipse(18, -8, 5, 10, 0.6, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.strokeStyle = '#8b5a20';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(22, -14);
+  ctx.lineTo(42, -38);
+  ctx.stroke();
+  // Line
+  ctx.strokeStyle = 'rgba(200,220,255,0.7)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(42, -38);
+  const ls = Math.sin(Date.now() * 0.0018) * 5;
+  ctx.lineTo(50 + ls, 12);
+  ctx.stroke();
+  ctx.fillStyle = '#e03020';
+  ctx.beginPath();
+  ctx.arc(50 + ls, 14, 3, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Name label
+  ctx.fillStyle = 'rgba(13,10,24,0.75)';
+  ctx.fillRect(-30, 28, 60, 14);
+  ctx.fillStyle = '#f0e8c0';
+  ctx.font = '6px "Press Start 2P", monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('OLD PETE', 0, 38);
+
+  ctx.restore();
+}
+
+// ─────────────────────────────────────────────
+//  DRAW NPC PROXIMITY PROMPT
+// ─────────────────────────────────────────────
+function drawInteractPrompt(x, y, label) {
+  const t = Date.now() * 0.004;
+  const alpha = 0.6 + 0.4 * Math.sin(t);
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = 'rgba(13,10,24,0.85)';
+  ctx.fillRect(x - 28, y - 28, 56, 14);
+  ctx.fillStyle = '#f0c040';
+  ctx.font = '7px "Press Start 2P", monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('▲ TALK', x, y - 18);
+  ctx.restore();
+}
+
+// ─────────────────────────────────────────────
+//  MAIN DRAW
+// ─────────────────────────────────────────────
+function draw() {
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  // ── LAND BACKGROUND ──
+  // Dark forest/mountain gradient around the outside
+  const landGrad = ctx.createRadialGradient(W/2, H/2, 0, W/2, H/2, Math.max(W, H) * 0.8);
+  landGrad.addColorStop(0, '#2a3a20');
+  landGrad.addColorStop(0.4, '#1e2e18');
+  landGrad.addColorStop(1, '#0f1a0a');
+  ctx.fillStyle = landGrad;
+  ctx.fillRect(0, 0, W, H);
+
+  // ── DECORATIONS (behind lake) ──
+  // Pine trees
+  for (const [nx, ny] of DECO.pines) {
+    const px = LAKE_MARGIN + nx * (W - 2 * LAKE_MARGIN);
+    const py = LAKE_MARGIN + ny * (H - 2 * LAKE_MARGIN);
+    const sz = 28 + Math.abs(Math.sin(nx * 17 + ny * 31)) * 18;
+    drawPineTree(px, py, sz);
+  }
+
+  // Cabins
+  for (const [nx, ny] of DECO.cabins) {
+    const px = LAKE_MARGIN + nx * (W - 2 * LAKE_MARGIN);
+    const py = LAKE_MARGIN + ny * (H - 2 * LAKE_MARGIN);
+    drawLogCabin(px, py, 52, 44);
+  }
+
+  // Boulders
+  for (const [nx, ny] of DECO.boulders) {
+    const px = LAKE_MARGIN + nx * (W - 2 * LAKE_MARGIN);
+    const py = LAKE_MARGIN + ny * (H - 2 * LAKE_MARGIN);
+    const r = 12 + Math.abs(Math.sin(nx * 13 + ny * 23)) * 10;
+    drawGraniteBoulder(px, py, r);
+  }
+
+  // ── LAKE WATER ──
+  // Clip to lake polygon, fill with animated dark blue
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(lakePoly[0][0], lakePoly[0][1]);
+  for (let i = 1; i < lakePoly.length; i++) ctx.lineTo(lakePoly[i][0], lakePoly[i][1]);
+  ctx.closePath();
+  ctx.clip();
+
+  // Base water fill
+  const waterGrad = ctx.createLinearGradient(W * 0.2, H * 0.05, W * 0.8, H * 0.95);
+  waterGrad.addColorStop(0, '#0d2d60');
+  waterGrad.addColorStop(0.35, '#0a2050');
+  waterGrad.addColorStop(0.65, '#081840');
+  waterGrad.addColorStop(1, '#061030');
+  ctx.fillStyle = waterGrad;
+  ctx.fillRect(0, 0, W, H);
+
+  // Wave lines (subtle horizontal shimmer)
+  ctx.strokeStyle = 'rgba(40,100,200,0.18)';
+  ctx.lineWidth = 1.2;
+  for (let row = 0; row < 30; row++) {
+    const wy = H * 0.05 + row * H * 0.03;
+    const phase = waveOffset + row * 0.4;
+    ctx.beginPath();
+    for (let xi = 0; xi < W; xi += 4) {
+      const yd = Math.sin((xi / W) * 8 + phase) * 2 + Math.cos((xi / W) * 5 + phase * 1.3) * 1.5;
+      xi === 0 ? ctx.moveTo(xi, wy + yd) : ctx.lineTo(xi, wy + yd);
+    }
+    ctx.stroke();
+  }
+
+  // Sparkle highlights
+  ctx.fillStyle = 'rgba(180,220,255,0.12)';
+  const sparkCount = 28;
+  for (let i = 0; i < sparkCount; i++) {
+    const sx = W * (0.15 + (i * 0.618 % 0.7));
+    const sy = H * (0.08 + ((i * 0.382) % 0.84));
+    const sw = 2 + Math.sin(waveOffset * 2 + i) * 1;
+    const salpha = Math.abs(Math.sin(waveOffset * 1.5 + i * 0.7)) * 0.5;
+    ctx.globalAlpha = salpha;
+    ctx.fillRect(sx, sy, sw, sw * 0.4);
+  }
+  ctx.globalAlpha = 1;
+
+  ctx.restore();
+
+  // ── LAKE SHORE EDGE (soft glow) ──
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(lakePoly[0][0], lakePoly[0][1]);
+  for (let i = 1; i < lakePoly.length; i++) ctx.lineTo(lakePoly[i][0], lakePoly[i][1]);
+  ctx.closePath();
+  ctx.strokeStyle = 'rgba(80,150,255,0.35)';
+  ctx.lineWidth = 6;
+  ctx.stroke();
+  ctx.strokeStyle = 'rgba(120,200,255,0.15)';
+  ctx.lineWidth = 14;
+  ctx.stroke();
+  ctx.restore();
+
+  // ── BOAT LANDING ──
+  const lp = lakePoint(LANDING.nx, LANDING.ny);
+  drawBoatLanding(lp.x, lp.y);
+
+  // ── NPCs ──
+  for (const npc of NPCS) {
+    const np = lakePoint(npc.nx, npc.ny);
+    if (npc.id === 'fish')       drawFishNPC(np.x, np.y);
+    else if (npc.id === 'bear')  drawBearNPC(np.x, np.y);
+    else if (npc.id === 'fisherman') drawFishermanNPC(np.x, np.y);
+
+    // Proximity prompt
+    if (!activeDialog && !menuOpen) {
+      const dist = Math.hypot(playerX - np.x, playerY - np.y);
+      if (dist < 65) drawInteractPrompt(np.x, np.y, npc.label);
+    }
+  }
+
+  // Boat landing proximity prompt
+  if (!activeDialog && !menuOpen) {
+    if (Math.hypot(playerX - lp.x, playerY - lp.y) < LANDING.r + 24) {
+      ctx.save();
+      const alpha = 0.5 + 0.4 * Math.sin(Date.now() * 0.004);
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = '#f0c040';
+      ctx.font = '8px "Press Start 2P", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('▲ EXIT MAP', lp.x, lp.y - 38);
+      ctx.restore();
+    }
+  }
+
+  // ── PLAYER ──
+  drawKayakPlayer(playerX, playerY, playerDir, playerFrame);
+
+  // ── LOCATION LABEL ──
+  ctx.save();
+  ctx.fillStyle = 'rgba(13,10,24,0.7)';
+  ctx.fillRect(W / 2 - 90, 10, 180, 22);
+  ctx.strokeStyle = '#1040a0';
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(W / 2 - 90, 10, 180, 22);
+  ctx.fillStyle = '#80c0ff';
+  ctx.font = '8px "Press Start 2P", monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('🏔 LAKE TAHOE', W / 2, 26);
+  ctx.restore();
+}
+
+// ─────────────────────────────────────────────
+//  GAME LOOP
+// ─────────────────────────────────────────────
+let lastTime = null;
+function loop(ts) {
+  const dt = lastTime ? Math.min(ts - lastTime, 50) : 16;
+  lastTime = ts;
+  update(dt);
+  draw();
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+// ─────────────────────────────────────────────
+//  Visit zone on load
+// ─────────────────────────────────────────────
+GameState.visitZone('lake-tahoe', 10);
+</script>
+</body>
+</html>
