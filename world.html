@@ -721,7 +721,7 @@ const ZONES=[
    links:[{label:'🌊 LEARN MORE',href:'https://www.andregurule.com/blog'}]},
   {id:'contact',label:'💌 TOWN SQUARE',x:13,y:10,w:6,h:4,color:'#e07030',
    title:'TOWN SQUARE',
-   body:'A lively market square buzzing with vendors and townsfolk. The Messenger and Town Crier here can help you reach Andre.',
+   body:'This is the place to obtain information and purchase needed supplies. Be sure to talk to the locals.',
    links:[
      {label:'💌 ENTER TOWN SQUARE',href:'town-square.html',local:true}
    ]},
@@ -747,6 +747,7 @@ const ITEMS=[
      {label:'Second key:', answer:'wisdom'}
    ],
    hint:null,
+   requires:'old-compass',
    worldTile:{tx:19,ty:15}},  // in the trees, right of vertical path
 
   {id:'sword',        icon:'⚔️', label:'Sword',               category:'quest',
@@ -1966,7 +1967,7 @@ document.addEventListener('mousemove',e=>{
 function drawWorldItems(wx,wy){
   WORLD_ITEMS.forEach(item=>{
     if(GameState.hasItem(item.id))return;
-    const sx=item.worldTile.tx*TILE-wx+TILE/2;
+    if(item.requires&&!GameState.hasItem(item.requires))return; // hidden until prereq met
     const sy=item.worldTile.ty*TILE-wy+TILE/2;
     if(sx<-TILE||sx>canvas.width+TILE||sy<-TILE||sy>canvas.height+TILE)return;
     // Shadow
@@ -2035,7 +2036,7 @@ function nearestWorldItem(){
   let best=null,bestDist=72; // pickup radius in px
   WORLD_ITEMS.forEach(item=>{
     if(GameState.hasItem(item.id))return;
-    const ix=item.worldTile.tx*TILE+TILE/2;
+    if(item.requires&&!GameState.hasItem(item.requires))return; // not yet visible
     const iy=item.worldTile.ty*TILE+TILE/2;
     const d=Math.hypot(playerX-ix,playerY-iy);
     if(d<bestDist){bestDist=d;best=item;}
