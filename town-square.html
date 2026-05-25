@@ -1,6 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-MJTQKBTC');</script>
+<!-- End Google Tag Manager -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Town Square — Andre Gurule</title>
@@ -183,6 +190,68 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
 #pickup-flash-text{font-size:clamp(6px,1vw,8px);color:var(--gold);line-height:1.6;}
 #pickup-flash-pts{font-family:'VT323',monospace;font-size:clamp(16px,3vw,22px);color:#40c060;margin-top:4px;}
 
+/* ── ART GALLERY OVERLAY ── */
+#gallery-overlay{
+  position:fixed;inset:0;background:rgba(10,8,24,0.94);backdrop-filter:blur(4px);
+  z-index:500;display:none;align-items:center;justify-content:center;
+  overflow-y:auto;padding:clamp(12px,2vh,24px) 12px;
+}
+#gallery-box{
+  background:var(--ui-bg);border:4px solid var(--gold);
+  padding:clamp(16px,3vw,28px) clamp(18px,3.5vw,32px);
+  width:min(780px,96vw);position:relative;
+}
+#gallery-box::before{content:"";position:absolute;inset:3px;border:1px solid rgba(240,192,64,0.22);pointer-events:none;}
+#gallery-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;flex-wrap:wrap;gap:8px;}
+#gallery-title{font-size:clamp(8px,1.5vw,12px);color:var(--gold);letter-spacing:2px;}
+#gallery-points-display{font-size:clamp(6px,1.1vw,9px);color:var(--ui-dim);}
+#gallery-pts{color:var(--gold);}
+#gallery-subtitle{font-family:"VT323",monospace;font-size:clamp(14px,2.5vw,18px);color:var(--ui-dim);margin-bottom:clamp(14px,2.5vh,22px);}
+#gallery-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(10px,2vw,18px);
+  margin-bottom:clamp(14px,2.5vh,20px);
+}
+@media(max-width:560px){#gallery-grid{grid-template-columns:repeat(2,1fr);}}
+.gallery-card{
+  background:#0a0818;border:3px solid #3a3060;
+  display:flex;flex-direction:column;cursor:pointer;
+  transition:border-color 0.15s,transform 0.1s;position:relative;
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+}
+.gallery-card.affordable{border-color:var(--gold2);}
+.gallery-card.affordable:hover,.gallery-card.affordable:active{border-color:var(--gold);transform:translateY(-2px);}
+.gallery-card.owned{border-color:#40c060;cursor:default;}
+.gallery-card.unaffordable{opacity:0.5;cursor:not-allowed;}
+.gallery-card-img{width:100%;aspect-ratio:1/1;object-fit:cover;display:block;image-rendering:auto;}
+.gallery-card-body{padding:clamp(6px,1.2vw,10px);flex:1;display:flex;flex-direction:column;gap:4px;}
+.gallery-card-title{font-size:clamp(5px,0.9vw,7px);color:var(--ui-text);line-height:1.5;}
+.gallery-card-price{font-family:"VT323",monospace;font-size:clamp(14px,2.4vw,18px);color:var(--gold);}
+.gallery-card-price.cant-afford{color:#c04040;}
+.gallery-card-owned-badge{
+  position:absolute;top:6px;right:6px;
+  background:#40c060;color:#0a0818;
+  font-size:clamp(4px,0.7vw,6px);padding:3px 6px;
+}
+.gallery-card-lock{font-size:clamp(4px,0.7vw,6px);color:#c04040;}
+#gallery-close-row{display:flex;justify-content:center;align-items:center;gap:clamp(10px,2vw,18px);margin-top:clamp(10px,2vh,18px);flex-wrap:wrap;}
+#gallery-close-btn{
+  font-family:"Press Start 2P",monospace;font-size:clamp(9px,1.4vw,12px);
+  color:var(--ui-bg);background:var(--gold);border:none;
+  padding:clamp(8px,1.4vh,12px) clamp(24px,4vw,40px);
+  cursor:pointer;letter-spacing:1px;touch-action:manipulation;
+}
+#gallery-close-btn:hover,#gallery-close-btn:active{background:#fff3a0;}
+#gallery-tfa-btn{
+  font-family:"Press Start 2P",monospace;font-size:clamp(9px,1.4vw,12px);
+  color:var(--gold);background:transparent;border:3px solid var(--gold2);
+  padding:clamp(8px,1.4vh,12px) clamp(24px,4vw,40px);
+  cursor:pointer;letter-spacing:1px;touch-action:manipulation;text-decoration:none;
+  display:inline-block;
+}
+#gallery-tfa-btn:hover,#gallery-tfa-btn:active{border-color:var(--gold);color:#fff3a0;}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+.shake{animation:shake 0.35s ease;}
+
 /* ── EXIT SIGN ── */
 #exit-sign{
   position:fixed;bottom:clamp(170px,26vh,220px);left:50%;transform:translateX(-50%);
@@ -204,6 +273,10 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
 </style>
 </head>
 <body>
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MJTQKBTC"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
 
 <div id="cursor"></div>
 <canvas id="world-canvas"></canvas>
@@ -311,6 +384,19 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
   <div id="ctrl-hint">D-PAD · A=INTERACT · B=CLOSE · MENU=NAV · SELECT=EXIT</div>
 </div>
 
+<!-- Art Gallery Overlay -->
+<div id="gallery-overlay" style="display:none;">
+  <div id="gallery-box">
+    <div id="gallery-header">
+      <div id="gallery-title">🖼 ART GALLERY</div>
+      <div id="gallery-points-display">YOUR POINTS: <span id="gallery-pts">0</span></div>
+    </div>
+    <div id="gallery-subtitle">Unique, one-of-a-kind handcrafted art from a husband and wife team.</div>
+    <div id="gallery-grid"></div>
+    <div id="gallery-close-row"><button id="gallery-close-btn" onclick="closeGallery()">✕ CLOSE</button><a id="gallery-tfa-btn" href="https://www.tahoefluidart.com/" target="_blank">🎨 TAHOE FLUID ART</a></div>
+  </div>
+</div>
+
 <!-- Pickup Flash -->
 <div id="pickup-flash">
   <span id="pickup-flash-icon"></span>
@@ -351,6 +437,18 @@ GameState.visitZone('contact', 10);
 const ITEMS = [
   {id:'artwork', icon:'🖼️', label:'Artwork',   category:'collectible', points:10, page:'Town Square'},
   {id:'bread',   icon:'🍞', label:'Bread',     category:'collectible', points:10, page:'Town Square'},
+  {id:'art-lake-tahoe',      icon:'🖼️', label:'Lake Tahoe',       category:'collectible', points:0, page:'Art Gallery'},
+  {id:'art-tahoe-bear',      icon:'🖼️', label:'Tahoe Bear',       category:'collectible', points:0, page:'Art Gallery'},
+  {id:'art-the-sierras',     icon:'🖼️', label:'The Sierras',      category:'collectible', points:0, page:'Art Gallery'},
+  {id:'art-california-nevada',icon:'🖼️',label:'California Nevada', category:'collectible', points:0, page:'Art Gallery'},
+];
+
+// Art Gallery pieces for purchase
+const ART_PIECES = [
+  {id:'art-lake-tahoe',       title:'Lake Tahoe',        price:125, img:'images/Tahoe-Fluid-Art-Lake.png'},
+  {id:'art-tahoe-bear',       title:'Tahoe Bear',        price:125, img:'images/Tahoe-Fluid-Art-Bear.png'},
+  {id:'art-the-sierras',      title:'The Sierras',       price:125, img:'images/Tahoe-Fluid-Art-Mountain.png'},
+  {id:'art-california-nevada',title:'California Nevada', price:125, img:'images/Tahoe-Fluid-Art-States.png'},
 ];
 
 // ── WORLD SIZE — the plaza interior ──
@@ -389,7 +487,7 @@ const FRAME_RATE = 8;
 const keys = {up:false,down:false,left:false,right:false};
 
 // ── DIALOG / MENU STATE ──
-let dialogOpen = false, menuOpen = false;
+let dialogOpen = false, menuOpen = false, galleryOpen = false;
 let menuItems = [], menuIdx = 0;
 
 // ── PSEUDO RANDOM (deterministic) ──
@@ -410,7 +508,7 @@ const TW = PW * 0.22, TH = PH * 0.2;
 const STALLS = [
   {x:8,          y:8,         w:SW, h:SH, awning:'#c03030', stripe:'#f06060', goods:'🥖🧀', name:'BAKER\'S STALL',  speech:'Fresh bread baked this morning! 🥖 And aged cheese from the highlands. Take some for the road!'},
   {x:8,          y:PH-SH-8,   w:SW, h:SH, awning:'#208040', stripe:'#50c060', goods:'🥕🌽', name:'VEGGIE MARKET',   speech:'Finest vegetables in the realm! 🌽 Harvested at dawn from the valley farms.'},
-  {x:PW-SW-12,   y:8,         w:SW, h:SH, awning:'#6040c0', stripe:'#9080f0', goods:'🏺🪬', name:'CRAFT STALL',    speech:'Handmade wares and trinkets. 🏺 Each piece tells a story. Perhaps one will find you?'},
+  {x:PW-SW-12,   y:8,         w:SW, h:SH, awning:'#6040c0', stripe:'#9080f0', goods:'🏺🪬', name:'ART GALLERY',    speech:'Handmade wares and trinkets. 🏺 Each piece tells a story. Perhaps one will find you?'},
   {x:PW-SW-12,   y:PH-SH-8,   w:SW, h:SH, awning:'#c07820', stripe:'#f0b040', goods:'🌶️🧄', name:'SPICE TRADER',   speech:'Rare spices from distant lands! 🌶️ Add some fire to your journey.'},
   {x:PW/2-TW/2,  y:6,         w:TW, h:TH, awning:'#205090', stripe:'#4080d0', goods:'🐟🦐', name:'FISH MONGER',    speech:'Catch of the day! 🐟 Reeled fresh from Lake Tahoe this very morning.'},
 ];
@@ -845,15 +943,25 @@ function drawScene(){
 // ── UPDATE CAMERA ──
 function updateCamera(){
   const W=canvas.width,H=canvas.height;
-  let tx=playerX-W/2, ty=playerY-H/2;
-  tx=Math.max(0,Math.min(Math.max(0,PW-W),tx));
-  ty=Math.max(0,Math.min(Math.max(0,PH-H),ty));
+  let tx, ty;
+  if(PW<=W){
+    // World narrower than viewport — center it horizontally
+    tx = (PW-W)/2;
+  } else {
+    tx=Math.max(0,Math.min(PW-W, playerX-W/2));
+  }
+  if(PH<=H){
+    // World shorter than viewport — center it vertically
+    ty = (PH-H)/2;
+  } else {
+    ty=Math.max(0,Math.min(PH-H, playerY-H/2));
+  }
   camX+=(tx-camX)*0.12; camY+=(ty-camY)*0.12;
 }
 
 // ── UPDATE PLAYER ──
 function updatePlayer(){
-  if(dialogOpen||menuOpen) return;
+  if(dialogOpen||menuOpen||galleryOpen) return;
   const SPEED=3; let dx=0,dy=0;
   if(keys.up){dy=-SPEED;facing='up';}
   if(keys.down){dy=SPEED;facing='down';}
@@ -949,6 +1057,88 @@ function closeDialog(){
   document.getElementById('dialog-box').style.display='none';
 }
 
+// ── ART GALLERY ──
+function openGallery(){
+  if(dialogOpen) closeDialog();
+  galleryOpen = true;
+  renderGalleryGrid();
+  document.getElementById('gallery-pts').textContent = GameState.points;
+  const ov = document.getElementById('gallery-overlay');
+  ov.style.display = 'flex';
+}
+function closeGallery(){
+  galleryOpen = false;
+  document.getElementById('gallery-overlay').style.display = 'none';
+}
+function renderGalleryGrid(){
+  const grid = document.getElementById('gallery-grid');
+  grid.innerHTML = '';
+  ART_PIECES.forEach(piece => {
+    const owned    = GameState.hasItem(piece.id);
+    const canBuy   = !owned && GameState.points >= piece.price;
+    const card = document.createElement('div');
+    card.className = 'gallery-card' + (owned ? ' owned' : canBuy ? ' affordable' : ' unaffordable');
+    card.innerHTML =
+      '<img class="gallery-card-img" src="' + piece.img + '" alt="' + piece.title + '" loading="lazy">' +
+      '<div class="gallery-card-body">' +
+        '<div class="gallery-card-title">' + piece.title + '</div>' +
+        (owned
+          ? '<div class="gallery-card-price" style="color:#40c060;">✓ OWNED</div>'
+          : '<div class="gallery-card-price' + (!canBuy ? ' cant-afford' : '') + '">' + piece.price + ' pts</div>' +
+            (!canBuy ? '<div class="gallery-card-lock">NOT ENOUGH PTS</div>' : '')
+        ) +
+      '</div>' +
+      (owned ? '<div class="gallery-card-owned-badge">OWNED</div>' : '');
+    if(!owned && canBuy){
+      card.addEventListener('click', () => purchaseArt(piece, card));
+      card.addEventListener('touchend', e => { e.preventDefault(); purchaseArt(piece, card); });
+    } else if(!owned && !canBuy){
+      card.addEventListener('click', () => shakeCard(card));
+      card.addEventListener('touchend', e => { e.preventDefault(); shakeCard(card); });
+    }
+    grid.appendChild(card);
+  });
+}
+function purchaseArt(piece, card){
+  if(GameState.hasItem(piece.id) || GameState.points < piece.price) return;
+  GameState.points -= piece.price;
+  GameState.items.push(piece.id);
+  document.getElementById('gallery-pts').textContent = GameState.points;
+  // ── GTM dataLayer push ──
+  window.dataLayer = window.dataLayer || [];
+  window.dataLayer.push({
+    event: 'art_purchase',
+    art_piece_id:    piece.id,
+    art_piece_title: piece.title,
+    art_piece_price: piece.price
+  });
+  // Flash success on card
+  card.style.borderColor = '#40c060';
+  setTimeout(() => renderGalleryGrid(), 600);
+  // Show purchase flash
+  showPurchaseFlash(piece);
+}
+function shakeCard(card){
+  card.classList.remove('shake');
+  void card.offsetWidth; // reflow
+  card.classList.add('shake');
+  setTimeout(() => card.classList.remove('shake'), 400);
+}
+let purchaseTimer = null;
+function showPurchaseFlash(piece){
+  document.getElementById('pickup-flash-icon').textContent = '🖼️';
+  document.getElementById('pickup-flash-text').textContent = piece.title + ' purchased!';
+  document.getElementById('pickup-flash-pts').textContent = '-' + piece.price + ' pts';
+  const el = document.getElementById('pickup-flash');
+  el.style.display = 'block';
+  el.querySelector('#pickup-flash-pts').style.color = '#e07030';
+  clearTimeout(purchaseTimer);
+  purchaseTimer = setTimeout(() => {
+    el.style.display = 'none';
+    el.querySelector('#pickup-flash-pts').style.color = '#40c060';
+  }, 2200);
+}
+
 // ── PICKUP FLASH ──
 let pickupTimer=null;
 function showPickupFlash(item){
@@ -996,7 +1186,11 @@ function handleA(){
     const scx=s.x+s.w/2, scy=s.y+s.h*0.5;
     const dist=Math.hypot(playerX-scx,playerY-scy);
     if(dist<72){
-      openDialog(s.name, s.speech||'The vendor nods at you.');
+      if(s.name==='ART GALLERY'){
+        openGallery();
+      } else {
+        openDialog(s.name, s.speech||'The vendor nods at you.');
+      }
       return;
     }
   }
@@ -1010,11 +1204,12 @@ function handleA(){
 // ── B BUTTON ──
 function handleB(){
   if(menuOpen){closeMenu();return;}
+  if(galleryOpen){closeGallery();return;}
   if(dialogOpen){closeDialog();return;}
 }
 
 // ── MENU ──
-function toggleMenu(){menuOpen?closeMenu():openMenu();}
+function toggleMenu(){if(galleryOpen){closeGallery();return;}menuOpen?closeMenu():openMenu();}
 function openMenu(){
   if(dialogOpen)closeDialog();
   menuOpen=true;
