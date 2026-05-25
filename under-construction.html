@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Under Construction — Andre Gurule</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --gold:#f0c040; --gold2:#c8982a;
+  --ui-bg:#0d0a18; --ui-text:#f0e8c0; --ui-dim:#a09070;
+}
+body{
+  background:#1a1a2e;
+  font-family:'Press Start 2P',monospace;
+  overflow:hidden;width:100vw;height:100vh;
+  -webkit-tap-highlight-color:transparent;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+}
+
+/* ── BACKGROUND CANVAS ── */
+#bg-canvas{
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  image-rendering:pixelated;
+  z-index:0;
+}
+
+/* ── MAIN PANEL ── */
+#panel{
+  position:relative;z-index:10;
+  background:var(--ui-bg);
+  border:4px solid var(--gold);
+  padding:clamp(24px,4vh,44px) clamp(28px,5vw,56px);
+  text-align:center;
+  max-width:min(580px,92vw);
+  width:100%;
+}
+#panel::before{
+  content:'';position:absolute;inset:3px;
+  border:1px solid rgba(240,192,64,0.25);
+  pointer-events:none;
+}
+
+#panel-icon{
+  font-size:clamp(28px,6vw,44px);
+  margin-bottom:clamp(14px,2.5vh,22px);
+  display:block;
+}
+#panel-title{
+  font-size:clamp(9px,2.2vw,16px);
+  color:var(--gold);
+  letter-spacing:2px;
+  line-height:1.7;
+  margin-bottom:clamp(12px,2vh,20px);
+}
+#panel-subtitle{
+  font-family:'VT323',monospace;
+  font-size:clamp(16px,3.5vw,24px);
+  color:var(--ui-dim);
+  line-height:1.5;
+  margin-bottom:clamp(22px,3.5vh,36px);
+}
+
+/* Progress bar */
+#progress-wrap{
+  border:2px solid rgba(240,192,64,0.35);
+  height:18px;
+  margin-bottom:clamp(24px,3.5vh,38px);
+  position:relative;overflow:hidden;
+}
+#progress-bar{
+  height:100%;
+  background:var(--gold);
+  width:0%;
+  transition:none;
+}
+#progress-label{
+  position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:clamp(5px,1vw,7px);
+  color:var(--ui-bg);
+  mix-blend-mode:difference;
+  filter:invert(1);
+  letter-spacing:1px;
+}
+
+/* Exit button */
+#exit-btn{
+  font-family:'Press Start 2P',monospace;
+  font-size:clamp(7px,1.4vw,10px);
+  color:var(--ui-bg);
+  background:var(--gold);
+  border:none;
+  padding:clamp(10px,1.8vh,14px) clamp(20px,4vw,32px);
+  cursor:pointer;
+  letter-spacing:1px;
+  text-decoration:none;
+  display:inline-block;
+  touch-action:manipulation;
+  transition:background 0.1s;
+}
+#exit-btn:hover,#exit-btn:active{background:#fff3a0;}
+#exit-btn::before{content:'◀ ';}
+
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+#blink-cursor{animation:blink 1s step-end infinite;color:var(--gold);}
+</style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+
+<div id="panel">
+  <span id="panel-icon">🚧</span>
+  <div id="panel-title">UNDER CONSTRUCTION</div>
+  <div id="panel-subtitle">Our workers are on the job.<br>Check back soon, traveler<span id="blink-cursor">_</span></div>
+  <div id="progress-wrap">
+    <div id="progress-bar"></div>
+    <div id="progress-label">LOADING...</div>
+  </div>
+  <a id="exit-btn" href="world.html">RETURN TO WORLD MAP</a>
+</div>
+
+<script>
+// ── BACKGROUND: pixel art construction site ──
+const canvas = document.getElementById('bg-canvas');
+const ctx = canvas.getContext('2d');
+
+function resize(){
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+// Deterministic pseudo-random
+function rand(x, y, s=1){
+  const n = Math.sin(x*127.1+y*311.7+s*74.3)*43758.5453;
+  return n - Math.floor(n);
+}
+
+const TILE = 24;
+
+// Worker NPCs — little pixel people doing work
+const WORKERS = [
+  {x:0.12, y:0.55, color:'#e07030', phase:0,   job:'dig'},
+  {x:0.25, y:0.62, color:'#4080ff', phase:1.2, job:'carry'},
+  {x:0.42, y:0.50, color:'#40c060', phase:0.6, job:'hammer'},
+  {x:0.60, y:0.58, color:'#cc4466', phase:2.1, job:'dig'},
+  {x:0.74, y:0.52, color:'#a06020', phase:1.7, job:'carry'},
+  {x:0.88, y:0.60, color:'#6050a0', phase:0.9, job:'hammer'},
+];
+
+// Scaffolding / construction elements (fixed positions, relative to canvas)
+const STRUCTURES = [
+  {x:0.05, y:0.15, w:0.18, h:0.42, type:'scaffold'},
+  {x:0.30, y:0.20, w:0.22, h:0.36, type:'scaffold'},
+  {x:0.58, y:0.12, w:0.16, h:0.45, type:'scaffold'},
+  {x:0.80, y:0.22, w:0.18, h:0.38, type:'scaffold'},
+];
+
+function drawScaffold(sx, sy, sw, sh){
+  const x = sx * canvas.width;
+  const y = sy * canvas.height;
+  const w = sw * canvas.width;
+  const h = sh * canvas.height;
+
+  // Vertical poles
+  ctx.fillStyle = '#5a4020';
+  ctx.fillRect(x, y, 5, h);
+  ctx.fillRect(x + w - 5, y, 5, h);
+  // Mid pole
+  if(w > 80) ctx.fillRect(x + w/2 - 2, y, 4, h);
+
+  // Horizontal planks
+  const planks = Math.floor(h / 36);
+  ctx.fillStyle = '#7a5828';
+  for(let i = 0; i <= planks; i++){
+    const py = y + (h / planks) * i;
+    ctx.fillRect(x, py, w, 6);
+    // Plank highlights
+    ctx.fillStyle = '#8a6030';
+    ctx.fillRect(x, py, w, 2);
+    ctx.fillStyle = '#7a5828';
+  }
+
+  // Diagonal braces
+  ctx.strokeStyle = '#5a4020';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(x, y); ctx.lineTo(x + w * 0.5, y + h * 0.5); ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(x + w, y); ctx.lineTo(x + w * 0.5, y + h * 0.5); ctx.stroke();
+
+  // Building wall behind scaffold (partial)
+  ctx.fillStyle = '#2a2050';
+  ctx.fillRect(x + 6, y + h * 0.15, w - 12, h * 0.85);
+  // Brick pattern
+  ctx.fillStyle = '#342860';
+  const brickH = 10, brickW = 20;
+  for(let row = 0; row * brickH < h * 0.85; row++){
+    const off = (row % 2) * (brickW / 2);
+    for(let col = 0; col * brickW < w - 12; col++){
+      ctx.fillRect(
+        x + 6 + col * brickW + off + 1,
+        y + h * 0.15 + row * brickH + 1,
+        brickW - 2, brickH - 2
+      );
+    }
+  }
+}
+
+function drawWorker(wx, wy, color, phase, job, t){
+  const x = wx * canvas.width;
+  const y = wy * canvas.height;
+  const bob = Math.sin(t / 300 + phase) * 2;
+  const swing = Math.sin(t / 250 + phase);
+
+  // Hard hat
+  ctx.fillStyle = '#f0c040';
+  ctx.fillRect(x - 6, y - 20 + bob, 12, 5);
+  ctx.fillRect(x - 5, y - 24 + bob, 10, 6);
+  // Head
+  ctx.fillStyle = '#f5c5a3';
+  ctx.fillRect(x - 4, y - 15 + bob, 8, 8);
+  // Body
+  ctx.fillStyle = color;
+  ctx.fillRect(x - 5, y - 7 + bob, 10, 10);
+  // Legs
+  ctx.fillStyle = '#2a2850';
+  ctx.fillRect(x - 5, y + 3 + bob + swing * 2, 4, 8);
+  ctx.fillRect(x + 1, y + 3 + bob - swing * 2, 4, 8);
+
+  // Tool based on job
+  if(job === 'dig'){
+    // Shovel
+    const sa = swing * 0.5;
+    ctx.save();
+    ctx.translate(x + 6, y - 4 + bob);
+    ctx.rotate(sa);
+    ctx.fillStyle = '#7a5828';
+    ctx.fillRect(0, 0, 3, 18);
+    ctx.fillStyle = '#888';
+    ctx.fillRect(-2, 16, 7, 5);
+    ctx.restore();
+  } else if(job === 'hammer'){
+    // Hammer swing
+    const ha = -0.3 + swing * 0.6;
+    ctx.save();
+    ctx.translate(x + 5, y - 6 + bob);
+    ctx.rotate(ha);
+    ctx.fillStyle = '#7a5828';
+    ctx.fillRect(0, 0, 3, 14);
+    ctx.fillStyle = '#666';
+    ctx.fillRect(-3, 0, 9, 6);
+    ctx.restore();
+  } else {
+    // Carry a block
+    ctx.fillStyle = '#8a6030';
+    ctx.fillRect(x - 8, y - 12 + bob + Math.abs(swing) * 1, 16, 8);
+    ctx.fillStyle = '#aa8040';
+    ctx.fillRect(x - 8, y - 12 + bob + Math.abs(swing), 16, 2);
+  }
+}
+
+function drawGround(){
+  // Ground strip
+  ctx.fillStyle = '#2a2040';
+  ctx.fillRect(0, canvas.height * 0.72, canvas.width, canvas.height * 0.28);
+  ctx.fillStyle = '#342850';
+  ctx.fillRect(0, canvas.height * 0.72, canvas.width, 4);
+
+  // Dirt patches
+  for(let i = 0; i < 12; i++){
+    const dx = rand(i, 0) * canvas.width;
+    const dy = canvas.height * 0.73 + rand(i, 1) * canvas.height * 0.1;
+    const dw = 20 + rand(i, 2) * 40;
+    ctx.fillStyle = `rgba(100,70,30,${0.3 + rand(i,3) * 0.3})`;
+    ctx.fillRect(dx, dy, dw, 6);
+  }
+
+  // Rubble piles
+  const rubble = [0.15, 0.38, 0.55, 0.72, 0.90];
+  rubble.forEach((rx, i) => {
+    const rbx = rx * canvas.width;
+    const rby = canvas.height * 0.73;
+    ctx.fillStyle = '#5a4830';
+    for(let r = 0; r < 5; r++){
+      ctx.fillRect(
+        rbx + rand(r, i) * 28 - 10,
+        rby + rand(r, i+1) * 14,
+        6 + rand(r, i+2) * 10,
+        5 + rand(r, i+3) * 8
+      );
+    }
+  });
+
+  // Caution stripes at ground line
+  const stripeW = 28;
+  let altColor = false;
+  for(let sx = 0; sx < canvas.width; sx += stripeW){
+    ctx.fillStyle = altColor ? '#f0c040' : '#1a1a2e';
+    ctx.fillRect(sx, canvas.height * 0.72 - 8, stripeW, 8);
+    altColor = !altColor;
+  }
+}
+
+function drawStars(t){
+  ctx.fillStyle = 'rgba(255,255,200,0.7)';
+  for(let i = 0; i < 40; i++){
+    const sx = rand(i, 0) * canvas.width;
+    const sy = rand(i, 1) * canvas.height * 0.5;
+    const twinkle = 0.4 + 0.6 * Math.abs(Math.sin(t / 800 + rand(i, 2) * 6));
+    ctx.globalAlpha = twinkle;
+    ctx.fillRect(sx, sy, 2, 2);
+  }
+  ctx.globalAlpha = 1;
+}
+
+// Animated progress bar
+let progress = 0;
+let progDir = 1;
+
+function updateProgress(t){
+  // Progress oscillates to look busy, never completes
+  progress = 42 + 28 * Math.sin(t / 4000);
+  const bar = document.getElementById('progress-bar');
+  const lbl = document.getElementById('progress-label');
+  if(bar) bar.style.width = progress.toFixed(0) + '%';
+  if(lbl) lbl.textContent = progress.toFixed(0) + '% COMPLETE';
+}
+
+function draw(){
+  const t = Date.now();
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Sky gradient (flat pixel style)
+  ctx.fillStyle = '#0d0820'; ctx.fillRect(0, 0, canvas.width, canvas.height * 0.4);
+  ctx.fillStyle = '#13102a'; ctx.fillRect(0, canvas.height * 0.4, canvas.width, canvas.height * 0.15);
+  ctx.fillStyle = '#1a1535'; ctx.fillRect(0, canvas.height * 0.55, canvas.width, canvas.height * 0.17);
+
+  drawStars(t);
+
+  // Moon
+  const mx = canvas.width * 0.85, my = canvas.height * 0.12;
+  ctx.fillStyle = '#f0e8b0';
+  ctx.beginPath(); ctx.arc(mx, my, 22, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#1a1535';
+  ctx.beginPath(); ctx.arc(mx + 8, my - 4, 18, 0, Math.PI * 2); ctx.fill();
+
+  // Scaffolding structures
+  STRUCTURES.forEach(s => drawScaffold(s.x, s.y, s.w, s.h));
+
+  // Ground
+  drawGround();
+
+  // Workers
+  WORKERS.forEach(w => drawWorker(w.x, w.y, w.color, w.phase, w.job, t));
+
+  // Animated crane (top right area)
+  const craneX = canvas.width * 0.70;
+  const craneY = canvas.height * 0.08;
+  const craneH = canvas.height * 0.45;
+  // Mast
+  ctx.fillStyle = '#f0c040';
+  ctx.fillRect(craneX, craneY, 8, craneH);
+  // Boom
+  ctx.fillStyle = '#f0c040';
+  ctx.fillRect(craneX - canvas.width * 0.10, craneY + 12, canvas.width * 0.22, 7);
+  // Counter-jib
+  ctx.fillStyle = '#c8a020';
+  ctx.fillRect(craneX + 8, craneY + 12, canvas.width * 0.06, 7);
+  // Cable + load — swings gently
+  const swing = Math.sin(t / 2200) * 18;
+  const cableX = craneX - canvas.width * 0.04 + swing;
+  const cableTop = craneY + 19;
+  const cableBot = craneY + craneH * 0.52;
+  ctx.strokeStyle = '#c8a020';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(cableX, cableTop); ctx.lineTo(cableX, cableBot); ctx.stroke();
+  // Load block
+  ctx.fillStyle = '#5a4828';
+  ctx.fillRect(cableX - 10, cableBot, 20, 14);
+  ctx.fillStyle = '#7a6030';
+  ctx.fillRect(cableX - 10, cableBot, 20, 4);
+
+  updateProgress(t);
+  requestAnimationFrame(draw);
+}
+
+draw();
+</script>
+</body>
+</html>
