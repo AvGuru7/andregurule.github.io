@@ -65,6 +65,14 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
   cursor:pointer;text-decoration:none;display:inline-block;touch-action:manipulation;
 }
 .dialog-link:hover,.dialog-link:active{background:#fff3a0;}
+.dialog-link-lg{
+  font-family:'Press Start 2P',monospace;font-size:clamp(8px,1.4vw,11px);
+  color:var(--ui-bg);background:var(--gold);border:none;
+  padding:clamp(10px,1.8vh,14px) clamp(28px,5vw,44px);
+  cursor:pointer;text-decoration:none;display:inline-block;touch-action:manipulation;
+  min-width:clamp(80px,14vw,120px);text-align:center;
+}
+.dialog-link-lg:hover,.dialog-link-lg:active{background:#fff3a0;}
 #btn-hint{
   margin-top:10px;font-size:clamp(8px,1.4vw,11px);color:var(--ui-dim);
   display:flex;gap:14px;flex-wrap:wrap;
@@ -177,7 +185,7 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
 
 /* ── EXIT SIGN ── */
 #exit-sign{
-  position:fixed;bottom:clamp(170px,26vh,220px);left:clamp(16px,3vw,28px);
+  position:fixed;bottom:clamp(170px,26vh,220px);left:50%;transform:translateX(-50%);
   z-index:150;cursor:pointer;
   display:flex;flex-direction:column;align-items:center;gap:4px;
 }
@@ -192,7 +200,7 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
   color:var(--gold);animation:pulse-arrow 1.2s ease-in-out infinite;
 }
 #exit-sign-post{width:6px;height:clamp(20px,3vh,30px);background:linear-gradient(180deg,#8a7040,#5a4820);}
-@keyframes pulse-arrow{0%,100%{opacity:1;transform:translateX(0);}50%{opacity:0.6;transform:translateX(-3px);}}
+@keyframes pulse-arrow{0%,100%{opacity:1;transform:translateY(0);}50%{opacity:0.6;transform:translateY(3px);}}
 </style>
 </head>
 <body>
@@ -212,7 +220,7 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
 
 <!-- Exit sign -->
 <div id="exit-sign" onclick="exitToWorld()">
-  <div id="exit-sign-board">◀ EXIT</div>
+  <div id="exit-sign-board">▼ EXIT</div>
   <div id="exit-sign-post"></div>
 </div>
 
@@ -409,23 +417,23 @@ const STALLS = [
 
 // NPCs — wandering visitors and two contact NPCs
 const NPCS = [
-  // Wandering ambient folk
-  {x:PW*0.28, y:PH*0.30, body:'#6050a0', head:'#f5c5a3', phase:0,   wander:true, speed:0.4, name:null},
-  {x:PW*0.38, y:PH*0.65, body:'#c04040', head:'#d4a070', phase:2,   wander:true, speed:0.35,name:null},
-  {x:PW*0.55, y:PH*0.22, body:'#208050', head:'#f0c090', phase:4,   wander:true, speed:0.45,name:null},
-  {x:PW*0.70, y:PH*0.72, body:'#4070b0', head:'#e0b080', phase:1,   wander:true, speed:0.3, name:null},
-  {x:PW*0.82, y:PH*0.38, body:'#a06020', head:'#f5c5a3', phase:3,   wander:true, speed:0.4, name:null},
-  {x:FCX-22,  y:FCY+FR+18,body:'#905030',head:'#d4a870', phase:5,   wander:true, speed:0.3, name:null},
-  {x:FCX+28,  y:FCY-FR-18,body:'#507080',head:'#f0d0a0', phase:1.5, wander:true, speed:0.35,name:null},
+  // Wandering ambient folk — scale: 1.0 ≈ player size, slightly larger/smaller for variety
+  {x:PW*0.28, y:PH*0.30, body:'#6050a0', head:'#f5c5a3', phase:0,   wander:true, speed:0.4, name:null, scale:1.12},
+  {x:PW*0.38, y:PH*0.65, body:'#c04040', head:'#d4a070', phase:2,   wander:true, speed:0.35,name:null, scale:0.88},
+  {x:PW*0.55, y:PH*0.22, body:'#208050', head:'#f0c090', phase:4,   wander:true, speed:0.45,name:null, scale:1.0,  hair:'#cc2020'},
+  {x:PW*0.70, y:PH*0.72, body:'#4070b0', head:'#e0b080', phase:1,   wander:true, speed:0.3, name:null, scale:1.18, hair:'#e8c020'},
+  {x:PW*0.82, y:PH*0.38, body:'#a06020', head:'#f5c5a3', phase:3,   wander:true, speed:0.4, name:null, scale:0.84},
+  {x:FCX-22,  y:FCY+FR+18,body:'#905030',head:'#d4a870', phase:5,   wander:true, speed:0.3, name:null, scale:1.0},
+  {x:FCX+28,  y:FCY-FR-18,body:'#507080',head:'#f0d0a0', phase:1.5, wander:true, speed:0.35,name:null, scale:1.0},
   // Contact NPCs — stationary, interactive
   {x:PW*0.28, y:PH*0.76, body:'#1a5090', head:'#f0d0a0', phase:0, wander:false, speed:0,
-   name:'MESSENGER',
-   speech:'Greetings, traveler! Andre can be reached on LinkedIn — he checks it regularly and would love to connect!',
-   links:[{label:'💼 LINKEDIN', href:'https://linkedin.com/in/andregurule', external:true}]},
+   name:'BRUCE', scale:1.0, hair:'#e8e8e8',
+   speech:'Greetings! Welcome to the Town Square. Here\'s a tip: You can use the points you accumulate to purchase items from the shops in this square.',
+   links:[]},
   {x:PW*0.72, y:PH*0.76, body:'#902020', head:'#f5c5a3', phase:2, wander:false, speed:0,
-   name:'TOWN CRIER',
-   speech:'HEAR YE! Want to work with Andre? Send a raven — or an email. Same thing, really. ✉',
-   links:[{label:'✉ EMAIL ANDRE', href:'mailto:hello@andregurule.com', external:false}]},
+   name:'ALICIA', scale:1.0,
+   speech:'alicia-dialog',
+   links:[]},
 ];
 
 // Wander target for each wandering NPC
@@ -586,43 +594,101 @@ function drawFountain(){
 }
 
 // ── DRAW NPC ──
+// Player canvas is 32×48 px, origin at center-bottom of feet.
+// NPC dimensions mirror the player's proportions, scaled by n.scale.
+// Pixel offsets below use the same coordinate frame as drawPlayer():
+//   head: 16×16 at y=-44..-28  (relative to feet origin)
+//   body: 18×14 at y=-30..-16
+//   arms:  6×10 hanging from body sides
+//   legs:  7×15 at y=-16..0
+// We translate the canvas context to (px, py) so all draws are relative.
 function drawNPC(n){
   const t=Date.now();
+  const s=n.scale||1.0;
   const bob=Math.sin(t/300+n.phase)*1.5;
-  const leg=Math.sin(t/300+n.phase);
+  const legSwing=Math.sin(t/300+n.phase);
   const px=Math.round(n.x-camX);
   const py=Math.round(n.y-camY);
-  // Shadow
-  ctx.fillStyle='rgba(0,0,0,0.18)';
-  ctx.beginPath();ctx.ellipse(px,py+10,6,2.5,0,0,Math.PI*2);ctx.fill();
+
+  // Scaled pixel dimensions (matching player proportions)
+  const hw=Math.round(16*s), hh=Math.round(16*s); // head
+  const bw=Math.round(18*s), bh=Math.round(14*s); // body
+  const aw=Math.round(6*s),  ah=Math.round(10*s); // arm
+  const lw=Math.round(7*s),  lh=Math.round(15*s); // leg
+  const sw=Math.round(9*s),  sh=Math.round(5*s);  // shoe
+
+  // All Y positions relative to waist (py = waist anchor, matching original NPC origin)
+  // Legs hang below waist, body sits at waist, head above body
+  const legTopY   = Math.round(2*s);
+  const bodyTopY  = legTopY - bh + Math.round(2*s);
+  const armTopY   = bodyTopY + Math.round(1*s);
+  const headTopY  = bodyTopY - hh + Math.round(2*s);
+
+  ctx.save();
+  ctx.translate(px, py+bob);
+
+  // Shadow — drawn at foot level (legs end at legTopY+lh)
+  ctx.fillStyle='rgba(0,0,0,0.22)';
+  ctx.beginPath();ctx.ellipse(0,legTopY+lh+Math.round(2*s),Math.round(11*s),Math.round(4*s),0,0,Math.PI*2);ctx.fill();
+
   // Legs
-  ctx.fillStyle='#2a1a08';
-  ctx.fillRect(px-4,py+2+bob,3,7+leg*2);
-  ctx.fillRect(px+1,py+2+bob,3,7-leg*2);
+  const legOff=Math.round(legSwing*3*s);
+  ctx.fillStyle='#1a3060';
+  ctx.fillRect(-Math.round(8*s), legTopY+legOff,  lw, lh);
+  ctx.fillRect(Math.round(1*s),  legTopY-legOff,  lw, lh);
+  // Shoes
+  ctx.fillStyle='#2a1808';
+  ctx.fillRect(-Math.round(9*s), legTopY+lh-Math.round(1*s)+legOff,  sw, sh);
+  ctx.fillRect(Math.round(0*s),  legTopY+lh-Math.round(1*s)-legOff,  sw, sh);
+
   // Body
-  ctx.fillStyle=n.body;ctx.fillRect(px-5,py-5+bob,11,9);
-  // Arms
-  ctx.fillRect(px-8,py-4+bob+leg*2,3,7);
-  ctx.fillRect(px+5,py-4+bob-leg*2,3,7);
+  ctx.fillStyle=n.body;
+  ctx.fillRect(-Math.round(9*s), bodyTopY, bw, bh);
+
+  // Arms (swing opposite to legs)
+  const armSwing=Math.round(legSwing*3*s);
+  ctx.fillStyle=n.body;
+  ctx.fillRect(-Math.round(9*s)-aw, armTopY+armSwing,  aw, ah);
+  ctx.fillRect( Math.round(9*s),    armTopY-armSwing,  aw, ah);
+
   // Head
-  ctx.fillStyle=n.head;ctx.fillRect(px-4,py-14+bob,9,9);
+  ctx.fillStyle=n.head;
+  ctx.fillRect(-Math.round(8*s), headTopY, hw, hh);
+  // Hair/hat strip (matches player's dark hair, or per-NPC color)
+  ctx.fillStyle=n.hair||'#3a2010';
+  ctx.fillRect(-Math.round(8*s), headTopY, hw, Math.round(6*s));
+  ctx.fillRect(-Math.round(10*s),headTopY+Math.round(2*s), Math.round(4*s), Math.round(8*s));
   // Eyes
-  ctx.fillStyle='#1a1a2e';ctx.fillRect(px-2,py-11+bob,2,2);ctx.fillRect(px+2,py-11+bob,2,2);
-  // Name badge for interactive NPCs
+  ctx.fillStyle='#1a1a2e';
+  const eyeY=headTopY+Math.round(9*s);
+  const eyeS=Math.max(2,Math.round(2*s));
+  ctx.fillRect(-Math.round(5*s), eyeY, eyeS, eyeS);
+  ctx.fillRect( Math.round(2*s), eyeY, eyeS, eyeS);
+
+  ctx.restore();
+
+  // Name badge for interactive NPCs (drawn after ctx.restore, in screen coords)
   if(n.name){
-    const bw=n.name.length*5+12;
-    ctx.fillStyle='rgba(13,10,24,0.85)';
-    ctx.fillRect(px-bw/2,py-26+bob,bw,10);
+    // headTopY is relative to waist (py); recompute for screen
+    const _legTopY = Math.round(2*s);
+    const _bh      = Math.round(14*s);
+    const _hh      = Math.round(16*s);
+    const _bodyTopY= _legTopY - _bh + Math.round(2*s);
+    const _headTopY= _bodyTopY - _hh + Math.round(2*s);
+    const badgeY   = Math.round(py + bob + _headTopY - Math.round(14*s));
+    const bw2=n.name.length*5+12;
+    ctx.fillStyle='rgba(13,10,24,0.88)';
+    ctx.fillRect(px-bw2/2, badgeY, bw2, 10);
     ctx.fillStyle='#f0c040';
     ctx.font='bold 5px "Press Start 2P"';ctx.textAlign='center';
-    ctx.fillText(n.name,px,py-18+bob);
+    ctx.fillText(n.name, px, badgeY+8);
     ctx.textAlign='left';
-    // Interact prompt if nearby
+    // Interact prompt
     const dist=Math.hypot(playerX-n.x,playerY-n.y);
-    if(dist<64&&!dialogOpen){
+    if(dist<72&&!dialogOpen){
       ctx.fillStyle='rgba(240,192,64,0.9)';
       ctx.font='bold 6px "Press Start 2P"';ctx.textAlign='center';
-      ctx.fillText('[A]',px,py-30+bob);
+      ctx.fillText('[A]',px, badgeY-4);
       ctx.textAlign='left';
     }
   }
@@ -812,6 +878,50 @@ function gameLoop(){
   requestAnimationFrame(gameLoop);
 }
 
+// ── ALICIA BRANCHING DIALOG ──
+function openAliciaDialog(){
+  openDialogWithButtons('ALICIA',
+    'Do you have any bread?',
+    [
+      {label:'Yes', action: aliciaAsksForBread},
+      {label:'No',  action: closeDialog},
+    ]
+  );
+}
+function aliciaAsksForBread(){
+  openDialogWithButtons('ALICIA',
+    'Can I have some? I want to feed the ducks.',
+    [
+      {label:'Yes', action: aliciaThankYou},
+      {label:'No',  action: closeDialog},
+    ]
+  );
+}
+function aliciaThankYou(){
+  openDialog('ALICIA',
+    'Thank you! Since you are a nice person, I\'ll share some information that might help you on your quest. The lakes are worth checking out, but you will need a kayak. The king may be able to help you, but I recommend taking him something nice to trade. He tends to like art.'
+  );
+}
+
+// Opens a dialog with callback-based buttons (no href navigation)
+function openDialogWithButtons(title, body, buttons){
+  dialogOpen=true;
+  document.getElementById('dialog-title').textContent=title;
+  document.getElementById('dialog-body').textContent=body;
+  const linksEl=document.getElementById('dialog-links');
+  linksEl.innerHTML='';
+  linksEl.style.gap='clamp(16px,4vw,32px)';
+  buttons.forEach(btn=>{
+    const el=document.createElement('button');
+    el.className='dialog-link-lg';
+    el.textContent=btn.label;
+    el.onclick=()=>{ btn.action(); };
+    linksEl.appendChild(el);
+  });
+  linksEl.style.display='flex';
+  document.getElementById('dialog-box').style.display='block';
+}
+
 // ── DIALOG ──
 function openDialog(title, body, links=[]){
   dialogOpen=true;
@@ -819,6 +929,7 @@ function openDialog(title, body, links=[]){
   document.getElementById('dialog-body').textContent=body;
   const linksEl=document.getElementById('dialog-links');
   linksEl.innerHTML='';
+  linksEl.style.gap='8px';
   if(links.length){
     links.forEach(l=>{
       const a=document.createElement('a');
@@ -871,7 +982,11 @@ function handleA(){
     if(!n.name) continue;
     const dist=Math.hypot(playerX-n.x,playerY-n.y);
     if(dist<72){
-      openDialog(n.name, n.speech, n.links||[]);
+      if(n.speech==='alicia-dialog'){
+        openAliciaDialog();
+      } else {
+        openDialog(n.name, n.speech, n.links||[]);
+      }
       return;
     }
   }
