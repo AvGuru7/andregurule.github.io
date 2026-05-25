@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Training Portfolio — Andre Gurule</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&family=VT323&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --cream:       #f7f2e8;
+  --cream2:      #ede6d6;
+  --warm-white:  #faf8f3;
+  --wood-mid:    #a06c30;
+  --wood-dark:   #7a4e1e;
+  --gold:        #c89828;
+  --gold-lt:     #f0c040;
+  --text-dark:   #1e140a;
+  --text-mid:    #4a3520;
+  --text-light:  #8a6840;
+  --rule:        rgba(160, 108, 48, 0.18);
+  --blue-accent: #2a5ed0;
+  --blue-dark:   #14317a;
+
+  --ctrl-h: 0px; /* updated by JS */
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--cream);
+  color: var(--text-dark);
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh;
+  padding-bottom: calc(var(--ctrl-h) + 60px);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ── CUSTOM CURSOR ── */
+@media (pointer: fine) {
+  body { cursor: none; }
+  #cursor {
+    position: fixed; width: 12px; height: 12px;
+    border: 2px solid var(--wood-dark); border-radius: 50%;
+    pointer-events: none; z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: transform 0.1s, border-color 0.15s;
+  }
+  #cursor.hover { transform: translate(-50%, -50%) scale(1.8); border-color: var(--gold); }
+}
+@media (pointer: coarse) { #cursor { display: none; } }
+
+/* ── BACK BANNER ── */
+#back-banner {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  background: rgba(247, 242, 232, 0.92);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--rule);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 clamp(16px, 5vw, 56px);
+  height: 52px;
+}
+
+#back-link {
+  display: flex; align-items: center; gap: 8px;
+  font-family: 'Playfair Display', serif;
+  font-style: italic; font-size: clamp(12px, 1.6vw, 15px);
+  color: var(--text-mid); text-decoration: none;
+  transition: color 0.15s;
+}
+#back-link:hover { color: var(--wood-dark); }
+#back-link .arrow { font-style: normal; color: var(--gold); font-size: 1.2em; }
+
+#banner-title {
+  font-family: 'DM Sans', sans-serif;
+  font-size: clamp(9px, 1.2vw, 11px);
+  font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase;
+  color: var(--text-light);
+}
+
+#contact-link {
+  font-family: 'DM Sans', sans-serif;
+  font-size: clamp(11px, 1.4vw, 13px); font-weight: 500;
+  color: var(--blue-accent); text-decoration: none;
+  border: 1.5px solid currentColor;
+  padding: 5px 14px; border-radius: 3px;
+  transition: background 0.15s, color 0.15s;
+}
+#contact-link:hover { background: var(--blue-accent); color: #fff; }
+
+/* ── MAIN LAYOUT ── */
+main {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 96px clamp(20px, 6vw, 56px) 0;
+}
+
+/* ── HERO ── */
+#hero {
+  padding-bottom: clamp(40px, 6vh, 64px);
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: clamp(40px, 6vh, 64px);
+}
+
+.eyebrow {
+  font-family: 'DM Sans', sans-serif;
+  font-size: clamp(9px, 1.1vw, 11px);
+  font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--gold); margin-bottom: 16px;
+  display: flex; align-items: center; gap: 12px;
+}
+.eyebrow::after {
+  content: ''; flex: 1; max-width: 60px; height: 1px;
+  background: var(--gold); opacity: 0.5;
+}
+
+#hero h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(28px, 5.5vw, 52px);
+  font-weight: 700; line-height: 1.1;
+  color: var(--text-dark); margin-bottom: 20px;
+}
+
+#hero .lead {
+  font-size: clamp(15px, 1.8vw, 18px);
+  font-weight: 300; line-height: 1.75;
+  color: var(--text-mid); max-width: 680px;
+}
+
+.hero-meta {
+  display: flex; flex-wrap: wrap; gap: 24px;
+  margin-top: clamp(24px, 3.5vh, 36px);
+}
+.meta-chip {
+  display: flex; flex-direction: column; gap: 3px;
+}
+.meta-chip .label {
+  font-size: 10px; font-weight: 600; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--text-light);
+}
+.meta-chip .value {
+  font-size: clamp(13px, 1.5vw, 15px); font-weight: 500; color: var(--text-dark);
+}
+
+/* ── SECTION TITLES ── */
+.section-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(18px, 2.6vw, 26px);
+  font-weight: 700; color: var(--text-dark);
+  margin-bottom: clamp(20px, 3vh, 30px);
+  padding-bottom: 12px;
+  border-bottom: 1.5px solid var(--rule);
+}
+
+section {
+  margin-bottom: clamp(48px, 8vh, 80px);
+}
+
+/* ── SKILLS GRID ── */
+.skills-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.skill-card {
+  background: var(--warm-white);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 14px 16px;
+  display: flex; align-items: flex-start; gap: 10px;
+}
+.skill-card .sk-icon { font-size: 18px; flex-shrink: 0; line-height: 1.2; }
+.skill-card .sk-text { font-size: clamp(12px, 1.4vw, 13.5px); line-height: 1.5; color: var(--text-mid); }
+.skill-card .sk-text strong { display: block; color: var(--text-dark); font-weight: 600; margin-bottom: 2px; font-size: clamp(12px, 1.3vw, 13px); }
+
+/* ── EXPERIENCE ── */
+.exp-entry {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+  padding: clamp(20px, 3vh, 28px) 0;
+  border-bottom: 1px solid var(--rule);
+}
+.exp-entry:last-child { border-bottom: none; }
+
+.exp-header {
+  display: flex; flex-wrap: wrap; justify-content: space-between;
+  align-items: baseline; gap: 8px; margin-bottom: 4px;
+}
+.exp-role {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(15px, 2vw, 19px); font-weight: 700; color: var(--text-dark);
+}
+.exp-date {
+  font-size: clamp(11px, 1.3vw, 13px); color: var(--text-light);
+  font-weight: 500; white-space: nowrap;
+}
+.exp-company {
+  font-size: clamp(12px, 1.4vw, 14px); font-weight: 600;
+  color: var(--blue-accent); margin-bottom: 14px; letter-spacing: 0.02em;
+}
+.exp-list {
+  list-style: none; display: flex; flex-direction: column; gap: 8px;
+}
+.exp-list li {
+  padding-left: 18px; position: relative;
+  font-size: clamp(13px, 1.5vw, 15px); line-height: 1.65;
+  color: var(--text-mid);
+}
+.exp-list li::before {
+  content: '—'; position: absolute; left: 0;
+  color: var(--gold); font-weight: 700;
+}
+
+/* ── HIGHLIGHT STAT ── */
+.stat-row {
+  display: flex; flex-wrap: wrap; gap: 16px;
+  margin: clamp(20px, 3vh, 28px) 0;
+}
+.stat-box {
+  flex: 1; min-width: 140px;
+  background: var(--warm-white);
+  border: 1px solid var(--rule); border-left: 3px solid var(--gold);
+  border-radius: 0 4px 4px 0;
+  padding: 16px 20px;
+}
+.stat-box .stat-num {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(22px, 3vw, 30px); font-weight: 700;
+  color: var(--text-dark); line-height: 1;
+}
+.stat-box .stat-label {
+  font-size: clamp(11px, 1.2vw, 12px); font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--text-light); margin-top: 4px;
+}
+
+/* ── VIDEO SECTION ── */
+.video-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+  gap: clamp(16px, 2.5vw, 24px);
+}
+
+.video-card {
+  display: flex; flex-direction: column; gap: 0;
+  border: 1px solid var(--rule); border-radius: 4px;
+  overflow: hidden; background: var(--warm-white);
+}
+
+.video-embed {
+  position: relative; width: 100%; padding-top: 56.25%;
+  background: #1a1209;
+}
+.video-embed iframe {
+  position: absolute; top: 0; left: 0;
+  width: 100%; height: 100%;
+  border: none;
+}
+
+/* Placeholder shown when no real video URL yet */
+.video-placeholder {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 10px;
+  background: linear-gradient(135deg, #1e1409 0%, #2a1d0e 100%);
+  color: rgba(240, 192, 64, 0.5);
+  font-family: 'VT323', monospace; font-size: 16px;
+  letter-spacing: 0.05em;
+}
+.video-placeholder .play-icon { font-size: 36px; opacity: 0.5; }
+
+.video-info {
+  padding: clamp(12px, 1.8vw, 18px);
+  border-top: 1px solid var(--rule);
+}
+.video-info .v-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(14px, 1.8vw, 17px); font-weight: 700;
+  color: var(--text-dark); margin-bottom: 5px;
+}
+.video-info .v-desc {
+  font-size: clamp(12px, 1.3vw, 13.5px); line-height: 1.6;
+  color: var(--text-light);
+}
+
+/* ── SCREENSHOT GALLERY ── */
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+  gap: clamp(12px, 2vw, 20px);
+}
+
+.gallery-item {
+  border: 1px solid var(--rule);
+  border-radius: 4px; overflow: hidden;
+  background: var(--warm-white);
+  cursor: pointer;
+  transition: box-shadow 0.15s, transform 0.15s;
+}
+.gallery-item:hover {
+  box-shadow: 0 6px 24px rgba(0,0,0,0.12);
+  transform: translateY(-2px);
+}
+
+.gallery-img-wrap {
+  width: 100%; aspect-ratio: 16/10;
+  background: linear-gradient(135deg, #ede6d6 0%, #d8cdb4 100%);
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+}
+.gallery-img-wrap img {
+  width: 100%; height: 100%; object-fit: cover;
+}
+/* Placeholder for images not yet provided */
+.img-placeholder {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 6px;
+  color: var(--text-light); font-size: 11px;
+  letter-spacing: 0.08em; text-transform: uppercase; font-weight: 600;
+  width: 100%; height: 100%;
+}
+.img-placeholder .ph-icon { font-size: 28px; opacity: 0.4; }
+
+.gallery-caption {
+  padding: 10px 14px;
+  font-size: clamp(11px, 1.2vw, 12.5px);
+  color: var(--text-mid); line-height: 1.5;
+}
+.gallery-caption strong {
+  display: block; color: var(--text-dark); margin-bottom: 2px;
+  font-size: clamp(12px, 1.3vw, 13px);
+}
+
+/* ── LIGHTBOX ── */
+#lightbox {
+  display: none; position: fixed; inset: 0; z-index: 800;
+  background: rgba(15, 10, 4, 0.92);
+  align-items: center; justify-content: center;
+  backdrop-filter: blur(4px);
+}
+#lightbox.open { display: flex; }
+#lightbox img {
+  max-width: 90vw; max-height: 85vh;
+  border-radius: 3px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+#lb-close {
+  position: absolute; top: 20px; right: 24px;
+  background: none; border: none; cursor: pointer;
+  font-family: 'Playfair Display', serif;
+  font-size: 20px; color: rgba(247,242,232,0.6);
+  transition: color 0.12s;
+}
+#lb-close:hover { color: var(--cream); }
+#lb-caption {
+  position: absolute; bottom: 28px;
+  font-size: 13px; color: rgba(247,242,232,0.55);
+  font-style: italic; text-align: center;
+  max-width: 600px; padding: 0 20px;
+}
+
+/* ── EDUCATION / CERTS ── */
+.cert-list {
+  display: flex; flex-direction: column; gap: 10px;
+}
+.cert-item {
+  display: flex; align-items: flex-start; gap: 14px;
+  padding: 14px 16px;
+  background: var(--warm-white);
+  border: 1px solid var(--rule); border-radius: 4px;
+}
+.cert-icon { font-size: 18px; flex-shrink: 0; padding-top: 2px; }
+.cert-text { display: flex; flex-direction: column; gap: 4px; }
+.cert-name {
+  font-size: clamp(13px, 1.5vw, 14.5px); font-weight: 600;
+  color: var(--text-dark);
+}
+.cert-desc {
+  font-size: clamp(12px, 1.3vw, 13.5px); color: var(--text-light);
+  line-height: 1.55;
+}
+
+/* ── FOOTER CTA ── */
+#footer-cta {
+  background: var(--warm-white);
+  border: 1px solid var(--rule);
+  border-top: 3px solid var(--gold);
+  border-radius: 0 0 4px 4px;
+  padding: clamp(28px, 4vh, 44px) clamp(24px, 4vw, 44px);
+  text-align: center;
+  margin-bottom: clamp(32px, 5vh, 56px);
+}
+#footer-cta h3 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(17px, 2.4vw, 24px); font-weight: 700;
+  color: var(--text-dark); margin-bottom: 10px;
+}
+#footer-cta p {
+  font-size: clamp(13px, 1.5vw, 15px); color: var(--text-mid);
+  line-height: 1.65; max-width: 500px; margin: 0 auto 24px;
+}
+.cta-links {
+  display: flex; flex-wrap: wrap; gap: 12px; justify-content: center;
+}
+.cta-btn {
+  display: inline-block; padding: 10px 22px;
+  font-size: clamp(12px, 1.4vw, 14px); font-weight: 600;
+  border-radius: 3px; text-decoration: none;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.cta-btn.primary {
+  background: var(--blue-accent); color: #fff;
+  border: 1.5px solid var(--blue-accent);
+}
+.cta-btn.primary:hover { background: var(--blue-dark); border-color: var(--blue-dark); }
+.cta-btn.secondary {
+  background: transparent; color: var(--text-mid);
+  border: 1.5px solid var(--rule);
+}
+.cta-btn.secondary:hover { border-color: var(--wood-mid); color: var(--text-dark); }
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--cream2); }
+::-webkit-scrollbar-thumb { background: var(--wood-mid); border-radius: 3px; }
+
+/* ── NES CONTROLLER (mobile only) ── */
+#nes-controller {
+  position: fixed; bottom: clamp(10px, 2.5vh, 20px); left: 50%;
+  transform: translateX(-50%);
+  z-index: 300; display: none; flex-direction: column; align-items: center; gap: 8px;
+}
+@media (pointer: coarse) { #nes-controller { display: flex; } }
+@media (max-width: 600px) { #nes-controller { display: flex; } }
+
+#ctrl-body {
+  position: relative;
+  width: clamp(240px, 60vw, 340px); height: clamp(80px, 20vw, 112px);
+  background: linear-gradient(175deg, #3e3e46 0%, #2e2e34 50%, #1e1e24 100%);
+  border-radius: clamp(22px,5.5vw,34px) clamp(22px,5.5vw,34px) clamp(30px,7.5vw,46px) clamp(30px,7.5vw,46px);
+  border: 2.5px solid #555;
+  box-shadow: 0 clamp(5px,1.2vh,9px) clamp(18px,4.5vw,30px) rgba(0,0,0,0.75),
+    inset 0 1px 0 rgba(255,255,255,0.08), inset 0 -2px 0 rgba(0,0,0,0.45);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 clamp(14px,3.5vw,22px);
+}
+#ctrl-body::before, #ctrl-body::after {
+  content: ''; position: absolute; bottom: -4px;
+  width: clamp(28px,7vw,40px); height: clamp(12px,3.2vw,18px);
+  background: #222; border-radius: 0 0 10px 10px; border: 2px solid #444;
+}
+#ctrl-body::before { left: clamp(16px,4vw,26px); }
+#ctrl-body::after  { right: clamp(16px,4vw,26px); }
+
+#ctrl-dpad { position: relative; width: clamp(72px,18vw,102px); height: clamp(72px,18vw,102px); flex-shrink:0; }
+.dh,.dv { position:absolute; background:linear-gradient(180deg,#4c4c56,#38383f); border:2.5px solid #1a1a20; border-radius:3px; }
+.dh { left:0;right:0;top:33.3%;bottom:33.3%; }
+.dv { top:0;bottom:0;left:33.3%;right:33.3%; }
+.dc { position:absolute;left:33.3%;right:33.3%;top:33.3%;bottom:33.3%;background:#3c3c44;border-radius:2px;z-index:2; }
+.db { position:absolute;z-index:3;display:flex;align-items:center;justify-content:center;cursor:pointer;user-select:none;touch-action:none;-webkit-tap-highlight-color:transparent; }
+#dbu{top:0;left:33.3%;right:33.3%;height:33.3%;}#dbu::after{content:'▲';}
+#dbd{bottom:0;left:33.3%;right:33.3%;height:33.3%;}#dbd::after{content:'▼';}
+#dbl{left:0;top:33.3%;bottom:33.3%;width:33.3%;}#dbl::after{content:'◀';}
+#dbr{right:0;top:33.3%;bottom:33.3%;width:33.3%;}#dbr::after{content:'▶';}
+.db::after{font-family:'Press Start 2P',monospace;font-size:clamp(7px,1.7vw,10px);color:rgba(255,255,255,0.3);}
+
+#ctrl-center {
+  display:flex;flex-direction:column;align-items:center;gap:clamp(6px,1.5vw,10px);flex-shrink:0;
+}
+#menu-btn-wrap{display:flex;flex-direction:column;align-items:center;}
+#menu-btn {
+  width:clamp(34px,8.5vw,48px);height:clamp(34px,8.5vw,48px);border-radius:50%;
+  background:radial-gradient(circle at 42% 38%,#4a4a54,#26262e);
+  border:2.5px solid #1a1a20;
+  box-shadow:0 3px 0 rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.1),0 0 0 3px rgba(200,152,42,0.15);
+  cursor:pointer;touch-action:manipulation;
+  display:flex;align-items:center;justify-content:center;
+  transition:transform 0.06s,box-shadow 0.06s;
+}
+#menu-btn:hover{box-shadow:0 3px 0 rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.1),0 0 0 4px rgba(200,152,42,0.38);}
+#menu-btn:active{transform:translateY(2px);}
+#menu-icon{font-family:'Press Start 2P',monospace;font-size:clamp(4px,1vw,6px);color:rgba(200,152,42,0.85);}
+#menu-lbl{font-family:'Press Start 2P',monospace;font-size:clamp(3px,0.75vw,5px);color:#a06c30;margin-top:3px;}
+
+#ss-row{display:flex;gap:clamp(6px,1.8vw,12px);align-items:center;}
+.ss-btn{
+  width:clamp(28px,7vw,40px);height:clamp(10px,2.4vw,14px);
+  background:linear-gradient(180deg,#3a3a42,#28282e);border:1.5px solid #1a1a20;border-radius:clamp(5px,1.2vw,7px);
+  box-shadow:0 2px 0 rgba(0,0,0,0.5);cursor:pointer;touch-action:manipulation;
+  display:flex;align-items:center;justify-content:center;
+}
+.ss-lbl{font-family:'Press Start 2P',monospace;font-size:clamp(3px,0.75vw,4.5px);color:#666;margin-top:2px;text-align:center;}
+
+#ab-col{display:flex;flex-direction:column;align-items:center;flex-shrink:0;}
+#ab-pair{display:flex;gap:clamp(7px,1.8vw,11px);align-items:center;transform:rotate(-18deg);}
+.ab-btn{
+  width:clamp(28px,7vw,38px);height:clamp(28px,7vw,38px);border-radius:50%;
+  border:2.5px solid #1a1a20;display:flex;align-items:center;justify-content:center;
+  font-family:'Press Start 2P',monospace;font-size:clamp(7px,1.6vw,9px);
+  cursor:pointer;touch-action:manipulation;user-select:none;
+  background:radial-gradient(circle at 40% 35%,#cc4466,#aa2244);color:rgba(255,255,255,0.85);
+  box-shadow:0 3px 0 rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.15);
+  transition:transform 0.06s,box-shadow 0.06s;
+}
+.ab-btn:active{transform:translateY(2px);}
+.ab-lbl-row{display:flex;gap:clamp(7px,1.8vw,11px);transform:rotate(-18deg);margin-top:3px;}
+.ab-lbl{font-family:'Press Start 2P',monospace;font-size:clamp(3px,0.65vw,4.5px);color:#555;width:clamp(28px,7vw,38px);text-align:center;}
+
+/* ── MENU OVERLAY ── */
+#menu-overlay {
+  position: fixed; inset: 0;
+  background: rgba(20,14,6,0.88); backdrop-filter: blur(4px);
+  z-index: 500; display: none; align-items: center; justify-content: center;
+}
+#menu-overlay.open { display: flex; }
+#menu-box {
+  background: var(--warm-white); border: 3px solid var(--wood-mid);
+  border-radius: 10px; box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+  padding: clamp(20px,4vw,36px) clamp(24px,5vw,44px);
+  min-width: clamp(240px,50vw,400px); position: relative;
+}
+#menu-box-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(16px,2.4vw,24px); font-weight: 700;
+  color: var(--text-dark); text-align: center;
+  margin-bottom: clamp(16px,3vh,26px);
+}
+.menu-item {
+  display: flex; align-items: center; gap: 12px; width: 100%;
+  font-family: 'Press Start 2P', monospace; font-size: clamp(7px,1.1vw,9px);
+  color: var(--text-mid); background: transparent; border: none;
+  padding: clamp(9px,1.6vh,14px) clamp(10px,1.8vw,18px);
+  text-align: left; cursor: pointer; text-decoration: none;
+  border-left: 3px solid transparent;
+  transition: color 0.1s, border-color 0.1s, background 0.1s;
+  letter-spacing: 0.5px; line-height: 1.5;
+}
+.menu-item:hover, .menu-item.selected {
+  color: var(--wood-dark); border-left-color: var(--gold);
+  background: rgba(200,152,42,0.07);
+}
+.mi-icon { font-size: 12px; width: 20px; text-align: center; flex-shrink: 0; }
+#menu-divider { height: 1px; background: rgba(160,108,48,0.2); margin: clamp(6px,1.2vh,12px) 0; }
+#menu-hint {
+  text-align: center; margin-top: clamp(10px,1.8vh,18px);
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(4.5px,0.7vw,6px); color: var(--text-light);
+}
+.m-badge { background: var(--cream2); border: 1.5px solid var(--wood-mid); color: var(--text-mid); padding: 1px 5px; border-radius: 2px; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 600px) {
+  .hero-meta { gap: 16px; }
+  .stat-row { flex-direction: column; }
+  .stat-box { min-width: 0; }
+}
+</style>
+</head>
+<body>
+
+<div id="cursor"></div>
+
+<!-- Back Banner -->
+<header id="back-banner">
+  <a id="back-link" href="andregurule-library.html">
+    <span class="arrow">←</span> Hall of Records
+  </a>
+  <span id="banner-title">Andre Gurule · Portfolio</span>
+  <a id="contact-link" href="https://linkedin.com/in/andregurule" target="_blank">Connect</a>
+</header>
+
+<!-- Main Content -->
+<main>
+
+  <!-- Hero -->
+  <section id="hero">
+    <div class="eyebrow">Training Portfolio</div>
+    <h1>Building the People<br>Who Build the Company</h1>
+    <p class="lead">
+      Over 10 years of designing and delivering training programs for teams of 10 to 1,000+.
+      Specializing in LMS development, scenario-based adult learning, and building training
+      infrastructure from the ground up.
+    </p>
+    <div class="hero-meta">
+      <div class="meta-chip">
+        <span class="label">Experience</span>
+        <span class="value">10+ Years</span>
+      </div>
+      <div class="meta-chip">
+        <span class="label">Current Role</span>
+        <span class="value">Senior Training Specialist</span>
+      </div>
+      <div class="meta-chip">
+        <span class="label">Location</span>
+        <span class="value">Carson City, NV</span>
+      </div>
+      <div class="meta-chip">
+        <span class="label">Availability</span>
+        <span class="value">Open to Opportunities</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Philosophy -->
+  <section>
+    <h2 class="section-title">My Philosophy on Company Training</h2>
+    <p style="font-size:clamp(14px,1.7vw,17px);line-height:1.85;color:var(--text-mid);margin-bottom:20px;">
+      My approach is grounded in the work of Cathy Moore (<em>Map It: The Hands-On Guide to Strategic Training Design</em>)
+      and Ruth Clark (<em>Evidence-Based Training Methods</em>). Corporate training is less about transferring general
+      knowledge and more about targeting the right information to drive a specific, measurable result.
+    </p>
+    <p style="font-size:clamp(14px,1.7vw,17px);line-height:1.85;color:var(--text-mid);margin-bottom:20px;">
+      It starts with clearly understanding the goal — and then honestly asking whether training is even the right
+      solution. Sometimes the answer is a process adjustment. Sometimes it's a single well-designed job aid.
+      Jumping straight to a course when neither is needed wastes time and erodes trust in the training function.
+    </p>
+    <p style="font-size:clamp(14px,1.7vw,17px);line-height:1.85;color:var(--text-mid);margin-bottom:20px;">
+      Adults also come to training with widely different skill levels, and effective programs account for that.
+      Content needs to meet novices where they are without boring experienced practitioners — and those practitioners
+      should be brought into the conversation. When skilled employees share what they know, everyone benefits,
+      including the instructor.
+    </p>
+    <p style="font-size:clamp(14px,1.7vw,17px);line-height:1.85;color:var(--text-mid);">
+      The rise of AI puts corporate training — and how we work in general — at a fascinating and somewhat unsettling
+      crossroads. I used AI to help build this website, and it is a genuinely remarkable tool. But I believe it
+      needs to be approached with care. In the context of training, AI opens a real opportunity to cultivate new
+      talent, if organizations are willing to invest the time to do it right. It should not replace entry-level
+      workers. It should be used to accelerate their development — ensuring that we are building a strong,
+      capable workforce for the future, not hollowing one out.
+    </p>
+  </section>
+
+  <!-- Impact Stats -->
+  <section>
+    <h2 class="section-title">By the Numbers</h2>
+    <div class="stat-row">
+      <div class="stat-box">
+        <div class="stat-num">10+</div>
+        <div class="stat-label">Years in Training &amp; L&amp;D</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num">1,000+</div>
+        <div class="stat-label">Max Audience Size (Live)</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num">$200K</div>
+        <div class="stat-label">Cost Savings — Equipment Reuse Initiative</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num">40+</div>
+        <div class="stat-label">Employees Supported Across 9 States</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Core Skills -->
+  <section>
+    <h2 class="section-title">Core Competencies</h2>
+    <div class="skills-grid">
+      <div class="skill-card">
+        <span class="sk-icon">🎓</span>
+        <div class="sk-text"><strong>LMS Development</strong>Articulate 360, Storyline 360 — full course design from storyboard to launch.</div>
+      </div>
+      <div class="skill-card">
+        <span class="sk-icon">🎙️</span>
+        <div class="sk-text"><strong>Public Speaking</strong>Comfortable in front of 10 to 1,000+ — from safety briefings to all-hands presentations.</div>
+      </div>
+      <div class="skill-card">
+        <span class="sk-icon">🎬</span>
+        <div class="sk-text"><strong>Video Production</strong>Final Cut Pro X and DaVinci Resolve — scripting, filming, and editing training videos.</div>
+      </div>
+      <div class="skill-card">
+        <span class="sk-icon">📋</span>
+        <div class="sk-text"><strong>SOP &amp; Documentation</strong>Technical writing, process documentation, and policy development.</div>
+      </div>
+      <div class="skill-card">
+        <span class="sk-icon">🧠</span>
+        <div class="sk-text"><strong>Adult Learning Theory</strong>Scenario-based, hands-on, and goal-oriented training using evidence-based methods.</div>
+      </div>
+      <div class="skill-card">
+        <span class="sk-icon">📊</span>
+        <div class="sk-text"><strong>Project Management</strong>End-to-end ownership from concept through implementation and evaluation.</div>
+      </div>
+      <div class="skill-card">
+        <span class="sk-icon">🖥️</span>
+        <div class="sk-text"><strong>SaaS Training</strong>Post-sales customer onboarding, support training, and online program development.</div>
+      </div>
+      <div class="skill-card">
+        <span class="sk-icon">🤖</span>
+        <div class="sk-text"><strong>AI</strong>Reimagining training content and workflows.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Experience -->
+  <section>
+    <h2 class="section-title">Professional Experience</h2>
+
+    <div class="exp-entry">
+      <div class="exp-header">
+        <span class="exp-role">Senior Training Specialist</span>
+        <span class="exp-date">May 2022 — Present</span>
+      </div>
+      <div class="exp-company">Redwood Materials · Reno, NV</div>
+      <ul class="exp-list">
+        <li>Led LMS rollout — standardizing training methods, policies, and procedures company-wide.</li>
+        <li>Managed training projects from concept through implementation across cross-functional teams.</li>
+        <li>Continuously evaluated and applied evidence-based adult learning techniques: scenario-based training, hands-on skill development, and goal-oriented assessments.</li>
+        <li>Initiated a hands-on training program using repurposed equipment, generating approximately <strong>$200,000 in cost savings</strong>.</li>
+        <li>Facilitated improved communication and alignment across business units and teams.</li>
+      </ul>
+    </div>
+
+    <div class="exp-entry">
+      <div class="exp-header">
+        <span class="exp-role">Office Manager &amp; Trainer</span>
+        <span class="exp-date">April 2016 — January 2022</span>
+      </div>
+      <div class="exp-company">Fast Company · Reno, NV</div>
+      <ul class="exp-list">
+        <li>Delivered post-sales SaaS training by documenting best practices and building a full online training program to increase customer satisfaction.</li>
+        <li>Provided direct support and training to <strong>40+ employees across 9 states</strong>.</li>
+        <li>Coordinated operations for 6 remote employees across 3 states through strong leadership and multitasking.</li>
+        <li>Acted as business analyst — testing software and delivering structured feedback to development teams.</li>
+        <li>Continually developed leadership skills with a focus on communication and maximizing team performance.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- Sample Videos -->
+  <section>
+    <h2 class="section-title">Sample Training Videos</h2>
+    <p style="font-size:clamp(13px,1.5vw,15px);color:var(--text-light);margin-bottom:24px;line-height:1.65;">
+      A selection of training videos produced, scripted, and edited by Andre.
+      Replace the placeholder cards below with your video URLs (YouTube, Vimeo, or direct embed).
+    </p>
+    <div class="video-grid">
+
+      <!-- VIDEO CARD 1 — Replace src with your embed URL -->
+      <div class="video-card">
+        <div class="video-embed">
+          <!-- PLACEHOLDER: swap the div below for an <iframe src="YOUR_EMBED_URL" allowfullscreen></iframe> -->
+          <div class="video-placeholder">
+            <span class="play-icon">▶</span>
+            <span>Training Video 1</span>
+            <span style="font-size:12px;opacity:0.4;">Add your embed URL here</span>
+          </div>
+        </div>
+        <div class="video-info">
+          <div class="v-title">Safety Orientation Module</div>
+          <div class="v-desc">Add a short description of this video — its purpose, audience, and key takeaways.</div>
+        </div>
+      </div>
+
+      <!-- VIDEO CARD 2 -->
+      <div class="video-card">
+        <div class="video-embed">
+          <div class="video-placeholder">
+            <span class="play-icon">▶</span>
+            <span>Training Video 2</span>
+            <span style="font-size:12px;opacity:0.4;">Add your embed URL here</span>
+          </div>
+        </div>
+        <div class="video-info">
+          <div class="v-title">SaaS Onboarding Walkthrough</div>
+          <div class="v-desc">Add a short description of this video — its purpose, audience, and key takeaways.</div>
+        </div>
+      </div>
+
+      <!-- VIDEO CARD 3 -->
+      <div class="video-card">
+        <div class="video-embed">
+          <div class="video-placeholder">
+            <span class="play-icon">▶</span>
+            <span>Training Video 3</span>
+            <span style="font-size:12px;opacity:0.4;">Add your embed URL here</span>
+          </div>
+        </div>
+        <div class="video-info">
+          <div class="v-title">Leadership Development Session</div>
+          <div class="v-desc">Add a short description of this video — its purpose, audience, and key takeaways.</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Screenshot Gallery -->
+  <section>
+    <h2 class="section-title">Training Materials Gallery</h2>
+    <p style="font-size:clamp(13px,1.5vw,15px);color:var(--text-light);margin-bottom:24px;line-height:1.65;">
+      Screenshots of LMS courses, presentations, SOPs, and other materials.
+      Click any image to expand. Add your image paths in the <code style="font-size:0.9em;background:var(--cream2);padding:1px 5px;border-radius:2px;">src</code> attributes below.
+    </p>
+    <div class="gallery-grid">
+
+      <!-- GALLERY ITEM 1 — Replace src="YOUR_IMAGE.jpg" -->
+      <div class="gallery-item" onclick="openLightbox(this)">
+        <div class="gallery-img-wrap">
+          <!-- <img src="YOUR_IMAGE.jpg" alt="Articulate 360 course screenshot"> -->
+          <div class="img-placeholder">
+            <span class="ph-icon">🖼️</span>
+            <span>Add image here</span>
+          </div>
+        </div>
+        <div class="gallery-caption">
+          <strong>Articulate 360 Course</strong>
+          Module design for safety orientation program.
+        </div>
+      </div>
+
+      <!-- GALLERY ITEM 2 -->
+      <div class="gallery-item" onclick="openLightbox(this)">
+        <div class="gallery-img-wrap">
+          <div class="img-placeholder">
+            <span class="ph-icon">🖼️</span>
+            <span>Add image here</span>
+          </div>
+        </div>
+        <div class="gallery-caption">
+          <strong>Storyline 360 Scenario</strong>
+          Branching scenario for customer support training.
+        </div>
+      </div>
+
+      <!-- GALLERY ITEM 3 -->
+      <div class="gallery-item" onclick="openLightbox(this)">
+        <div class="gallery-img-wrap">
+          <div class="img-placeholder">
+            <span class="ph-icon">🖼️</span>
+            <span>Add image here</span>
+          </div>
+        </div>
+        <div class="gallery-caption">
+          <strong>SOP Documentation</strong>
+          Standard operating procedure template and example.
+        </div>
+      </div>
+
+      <!-- GALLERY ITEM 4 -->
+      <div class="gallery-item" onclick="openLightbox(this)">
+        <div class="gallery-img-wrap">
+          <div class="img-placeholder">
+            <span class="ph-icon">🖼️</span>
+            <span>Add image here</span>
+          </div>
+        </div>
+        <div class="gallery-caption">
+          <strong>Training Presentation</strong>
+          Slide deck used for live group training session.
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Certifications -->
+  <section>
+    <h2 class="section-title">Certifications &amp; Training</h2>
+    <div class="cert-list">
+      <div class="cert-item">
+        <span class="cert-icon">🏅</span>
+        <div class="cert-text">
+          <span class="cert-name">AHA Certified CPR &amp; First Aid Instructor</span>
+          <span class="cert-desc">Add a description here.</span>
+        </div>
+      </div>
+      <div class="cert-item">
+        <span class="cert-icon">🦺</span>
+        <div class="cert-text">
+          <span class="cert-name">OSHA 30 — Construction</span>
+          <span class="cert-desc">Add a description here.</span>
+        </div>
+      </div>
+      <div class="cert-item">
+        <span class="cert-icon">🧗</span>
+        <div class="cert-text">
+          <span class="cert-name">SPRAT Rope Access Certification — Level 1</span>
+          <span class="cert-desc">Add a description here.</span>
+        </div>
+      </div>
+      <div class="cert-item">
+        <span class="cert-icon">📖</span>
+        <div class="cert-text">
+          <span class="cert-name">Arbinger DIOM Leadership Train-the-Trainer</span>
+          <span class="cert-desc">Add a description here.</span>
+        </div>
+      </div>
+      <div class="cert-item">
+        <span class="cert-icon">🎓</span>
+        <div class="cert-text">
+          <span class="cert-name">GED</span>
+          <span class="cert-desc">Add a description here.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Footer -->
+  <div id="footer-cta">
+    <h3>Ready to talk training?</h3>
+    <p>If you're looking for someone who can build programs from scratch, develop your team, and make learning stick — let's connect.</p>
+    <div class="cta-links">
+      <a class="cta-btn primary" href="https://linkedin.com/in/andregurule" target="_blank">View LinkedIn Profile</a>
+      <a class="cta-btn secondary" href="mailto:andregurule@gmail.com">Send an Email</a>
+      <a class="cta-btn secondary" href="andregurule-library.html">← Back to Hall of Records</a>
+    </div>
+  </div>
+
+</main>
+
+<!-- Lightbox -->
+<div id="lightbox" onclick="closeLightbox()">
+  <button id="lb-close" onclick="closeLightbox()">✕ Close</button>
+  <img id="lb-img" src="" alt="">
+  <div id="lb-caption"></div>
+</div>
+
+<!-- NES Controller -->
+<div id="nes-controller">
+  <div id="ctrl-body">
+    <div id="ctrl-dpad">
+      <div class="dh"></div><div class="dv"></div><div class="dc"></div>
+      <div class="db" id="dbu" data-dir="up"></div>
+      <div class="db" id="dbd" data-dir="down"></div>
+      <div class="db" id="dbl" data-dir="left"></div>
+      <div class="db" id="dbr" data-dir="right"></div>
+    </div>
+    <div id="ctrl-center">
+      <div id="menu-btn-wrap">
+        <div id="menu-btn" onclick="toggleMenu()">
+          <div id="menu-icon">MENU</div>
+        </div>
+        <div id="menu-lbl">MENU</div>
+      </div>
+      <div id="ss-row">
+        <div style="display:flex;flex-direction:column;align-items:center;">
+          <div class="ss-btn"></div>
+          <div class="ss-lbl">SELECT</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;">
+          <div class="ss-btn"></div>
+          <div class="ss-lbl">START</div>
+        </div>
+      </div>
+    </div>
+    <div id="ab-col">
+      <div id="ab-pair">
+        <div class="ab-btn" onclick="history.back()">B</div>
+        <div class="ab-btn" onclick="toggleMenu()">A</div>
+      </div>
+      <div class="ab-lbl-row">
+        <div class="ab-lbl">BACK</div>
+        <div class="ab-lbl">MENU</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Menu Overlay -->
+<div id="menu-overlay" onclick="handleOverlayClick(event)">
+  <div id="menu-box">
+    <div id="menu-box-title">Navigation</div>
+    <a class="menu-item" href="index.html#spawn=projects">
+      <span class="mi-icon">🗺</span> WORLD MAP
+    </a>
+    <a class="menu-item" href="andregurule-library.html">
+      <span class="mi-icon">⚔</span> HALL OF RECORDS
+    </a>
+    <a class="menu-item selected" href="training-portfolio.html">
+      <span class="mi-icon">🎓</span> TRAINING PORTFOLIO
+    </a>
+    <a class="menu-item" href="castle-anthrax.html">
+      <span class="mi-icon">📖</span> CASTLE ANTHRAX
+    </a>
+    <div id="menu-divider"></div>
+    <a class="menu-item" href="https://linkedin.com/in/andregurule" target="_blank">
+      <span class="mi-icon">💼</span> LINKEDIN
+    </a>
+    <a class="menu-item" href="mailto:andregurule@gmail.com">
+      <span class="mi-icon">💌</span> EMAIL
+    </a>
+    <div id="menu-hint">
+      <span class="m-badge">B</span> or <span class="m-badge">ESC</span> to close
+    </div>
+  </div>
+</div>
+
+<script>
+// ── GAMESTATE (no-op stubs — state lives in URL params) ──
+const GameState = (function() {
+  const params = new URLSearchParams(window.location.search);
+  const parse  = k => (params.get(k)||'').split(',').filter(Boolean);
+  let points   = parseInt(params.get('points')||'0',10);
+  let visited  = parse('visited');
+  let items    = parse('items');
+  let unlocked = parse('unlocked');
+  function toParams() {
+    const p = new URLSearchParams();
+    if (points)   p.set('points',   points);
+    if (visited.length) p.set('visited', visited.join(','));
+    if (items.length)   p.set('items',   items.join(','));
+    if (unlocked.length)p.set('unlocked',unlocked.join(','));
+    return p.toString();
+  }
+  function withState(href) {
+    const s = toParams(); if (!s) return href;
+    return href + (href.includes('?') ? '&' : '?') + s;
+  }
+  return { points, visited, items, unlocked, toParams, withState };
+})();
+
+// Rewrite all local links to carry state
+document.querySelectorAll('a[href]').forEach(a => {
+  const h = a.getAttribute('href');
+  if (!h || h.startsWith('http') || h.startsWith('mailto') || h.startsWith('#')) return;
+  a.href = GameState.withState(h);
+});
+
+// ── CURSOR ──
+document.addEventListener('mousemove', e => {
+  const c = document.getElementById('cursor');
+  if (c) { c.style.left = e.clientX+'px'; c.style.top = e.clientY+'px'; }
+});
+document.querySelectorAll('a, button, .gallery-item, .ab-btn, .ss-btn, #menu-btn').forEach(el => {
+  el.addEventListener('mouseenter', () => document.getElementById('cursor')?.classList.add('hover'));
+  el.addEventListener('mouseleave', () => document.getElementById('cursor')?.classList.remove('hover'));
+});
+
+// ── MENU ──
+let menuOpen = false;
+function toggleMenu() { menuOpen ? closeMenu() : openMenu(); }
+function openMenu() {
+  menuOpen = true;
+  document.getElementById('menu-overlay').classList.add('open');
+  document.getElementById('menu-btn').style.boxShadow =
+    '0 3px 0 rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.1),0 0 0 5px rgba(200,152,42,0.5)';
+}
+function closeMenu() {
+  menuOpen = false;
+  document.getElementById('menu-overlay').classList.remove('open');
+  document.getElementById('menu-btn').style.boxShadow = '';
+}
+function handleOverlayClick(e) {
+  if (e.target === document.getElementById('menu-overlay')) closeMenu();
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' || e.key === 'b' || e.key === 'B') closeMenu();
+  if (e.key === 'm' || e.key === 'M') toggleMenu();
+});
+
+// ── LIGHTBOX ──
+function openLightbox(card) {
+  const img = card.querySelector('img');
+  if (!img) return; // placeholder — no image yet
+  const caption = card.querySelector('.gallery-caption')?.textContent || '';
+  document.getElementById('lb-img').src = img.src;
+  document.getElementById('lb-img').alt = img.alt;
+  document.getElementById('lb-caption').textContent = caption;
+  document.getElementById('lightbox').classList.add('open');
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+
+// ── D-PAD SCROLLING (mobile) ──
+let dpadInterval = null;
+const dirs = { up: false, down: false, left: false, right: false };
+document.querySelectorAll('.db').forEach(btn => {
+  const dir = btn.dataset.dir;
+  const on  = e => { e.preventDefault(); dirs[dir] = true; startScroll(); btn.classList.add('pressing'); };
+  const off = e => { e.preventDefault(); dirs[dir] = false; btn.classList.remove('pressing'); };
+  btn.addEventListener('touchstart', on, { passive: false });
+  btn.addEventListener('touchend',   off, { passive: false });
+  btn.addEventListener('touchcancel',off, { passive: false });
+  btn.addEventListener('mousedown',  on);
+  btn.addEventListener('mouseup',    off);
+  btn.addEventListener('mouseleave', off);
+});
+document.addEventListener('mouseup', () => Object.keys(dirs).forEach(k => dirs[k] = false));
+function startScroll() {
+  if (dpadInterval) return;
+  dpadInterval = setInterval(() => {
+    if (dirs.up)   window.scrollBy(0, -8);
+    if (dirs.down) window.scrollBy(0,  8);
+    if (!dirs.up && !dirs.down) { clearInterval(dpadInterval); dpadInterval = null; }
+  }, 16);
+}
+
+// ── CONTROLLER HEIGHT → CSS VAR (so body padding adjusts) ──
+function setCtrlHeight() {
+  const ctrl = document.getElementById('nes-controller');
+  if (!ctrl) return;
+  const h = ctrl.offsetHeight + 20;
+  document.documentElement.style.setProperty('--ctrl-h', h + 'px');
+}
+window.addEventListener('resize', setCtrlHeight);
+setCtrlHeight();
+</script>
+</body>
+</html>
