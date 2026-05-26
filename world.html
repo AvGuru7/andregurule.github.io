@@ -707,8 +707,8 @@ const ZONES=[
    title:'EREBOR MOUNTAIN',
    body:'Motorcycles, off-roading, LEGO, and the great outdoors. Come explore life beyond the keyboard.',
    links:[{label:'⛰ MY HOBBIES',href:'under-construction.html',local:true}]},
-  {id:'blog',label:'📜 SCROLL LIBRARY',x:22,y:14,w:6,h:5,color:'#f0c040',
-   title:'THE SCROLL LIBRARY',
+  {id:'blog',label:'📜 LIBRARY',x:22,y:14,w:6,h:5,color:'#f0c040',
+   title:'THE LIBRARY',
    body:'I enjoy learning and sharing what I know. Inside, you\'ll find some books I enjoy, along with brief thoughts on the lessons and applications I\'ve drawn from them.',
    links:[{label:'📜 READ THE BLOG',href:'under-construction.html',local:true}]},
   {id:'lake-tahoe',label:'🏔 LAKE TAHOE',x:9,y:16,w:5,h:4,color:'#1565c0',isWater:true,
@@ -1636,6 +1636,138 @@ function drawTownSquare(wx,wy,zone){
   }
 }
 
+function drawGreekLibrary(wx,wy,zone){
+  const bx=zone.x*TILE-wx,by=zone.y*TILE-wy,bw=zone.w*TILE,bh=zone.h*TILE;
+  const midX=bx+bw/2;
+
+  // === DROP SHADOW ===
+  ctx.fillStyle='rgba(0,0,0,0.25)';ctx.fillRect(bx+8,by+bh-4,bw,10);
+
+  // === STONE PALETTE — aged Pentelic marble ===
+  const marbleWt='#ede8d8',marbleLt='#ddd8c4',marbleMd='#c8c0a8',marbleDk='#a89e88',marbleSh='#7a7060';
+
+  // === STEPPED BASE (crepidoma — 3 steps) ===
+  const step=5;
+  for(let s=0;s<3;s++){
+    ctx.fillStyle=s===0?marbleDk:s===1?marbleMd:marbleLt;
+    ctx.fillRect(bx-s*step,by+bh-step*(3-s),bw+s*step*2,step);
+  }
+
+  // === MAIN BODY (naos / cella) ===
+  const bodyY=by+18,bodyH=bh-18-step*3;
+  ctx.fillStyle=marbleMd;ctx.fillRect(bx+bw*0.12,bodyY,bw*0.76,bodyH);
+  // Side shading
+  ctx.fillStyle=marbleDk;ctx.fillRect(bx+bw*0.12,bodyY,5,bodyH);
+  ctx.fillStyle=marbleWt;ctx.fillRect(bx+bw*0.88-5,bodyY,5,bodyH);
+  // Door opening
+  const dw=bw*0.18,dh=bodyH*0.55,dx=midX-dw/2,dy=by+bh-step*3-dh;
+  ctx.fillStyle='#1a1a2e';ctx.fillRect(dx,dy,dw,dh);
+  // Door arch
+  ctx.fillStyle='#1a1a2e';
+  ctx.beginPath();ctx.arc(dx+dw/2,dy,dw/2,Math.PI,0);ctx.fill();
+  // Door frame
+  ctx.fillStyle=marbleLt;ctx.fillRect(dx-3,dy-2,3,dh+2);ctx.fillRect(dx+dw,dy-2,3,dh+2);
+  // Warm interior glow
+  ctx.fillStyle='rgba(255,200,80,0.15)';ctx.fillRect(dx+2,dy+4,dw-4,dh-6);
+
+  // === COLUMNS — Doric style, 5 evenly spaced ===
+  const numCols=5,colW=7,colH=bodyH+2,colY=bodyY-2;
+  const colSpacing=bw/(numCols+1);
+  for(let i=1;i<=numCols;i++){
+    const cx2=bx+colSpacing*i-colW/2;
+    // Entasis (slight taper — wider at bottom)
+    ctx.fillStyle=marbleLt;
+    ctx.fillRect(cx2,colY,colW,colH);
+    // Fluting (vertical grooves — 3 per column)
+    ctx.fillStyle=marbleMd;
+    ctx.fillRect(cx2+2,colY,1,colH);
+    ctx.fillRect(cx2+colW-3,colY,1,colH);
+    // Highlight
+    ctx.fillStyle=marbleWt;ctx.fillRect(cx2,colY,2,colH);
+    // Echinus capital (widening pad)
+    ctx.fillStyle=marbleMd;ctx.fillRect(cx2-3,colY-5,colW+6,5);
+    ctx.fillStyle=marbleLt;ctx.fillRect(cx2-2,colY-7,colW+4,2);
+    // Abacus (flat slab on top)
+    ctx.fillStyle=marbleDk;ctx.fillRect(cx2-4,colY-9,colW+8,2);
+    // Stylobate base
+    ctx.fillStyle=marbleMd;ctx.fillRect(cx2-3,colY+colH,colW+6,4);
+    ctx.fillStyle=marbleDk;ctx.fillRect(cx2-4,colY+colH+4,colW+8,2);
+  }
+
+  // === ENTABLATURE ===
+  // Architrave (beam above columns)
+  ctx.fillStyle=marbleMd;ctx.fillRect(bx+2,bodyY-10,bw-4,8);
+  ctx.fillStyle=marbleDk;ctx.fillRect(bx+2,bodyY-10,bw-4,2);
+  ctx.fillStyle=marbleWt;ctx.fillRect(bx+2,bodyY-4,bw-4,2);
+  // Frieze with triglyphs (alternating blocks/channels)
+  ctx.fillStyle=marbleLt;ctx.fillRect(bx,bodyY-18,bw,8);
+  const trigW=7,trigGap=bw/(numCols+1);
+  for(let i=0;i<=numCols;i++){
+    const tx2=bx+trigGap*i+trigGap/2-trigW/2;
+    ctx.fillStyle=marbleDk;ctx.fillRect(tx2,bodyY-18,trigW,8);
+    ctx.fillStyle=marbleSh;ctx.fillRect(tx2+2,bodyY-18,2,8);
+    ctx.fillRect(tx2+trigW-4,bodyY-18,2,8);
+  }
+
+  // === PEDIMENT (triangular gable) ===
+  const pedH=18,pedY=bodyY-18;
+  ctx.fillStyle=marbleMd;
+  ctx.beginPath();
+  ctx.moveTo(bx,pedY);
+  ctx.lineTo(midX,pedY-pedH);
+  ctx.lineTo(bx+bw,pedY);
+  ctx.closePath();ctx.fill();
+  // Pediment outline / raking cornice
+  ctx.strokeStyle=marbleDk;ctx.lineWidth=2;
+  ctx.beginPath();
+  ctx.moveTo(bx,pedY);ctx.lineTo(midX,pedY-pedH);ctx.lineTo(bx+bw,pedY);
+  ctx.stroke();ctx.lineWidth=1;
+  // Pediment highlight
+  ctx.fillStyle=marbleWt;
+  ctx.beginPath();
+  ctx.moveTo(bx+4,pedY-1);ctx.lineTo(midX,pedY-pedH+3);ctx.lineTo(bx+bw-4,pedY-1);
+  ctx.closePath();ctx.fill();
+  // === PEDIMENT SCULPTURE — stylized owl silhouette ===
+  const owlX=midX,owlY=pedY-pedH*0.55;
+  ctx.fillStyle=marbleSh;
+  // Body
+  ctx.beginPath();ctx.ellipse(owlX,owlY,5,7,0,0,Math.PI*2);ctx.fill();
+  // Ear tufts
+  ctx.beginPath();ctx.moveTo(owlX-4,owlY-5);ctx.lineTo(owlX-6,owlY-10);ctx.lineTo(owlX-1,owlY-6);ctx.fill();
+  ctx.beginPath();ctx.moveTo(owlX+4,owlY-5);ctx.lineTo(owlX+6,owlY-10);ctx.lineTo(owlX+1,owlY-6);ctx.fill();
+  // Eyes
+  ctx.fillStyle=marbleLt;ctx.beginPath();ctx.arc(owlX-2,owlY-2,2,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.arc(owlX+2,owlY-2,2,0,Math.PI*2);ctx.fill();
+
+  // === ACROTERIA (ornamental tips at pediment corners & apex) ===
+  ctx.fillStyle=marbleMd;
+  // Apex
+  ctx.beginPath();ctx.arc(midX,pedY-pedH-4,4,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle=zone.color;ctx.beginPath();ctx.arc(midX,pedY-pedH-4,2,0,Math.PI*2);ctx.fill();
+  // Corners
+  ctx.fillStyle=marbleMd;
+  ctx.beginPath();ctx.arc(bx+4,pedY-2,3,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.arc(bx+bw-4,pedY-2,3,0,Math.PI*2);ctx.fill();
+
+  // === LABEL BANNER ===
+  ctx.fillStyle=marbleLt;ctx.fillRect(bx+6,by+4,bw-12,16);
+  ctx.fillStyle=marbleDk;ctx.fillRect(bx+6,by+4,bw-12,2);
+  ctx.fillStyle=marbleDk;ctx.fillRect(bx+6,by+18,bw-12,2);
+  ctx.fillStyle='#1a1a2e';ctx.font='8px "Press Start 2P"';ctx.textAlign='center';
+  ctx.fillText('LIBRARY',midX,by+15);
+
+
+
+  // === PROXIMITY GLOW ===
+  const dist=distToZone(playerX,playerY,zone);
+  if(dist<120){
+    ctx.strokeStyle=zone.color;ctx.lineWidth=3;
+    ctx.globalAlpha=0.38+0.28*Math.sin(Date.now()/300);
+    ctx.strokeRect(bx-2,by-2,bw+4,bh+4);
+    ctx.globalAlpha=1;ctx.lineWidth=1;
+  }
+}
+
 function drawBuilding(wx,wy,zone){
   // Hall of Records gets the special NYPL treatment
   if(zone.id==='projects'){drawNYPLBuilding(wx,wy,zone);return;}
@@ -1645,6 +1777,8 @@ function drawBuilding(wx,wy,zone){
   if(zone.id==='hobbies'){drawMountainBuilding(wx,wy,zone);return;}
   // Town Square gets the market treatment
   if(zone.id==='contact'){drawTownSquare(wx,wy,zone);return;}
+  // Library gets the Greek temple treatment
+  if(zone.id==='blog'){drawGreekLibrary(wx,wy,zone);return;}
 
   const bx=zone.x*TILE-wx,by=zone.y*TILE-wy,bw=zone.w*TILE,bh=zone.h*TILE;
   ctx.fillStyle='rgba(0,0,0,0.22)';ctx.fillRect(bx+6,by+bh-6,bw,12);
