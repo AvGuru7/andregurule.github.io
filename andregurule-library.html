@@ -1,0 +1,1306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Library — Andre Gurule</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Press+Start+2P&display=swap" rel="stylesheet">
+
+<style>
+/* ── RESET & TOKENS ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --cream:      #f5f0e4;
+  --cream-dark: #ede5d0;
+  --cream-deep: #ddd4b8;
+  --marble:     #c8bfa8;
+  --marble-dk:  #a89e88;
+  --stone:      #7a7060;
+  --ink:        #2a2218;
+  --ink-light:  #4a3e30;
+  --gold:       #b8860b;
+  --gold-lt:    #d4a520;
+  --gold-glow:  #f0c040;
+  --amber:      #e8a020;
+  --warm-red:   #8b2020;
+
+  /* Category colors */
+  --cat-leadership: #2a5a8a;
+  --cat-ld:         #2a7a4a;
+  --cat-negotiation:#7a3a8a;
+  --cat-culture:    #8a4a2a;
+  --cat-default:    #5a5a6a;
+
+  --panel-w: 420px;
+  --header-h: 64px;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--cream);
+  color: var(--ink);
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 17px;
+  line-height: 1.6;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── GREEK KEY PATTERN (SVG background) ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(184,134,11,0.08) 39px, rgba(184,134,11,0.08) 40px),
+    repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(184,134,11,0.08) 39px, rgba(184,134,11,0.08) 40px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── MARBLE TEXTURE OVERLAY ── */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 20% 10%, rgba(200,191,168,0.18) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 90%, rgba(200,191,168,0.15) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── HEADER ── */
+header {
+  position: sticky;
+  top: 0;
+  height: var(--header-h);
+  background: var(--ink);
+  border-bottom: 3px solid var(--gold);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 clamp(16px, 4vw, 48px);
+  z-index: 100;
+  box-shadow: 0 2px 24px rgba(0,0,0,0.4);
+}
+
+.header-logo {
+  font-family: 'Cinzel', serif;
+  font-size: clamp(13px, 2.5vw, 18px);
+  font-weight: 700;
+  color: var(--gold-glow);
+  letter-spacing: 3px;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.header-logo span { color: var(--cream); font-weight: 400; font-size: 0.75em; letter-spacing: 1px; }
+
+nav { display: flex; gap: clamp(12px, 2.5vw, 28px); align-items: center; }
+nav a {
+  font-family: 'Cinzel', serif;
+  font-size: clamp(9px, 1.4vw, 12px);
+  color: var(--marble);
+  text-decoration: none;
+  letter-spacing: 1.5px;
+  transition: color 0.2s;
+  white-space: nowrap;
+}
+nav a:hover { color: var(--gold-glow); }
+nav a.active { color: var(--gold-glow); border-bottom: 1px solid var(--gold); padding-bottom: 2px; }
+
+/* ── PAGE WRAPPER ── */
+.page {
+  position: relative;
+  z-index: 1;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: clamp(24px, 4vw, 48px) clamp(16px, 4vw, 40px);
+  padding-right: calc(clamp(16px, 4vw, 40px) + 60px); /* room for Alex */
+}
+
+/* ── ORNAMENTAL DIVIDER ── */
+.ornament {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 32px 0 24px;
+}
+.ornament-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+.ornament-symbol {
+  font-family: 'Cinzel', serif;
+  color: var(--gold);
+  font-size: 18px;
+  letter-spacing: 6px;
+}
+
+/* ── PAGE TITLE ── */
+.page-title {
+  font-family: 'Cinzel', serif;
+  font-size: clamp(26px, 5vw, 42px);
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: 4px;
+  line-height: 1.15;
+  margin-bottom: 6px;
+}
+.page-subtitle {
+  font-family: 'Crimson Pro', serif;
+  font-size: clamp(15px, 2vw, 19px);
+  color: var(--stone);
+  font-style: italic;
+  margin-bottom: 0;
+}
+
+/* ── GREEK KEY BORDER (decorative rule) ── */
+.greek-rule {
+  width: 100%;
+  height: 12px;
+  margin: 20px 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='12'%3E%3Crect x='0' y='0' width='4' height='12' fill='%23b8860b' opacity='0.35'/%3E%3Crect x='4' y='0' width='12' height='4' fill='%23b8860b' opacity='0.35'/%3E%3Crect x='12' y='4' width='4' height='8' fill='%23b8860b' opacity='0.35'/%3E%3Crect x='16' y='4' width='8' height='4' fill='%23b8860b' opacity='0.35'/%3E%3Crect x='20' y='0' width='4' height='8' fill='%23b8860b' opacity='0.35'/%3E%3Crect x='24' y='0' width='16' height='4' fill='%23b8860b' opacity='0.35'/%3E%3C/svg%3E");
+  background-repeat: repeat-x;
+  background-size: 40px 12px;
+  opacity: 0.8;
+}
+
+/* ── CONTROLS ROW ── */
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.search-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 180px;
+  max-width: 320px;
+}
+.search-wrap::before {
+  content: '⌕';
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--marble-dk);
+  font-size: 18px;
+  pointer-events: none;
+}
+#searchInput {
+  width: 100%;
+  padding: 9px 14px 9px 36px;
+  background: var(--cream-dark);
+  border: 1.5px solid var(--marble);
+  border-radius: 4px;
+  font-family: 'Crimson Pro', serif;
+  font-size: 16px;
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+#searchInput:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(184,134,11,0.12);
+}
+#searchInput::placeholder { color: var(--marble-dk); }
+
+.filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.chip {
+  padding: 5px 13px;
+  border-radius: 20px;
+  border: 1.5px solid var(--marble);
+  background: transparent;
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 0.8px;
+  color: var(--stone);
+  cursor: pointer;
+  transition: all 0.18s;
+  white-space: nowrap;
+}
+.chip:hover { border-color: var(--gold); color: var(--gold); }
+.chip.active { background: var(--ink); border-color: var(--ink); color: var(--gold-glow); }
+
+/* ── BOOK TABLE ── */
+.table-wrap {
+  border: 1.5px solid var(--cream-deep);
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 2px 16px rgba(42,34,24,0.08);
+  background: rgba(245,240,228,0.7);
+  backdrop-filter: blur(4px);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+thead {
+  background: var(--ink);
+  position: sticky;
+  top: var(--header-h);
+  z-index: 10;
+}
+
+th {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  color: var(--gold-glow);
+  padding: 13px 16px;
+  text-align: left;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  border-right: 1px solid rgba(184,134,11,0.15);
+  transition: background 0.15s;
+}
+th:last-child { border-right: none; cursor: default; }
+th:hover:not(:last-child) { background: rgba(184,134,11,0.1); }
+
+th .sort-icon {
+  display: inline-block;
+  margin-left: 6px;
+  opacity: 0.4;
+  transition: opacity 0.15s, transform 0.2s;
+  font-size: 9px;
+}
+th.sort-asc .sort-icon,
+th.sort-desc .sort-icon { opacity: 1; color: var(--gold-glow); }
+th.sort-desc .sort-icon { transform: rotate(180deg); }
+
+tbody tr {
+  border-bottom: 1px solid var(--cream-deep);
+  cursor: pointer;
+  transition: background 0.14s;
+}
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: rgba(184,134,11,0.06); }
+tbody tr.selected { background: rgba(184,134,11,0.13); }
+
+td {
+  padding: 13px 16px;
+  font-size: 16px;
+  color: var(--ink-light);
+  border-right: 1px solid rgba(0,0,0,0.04);
+  vertical-align: middle;
+}
+td:last-child { border-right: none; }
+
+td.title-cell {
+  font-weight: 600;
+  color: var(--ink);
+  font-size: 17px;
+}
+td.author-cell {
+  font-style: italic;
+  color: var(--stone);
+  font-size: 15px;
+}
+
+/* Category badge */
+.cat-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 0.8px;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.no-results {
+  text-align: center;
+  padding: 40px 20px;
+  font-style: italic;
+  color: var(--stone);
+  font-size: 16px;
+}
+
+/* ── BOOK DETAIL PANEL ── */
+#detailPanel {
+  position: fixed;
+  top: var(--header-h);
+  right: 0;
+  width: var(--panel-w);
+  height: calc(100vh - var(--header-h));
+  background: var(--cream-dark);
+  border-left: 2px solid var(--gold);
+  box-shadow: -6px 0 32px rgba(42,34,24,0.18);
+  transform: translateX(100%);
+  transition: transform 0.38s cubic-bezier(0.22, 1, 0.36, 1);
+  overflow-y: auto;
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+}
+#detailPanel.open { transform: translateX(0); }
+
+.panel-close {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  background: none;
+  border: 1.5px solid var(--marble);
+  color: var(--stone);
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+  z-index: 2;
+}
+.panel-close:hover { border-color: var(--gold); color: var(--gold); }
+
+.panel-cover-wrap {
+  background: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 24px 24px;
+  position: relative;
+}
+
+.panel-cover {
+  width: 160px;
+  height: 220px;
+  background: var(--cream-deep);
+  border: 2px solid var(--marble-dk);
+  border-radius: 3px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 6px 6px 20px rgba(0,0,0,0.5), -2px -2px 8px rgba(255,255,255,0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Placeholder cover design */
+.panel-cover .cover-bg {
+  position: absolute;
+  inset: 0;
+  opacity: 0.18;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 8px,
+    rgba(184,134,11,0.5) 8px,
+    rgba(184,134,11,0.5) 9px
+  );
+}
+.panel-cover .cover-icon {
+  font-size: 42px;
+  margin-bottom: 10px;
+  position: relative;
+  z-index: 1;
+}
+.panel-cover .cover-label {
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  color: var(--stone);
+  letter-spacing: 1px;
+  text-align: center;
+  padding: 0 10px;
+  position: relative;
+  z-index: 1;
+  font-style: normal;
+}
+
+/* Real image cover */
+.panel-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: none; /* shown by JS when src is set */
+}
+
+.panel-body {
+  padding: 24px 24px 32px;
+  flex: 1;
+}
+
+.panel-category {
+  margin-bottom: 10px;
+}
+
+.panel-title {
+  font-family: 'Cinzel', serif;
+  font-size: clamp(18px, 3vw, 22px);
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.25;
+  margin-bottom: 4px;
+}
+.panel-author {
+  font-style: italic;
+  color: var(--stone);
+  font-size: 16px;
+  margin-bottom: 20px;
+}
+
+.panel-section-label {
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: var(--gold);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.panel-section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--gold), transparent);
+  opacity: 0.4;
+}
+
+.panel-thoughts {
+  font-size: 16px;
+  line-height: 1.75;
+  color: var(--ink-light);
+  font-style: italic;
+}
+
+.panel-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 14px;
+  color: var(--stone);
+  font-style: italic;
+  text-align: center;
+  padding: 40px;
+}
+.panel-empty .empty-icon { font-size: 48px; opacity: 0.4; }
+
+/* ── SECRET COMPARTMENT ── */
+#secretSection {
+  margin-top: 48px;
+  padding: 28px 28px 24px;
+  border: 1.5px solid var(--marble);
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(42,34,24,0.04), rgba(184,134,11,0.04));
+  position: relative;
+}
+
+.secret-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+.secret-header h3 {
+  font-family: 'Cinzel', serif;
+  font-size: clamp(13px, 2vw, 16px);
+  color: var(--ink);
+  letter-spacing: 2px;
+}
+.lock-icon {
+  font-size: 22px;
+  transition: transform 0.3s;
+}
+#secretSection.unlocked .lock-icon { transform: rotate(-20deg); }
+
+.secret-hint {
+  font-size: 18px;
+  color: var(--stone);
+  font-style: italic;
+  margin-bottom: 18px;
+  line-height: 1.6;
+}
+
+/* Code input */
+.code-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.digit-inputs {
+  display: flex;
+  gap: 8px;
+}
+.digit-input {
+  width: 46px;
+  height: 56px;
+  background: var(--ink);
+  border: 2px solid var(--marble-dk);
+  border-radius: 4px;
+  color: var(--gold-glow);
+  font-family: 'Press Start 2P', monospace;
+  font-size: 18px;
+  text-align: center;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  caret-color: var(--gold-glow);
+}
+.digit-input:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(184,134,11,0.2), 0 0 12px rgba(240,192,64,0.15);
+}
+
+.submit-btn {
+  padding: 12px 22px;
+  background: var(--ink);
+  border: 1.5px solid var(--gold);
+  border-radius: 4px;
+  color: var(--gold-glow);
+  font-family: 'Cinzel', serif;
+  font-size: 14px;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+.submit-btn:hover { background: var(--gold); color: var(--ink); }
+
+.code-feedback {
+  font-size: 17px;
+  margin-top: 8px;
+  min-height: 20px;
+  font-style: italic;
+}
+.code-feedback.error { color: var(--warm-red); }
+.code-feedback.success { color: #2a7a2a; }
+
+/* Compartment drawer */
+#compartmentDrawer {
+  display: none;
+  margin-top: 24px;
+  padding: 24px;
+  background: var(--ink);
+  border-radius: 6px;
+  border: 1px solid var(--gold);
+  animation: drawerOpen 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes drawerOpen {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+#compartmentDrawer.visible { display: block; }
+
+.drawer-inner {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.first-edition-cover {
+  width: 110px;
+  height: 150px;
+  flex-shrink: 0;
+  background: var(--cream-deep);
+  border: 2px solid var(--gold);
+  border-radius: 3px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 4px 4px 16px rgba(0,0,0,0.5), 0 0 20px rgba(240,192,64,0.15);
+  position: relative;
+  overflow: hidden;
+}
+.first-edition-cover::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(45deg, transparent, transparent 6px, rgba(184,134,11,0.25) 6px, rgba(184,134,11,0.25) 7px);
+}
+.first-edition-cover .fe-icon { font-size: 28px; position: relative; z-index: 1; }
+.first-edition-cover .fe-label {
+  font-family: 'Cinzel', serif;
+  font-size: 7px;
+  color: var(--gold);
+  letter-spacing: 1px;
+  text-align: center;
+  padding: 0 6px;
+  margin-top: 6px;
+  position: relative;
+  z-index: 1;
+}
+
+.drawer-text { flex: 1; min-width: 180px; }
+.drawer-text h4 {
+  font-family: 'Cinzel', serif;
+  font-size: 18px;
+  color: var(--gold-glow);
+  letter-spacing: 2px;
+  margin-bottom: 8px;
+}
+.drawer-text p {
+  font-family: 'Crimson Pro', serif;
+  font-size: 18px;
+  color: var(--cream);
+  line-height: 1.65;
+  font-style: italic;
+}
+.drawer-text .item-collected {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  padding: 6px 12px;
+  border: 1px solid var(--gold);
+  border-radius: 3px;
+  font-family: 'Cinzel', serif;
+  font-size: 13px;
+  letter-spacing: 1px;
+  color: var(--gold-glow);
+}
+
+/* ── ALEX THE ROBOT ── */
+#alexWrap {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+#alexBubble {
+  display: none;
+  background: var(--ink);
+  border: 2px solid var(--gold);
+  border-radius: 12px 12px 0 12px;
+  padding: 14px 16px;
+  max-width: 320px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.35);
+  animation: bubblePop 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes bubblePop {
+  from { opacity: 0; transform: scale(0.85) translateY(8px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+#alexBubble.visible { display: block; }
+
+.bubble-speaker {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  color: var(--gold-glow);
+  margin-bottom: 8px;
+  letter-spacing: 1px;
+}
+.bubble-text {
+  font-family: 'Crimson Pro', serif;
+  font-size: 18px;
+  color: var(--cream);
+  line-height: 1.5;
+  font-style: italic;
+}
+.bubble-nav {
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.bubble-nav-btn {
+  background: none;
+  border: 1px solid var(--marble-dk);
+  color: var(--marble);
+  padding: 4px 10px;
+  border-radius: 3px;
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.bubble-nav-btn:hover { border-color: var(--gold); color: var(--gold); }
+.bubble-page { font-family: 'Cinzel', serif; font-size: 12px; color: var(--stone); }
+
+/* Alex robot SVG button */
+#alexBtn {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 3px solid var(--gold);
+  background: var(--ink);
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4), 0 0 0 0 rgba(240,192,64,0);
+  transition: box-shadow 0.3s, transform 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  animation: alexPulse 3s ease-in-out infinite;
+}
+@keyframes alexPulse {
+  0%, 100% { box-shadow: 0 4px 20px rgba(0,0,0,0.4), 0 0 0 0 rgba(240,192,64,0.4); }
+  50%       { box-shadow: 0 4px 20px rgba(0,0,0,0.4), 0 0 0 8px rgba(240,192,64,0); }
+}
+#alexBtn:hover { transform: scale(1.08); }
+
+/* ── FOOTER ── */
+footer {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding: 32px 16px;
+  border-top: 1px solid var(--cream-deep);
+  margin-top: 48px;
+}
+footer p {
+  font-family: 'Cinzel', serif;
+  font-size: 14px;
+  letter-spacing: 2px;
+  color: var(--marble-dk);
+}
+footer a {
+  color: var(--gold);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+footer a:hover { color: var(--gold-glow); }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 700px) {
+  #detailPanel { width: 100vw; }
+  .page { padding-right: clamp(16px, 4vw, 40px); }
+  .controls { flex-direction: column; align-items: flex-start; }
+  .search-wrap { max-width: 100%; width: 100%; }
+  th:nth-child(2) { display: none; }
+  td:nth-child(2) { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<header>
+  <a class="header-logo" href="index.html">
+    ⚔ <span>ANDRE GURULE</span>
+  </a>
+  <nav>
+    <a href="index.html">World Map</a>
+    <a href="andregurule-library.html" class="active">Library</a>
+    <a href="castle-anthrax.html">Castle Anthrax</a>
+  </nav>
+</header>
+
+<!-- ── MAIN CONTENT ── -->
+<main class="page">
+
+  <!-- Title -->
+  <div style="padding-top: 8px;">
+    <div class="page-title">THE LIBRARY</div>
+    <div class="page-subtitle">A collection of books that shaped the way I think, lead, and grow.</div>
+  </div>
+
+  <div class="ornament">
+    <div class="ornament-line"></div>
+    <div class="ornament-symbol">⊙ ❧ ⊙</div>
+    <div class="ornament-line"></div>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <div class="search-wrap">
+      <input type="text" id="searchInput" placeholder="Search titles or authors…" autocomplete="off">
+    </div>
+    <div class="filter-chips" id="filterChips">
+      <button class="chip active" data-cat="all">All</button>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrap">
+    <table id="bookTable">
+      <thead>
+        <tr>
+          <th data-col="title">Title <span class="sort-icon">▲</span></th>
+          <th data-col="author">Author <span class="sort-icon">▲</span></th>
+          <th data-col="category">Category <span class="sort-icon">▲</span></th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody id="bookBody"></tbody>
+    </table>
+  </div>
+
+  <!-- Secret Compartment -->
+  <div id="secretSection">
+    <div class="secret-header">
+      <span class="lock-icon">🔒</span>
+      <h3>RESTRICTED COLLECTION</h3>
+    </div>
+    <p class="secret-hint" id="secretHint">
+      There's something hidden in this library that isn't on the public shelves.<br>
+      If you know the right year, the compartment will open itself.
+    </p>
+    <div class="code-row">
+      <div class="digit-inputs">
+        <input class="digit-input" id="d0" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+        <input class="digit-input" id="d1" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+        <input class="digit-input" id="d2" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+        <input class="digit-input" id="d3" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+      </div>
+      <button class="submit-btn" id="submitCode">OPEN</button>
+    </div>
+    <div class="code-feedback" id="codeFeedback"></div>
+
+    <div id="compartmentDrawer">
+      <div class="drawer-inner">
+        <div class="first-edition-cover">
+          <span class="fe-icon">📖</span>
+          <div class="fe-label">FIRST EDITION</div>
+        </div>
+        <div class="drawer-text">
+          <h4>✦ FIRST EDITION</h4>
+          <p>A rare first-edition volume, kept away from the public shelves for safekeeping. Some knowledge is best discovered by those who seek it.</p>
+          <div class="item-collected" id="itemCollectedBadge" style="display:none;">✓ ADDED TO INVENTORY</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ── BOOK DETAIL PANEL ── -->
+<div id="detailPanel">
+  <button class="panel-close" id="panelClose" title="Close">✕</button>
+  <div id="panelContent">
+    <div class="panel-empty">
+      <span class="empty-icon">📚</span>
+      <p>Select a book from the table to read Andre's thoughts on it.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ── ALEX THE ROBOT ── -->
+<div id="alexWrap">
+  <div id="alexBubble">
+    <div class="bubble-speaker">⚙ ALEX</div>
+    <div class="bubble-text" id="alexText"></div>
+    <div class="bubble-nav">
+      <button class="bubble-nav-btn" id="alexPrev">◀ Prev</button>
+      <span class="bubble-page" id="alexPage"></span>
+      <button class="bubble-nav-btn" id="alexNext">Next ▶</button>
+    </div>
+  </div>
+  <button id="alexBtn" title="Talk to Alex" onclick="toggleAlex()">
+    <svg width="42" height="42" viewBox="0 0 42 42" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- Robot head -->
+      <rect x="8" y="10" width="26" height="20" rx="4" fill="#2a2218" stroke="#f0c040" stroke-width="1.5"/>
+      <!-- Antenna -->
+      <line x1="21" y1="10" x2="21" y2="4" stroke="#f0c040" stroke-width="1.5"/>
+      <circle cx="21" cy="3" r="2" fill="#f0c040"/>
+      <!-- Eyes -->
+      <rect x="12" y="16" width="6" height="5" rx="1" fill="#f0c040" opacity="0.9"/>
+      <rect x="24" y="16" width="6" height="5" rx="1" fill="#f0c040" opacity="0.9"/>
+      <!-- Eye shine -->
+      <rect x="13" y="17" width="2" height="2" rx="0.5" fill="#fff" opacity="0.6"/>
+      <rect x="25" y="17" width="2" height="2" rx="0.5" fill="#fff" opacity="0.6"/>
+      <!-- Mouth panel -->
+      <rect x="13" y="24" width="16" height="3" rx="1" fill="#f0c040" opacity="0.3"/>
+      <rect x="15" y="24.5" width="2" height="2" rx="0.5" fill="#f0c040"/>
+      <rect x="20" y="24.5" width="2" height="2" rx="0.5" fill="#f0c040"/>
+      <rect x="25" y="24.5" width="2" height="2" rx="0.5" fill="#f0c040"/>
+      <!-- Neck -->
+      <rect x="18" y="30" width="6" height="4" fill="#2a2218" stroke="#b8860b" stroke-width="1"/>
+      <!-- Body -->
+      <rect x="10" y="34" width="22" height="6" rx="2" fill="#2a2218" stroke="#b8860b" stroke-width="1"/>
+      <!-- Chest light -->
+      <circle cx="21" cy="37" r="2" fill="#f0c040" opacity="0.7"/>
+    </svg>
+  </button>
+</div>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <p><a href="index.html">← RETURN TO WORLD MAP</a> &nbsp;·&nbsp; ANDRE GURULE &nbsp;·&nbsp; THE LIBRARY</p>
+</footer>
+
+<script>
+// ─────────────────────────────────────────────
+//  GAME STATE (URL params, no localStorage)
+// ─────────────────────────────────────────────
+const GameState = (() => {
+  const params = new URLSearchParams(location.search);
+  let points   = parseInt(params.get('points') || '0', 10);
+  let visited  = (params.get('visited') || '').split(',').filter(Boolean);
+  let unlocked = (params.get('unlocked') || '').split(',').filter(Boolean);
+  let items    = (params.get('items') || '').split(',').filter(Boolean);
+
+  const toParams = () => {
+    const p = new URLSearchParams();
+    p.set('points', points); p.set('visited', visited.join(','));
+    p.set('unlocked', unlocked.join(',')); p.set('items', items.join(','));
+    return p.toString();
+  };
+  const withState = href => {
+    const sep = href.includes('?') ? '&' : '?';
+    const hash = href.includes('#') ? '#' + href.split('#')[1] : '';
+    return href.split('#')[0] + sep + toParams() + hash;
+  };
+  const hasItem = id => items.includes(id);
+  const collectItem = (id, pts = 0) => {
+    if (items.includes(id)) return false;
+    items.push(id); points += pts; return true;
+  };
+  const visitZone = (id, pts) => {
+    if (!visited.includes(id)) { visited.push(id); points += pts; }
+  };
+  return { get points(){ return points; }, visited, unlocked, items,
+           toParams, withState, hasItem, collectItem, visitZone };
+})();
+
+// Rewrite nav links with state
+document.querySelectorAll('nav a, footer a').forEach(a => {
+  const href = a.getAttribute('href');
+  if (href && !href.startsWith('http')) a.href = GameState.withState(href);
+});
+GameState.visitZone('blog', 10);
+
+// ─────────────────────────────────────────────
+//  BOOK DATA
+// ─────────────────────────────────────────────
+const BOOKS = [
+  {
+    id: 1,
+    title: 'Book1',
+    author: 'John Doe',
+    category: 'Leadership',
+    thoughts: 'Description of what I liked or took away from it.',
+    coverIcon: '📘',
+    coverSrc: '' // set to image path when available
+  },
+  {
+    id: 2,
+    title: 'Book2',
+    author: 'Jane Doe',
+    category: 'Learning & Development',
+    thoughts: 'Description of what I liked or took away from it.',
+    coverIcon: '📗',
+    coverSrc: ''
+  },
+  {
+    id: 3,
+    title: 'Book3',
+    author: 'Jim Doe',
+    category: 'Negotiation',
+    thoughts: 'Description of what I liked or took away from it.',
+    coverIcon: '📙',
+    coverSrc: ''
+  },
+  {
+    id: 4,
+    title: 'Book4',
+    author: 'Sally Doe',
+    category: 'Culture',
+    thoughts: 'Description of what I liked or took away from it.',
+    coverIcon: '📕',
+    coverSrc: ''
+  },
+];
+
+// Category → color mapping
+const CAT_COLORS = {
+  'Leadership':           '#2a5a8a',
+  'Learning & Development': '#2a7a4a',
+  'Negotiation':          '#7a3a8a',
+  'Culture':              '#8a4a2a',
+};
+function catColor(cat) { return CAT_COLORS[cat] || '#5a5a6a'; }
+
+// ─────────────────────────────────────────────
+//  BUILD FILTER CHIPS
+// ─────────────────────────────────────────────
+const categories = [...new Set(BOOKS.map(b => b.category))].sort();
+const chipsEl = document.getElementById('filterChips');
+categories.forEach(cat => {
+  const btn = document.createElement('button');
+  btn.className = 'chip';
+  btn.dataset.cat = cat;
+  btn.textContent = cat;
+  btn.style.setProperty('--chip-color', catColor(cat));
+  chipsEl.appendChild(btn);
+});
+
+// ─────────────────────────────────────────────
+//  TABLE STATE
+// ─────────────────────────────────────────────
+let sortCol = 'title', sortDir = 'asc';
+let filterCat = 'all', searchQ = '';
+let selectedId = null;
+
+function filteredBooks() {
+  return BOOKS
+    .filter(b => {
+      const matchCat = filterCat === 'all' || b.category === filterCat;
+      const q = searchQ.toLowerCase();
+      const matchQ = !q || b.title.toLowerCase().includes(q) || b.author.toLowerCase().includes(q);
+      return matchCat && matchQ;
+    })
+    .sort((a, b) => {
+      const av = (a[sortCol] || '').toLowerCase();
+      const bv = (b[sortCol] || '').toLowerCase();
+      return sortDir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
+    });
+}
+
+function renderTable() {
+  const tbody = document.getElementById('bookBody');
+  const books = filteredBooks();
+  if (!books.length) {
+    tbody.innerHTML = `<tr><td colspan="4" class="no-results">No books found matching your search.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = books.map(b => `
+    <tr data-id="${b.id}" class="${selectedId === b.id ? 'selected' : ''}">
+      <td class="title-cell">${b.title}</td>
+      <td class="author-cell">${b.author}</td>
+      <td>
+        <span class="cat-badge" style="background:${catColor(b.category)}">${b.category}</span>
+      </td>
+      <td style="color:var(--stone);font-style:italic;font-size:14px;">Click to read →</td>
+    </tr>
+  `).join('');
+
+  tbody.querySelectorAll('tr[data-id]').forEach(row => {
+    row.addEventListener('click', () => selectBook(parseInt(row.dataset.id)));
+  });
+}
+
+function renderSortHeaders() {
+  document.querySelectorAll('th[data-col]').forEach(th => {
+    th.classList.remove('sort-asc', 'sort-desc');
+    if (th.dataset.col === sortCol) th.classList.add(sortDir === 'asc' ? 'sort-asc' : 'sort-desc');
+  });
+}
+
+// Sort click
+document.querySelectorAll('th[data-col]').forEach(th => {
+  th.addEventListener('click', () => {
+    if (th.dataset.col === sortCol) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+    else { sortCol = th.dataset.col; sortDir = 'asc'; }
+    renderSortHeaders();
+    renderTable();
+  });
+});
+
+// Filter chips
+chipsEl.addEventListener('click', e => {
+  const btn = e.target.closest('.chip');
+  if (!btn) return;
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  filterCat = btn.dataset.cat;
+  renderTable();
+});
+
+// Search
+document.getElementById('searchInput').addEventListener('input', e => {
+  searchQ = e.target.value;
+  renderTable();
+});
+
+// ─────────────────────────────────────────────
+//  BOOK DETAIL PANEL
+// ─────────────────────────────────────────────
+function selectBook(id) {
+  selectedId = id;
+  renderTable();
+  const book = BOOKS.find(b => b.id === id);
+  if (!book) return;
+
+  const panel = document.getElementById('detailPanel');
+  const content = document.getElementById('panelContent');
+
+  const hasCover = book.coverSrc && book.coverSrc.trim() !== '';
+
+  content.innerHTML = `
+    <div class="panel-cover-wrap">
+      <div class="panel-cover">
+        <div class="cover-bg"></div>
+        ${hasCover
+          ? `<img src="${book.coverSrc}" alt="${book.title} cover" style="display:block;">`
+          : `<span class="cover-icon">${book.coverIcon}</span>
+             <span class="cover-label">COVER IMAGE<br>PLACEHOLDER</span>`
+        }
+      </div>
+    </div>
+    <div class="panel-body">
+      <div class="panel-category">
+        <span class="cat-badge" style="background:${catColor(book.category)}">${book.category}</span>
+      </div>
+      <div class="panel-title">${book.title}</div>
+      <div class="panel-author">by ${book.author}</div>
+      <div class="panel-section-label">Andre's Thoughts</div>
+      <div class="panel-thoughts">${book.thoughts}</div>
+    </div>
+  `;
+
+  panel.classList.add('open');
+}
+
+document.getElementById('panelClose').addEventListener('click', () => {
+  document.getElementById('detailPanel').classList.remove('open');
+  selectedId = null;
+  renderTable();
+});
+
+// ─────────────────────────────────────────────
+//  SECRET COMPARTMENT — code: 1985
+// ─────────────────────────────────────────────
+const SECRET_CODE = '1985';
+const digits = [0,1,2,3].map(i => document.getElementById(`d${i}`));
+const feedback = document.getElementById('codeFeedback');
+let compartmentOpen = false;
+
+// Auto-advance digits
+digits.forEach((input, i) => {
+  input.addEventListener('input', e => {
+    const val = e.target.value.replace(/[^0-9]/g,'');
+    e.target.value = val.slice(-1);
+    if (val && i < 3) digits[i+1].focus();
+    feedback.textContent = '';
+    feedback.className = 'code-feedback';
+  });
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Backspace' && !input.value && i > 0) digits[i-1].focus();
+    if (e.key === 'Enter') checkCode();
+  });
+  // Select all on focus for easy overwrite
+  input.addEventListener('focus', () => input.select());
+});
+
+function checkCode() {
+  if (compartmentOpen) return;
+  const entered = digits.map(d => d.value).join('');
+  if (entered.length < 4) {
+    feedback.textContent = 'Enter all four digits.';
+    feedback.className = 'code-feedback error';
+    return;
+  }
+  if (entered === SECRET_CODE) {
+    openCompartment();
+  } else {
+    feedback.textContent = 'Incorrect. Think about what made that year legendary…';
+    feedback.className = 'code-feedback error';
+    digits.forEach(d => { d.style.borderColor = 'var(--warm-red)'; });
+    setTimeout(() => digits.forEach(d => { d.style.borderColor = ''; }), 800);
+  }
+}
+
+document.getElementById('submitCode').addEventListener('click', checkCode);
+
+function openCompartment() {
+  compartmentOpen = true;
+  const section = document.getElementById('secretSection');
+  const drawer = document.getElementById('compartmentDrawer');
+  section.classList.add('unlocked');
+  section.querySelector('.lock-icon').textContent = '🔓';
+  document.getElementById('secretHint').textContent =
+    'The compartment clicks open. Inside, something rare…';
+  feedback.textContent = '✓ Access granted. Welcome to the restricted collection.';
+  feedback.className = 'code-feedback success';
+  digits.forEach(d => { d.disabled = true; d.style.borderColor = 'var(--gold)'; });
+  document.getElementById('submitCode').style.display = 'none';
+  drawer.classList.add('visible');
+
+  // Award item
+  const collected = GameState.collectItem('first-edition', 20);
+  if (collected) {
+    document.getElementById('itemCollectedBadge').style.display = 'inline-flex';
+    alexSay(ALEX_LINES.length - 1); // Switch to collected line
+  }
+}
+
+// ─────────────────────────────────────────────
+//  ALEX THE ROBOT
+// ─────────────────────────────────────────────
+const ALEX_LINES = [
+  "Welcome to The Library! I'm ALEX — Automated Library EXpert. I prefer Alex. The full name makes me sound like a government form.",
+  "You can sort the table by clicking the column headers. Title, Author, Category. Very intuitive. I helped design it. You're welcome.",
+  "The filter chips up top narrow down by category. Perfect for when you only have the energy for one type of self-improvement today.",
+  "Click any row and a detail panel slides in from the right. Andre's personal thoughts on each book. Quite insightful. He reads a lot for someone who also races motorcycles.",
+  "There's a restricted section somewhere on this page. I'm not saying where. But I'll give you a hint: think about a year that changed everything — for video games, time travel, AND plumbing.",
+  "Psst. Still stuck on the compartment? The code is a year. A very famous one. Doc Brown would approve. So would a certain Italian plumber.",
+  "You found the First Edition! ✨ A rare discovery. It has been added to your inventory. I would say 'don't tell anyone' but that seems counterproductive for a portfolio site."
+];
+
+let alexIdx = 0;
+let alexOpen = false;
+
+function toggleAlex() {
+  alexOpen = !alexOpen;
+  const bubble = document.getElementById('alexBubble');
+  if (alexOpen) {
+    bubble.classList.add('visible');
+    renderAlex();
+  } else {
+    bubble.classList.remove('visible');
+  }
+}
+
+function alexSay(idx) {
+  alexIdx = Math.max(0, Math.min(idx, ALEX_LINES.length - 1));
+  alexOpen = true;
+  document.getElementById('alexBubble').classList.add('visible');
+  renderAlex();
+}
+
+function renderAlex() {
+  document.getElementById('alexText').textContent = ALEX_LINES[alexIdx];
+  document.getElementById('alexPage').textContent = `${alexIdx + 1} / ${ALEX_LINES.length}`;
+  document.getElementById('alexPrev').disabled = alexIdx === 0;
+  document.getElementById('alexNext').disabled = alexIdx === ALEX_LINES.length - 1;
+  document.getElementById('alexPrev').style.opacity = alexIdx === 0 ? '0.3' : '1';
+  document.getElementById('alexNext').style.opacity = alexIdx === ALEX_LINES.length - 1 ? '0.3' : '1';
+}
+
+document.getElementById('alexPrev').addEventListener('click', () => { if (alexIdx > 0) { alexIdx--; renderAlex(); } });
+document.getElementById('alexNext').addEventListener('click', () => { if (alexIdx < ALEX_LINES.length - 1) { alexIdx++; renderAlex(); } });
+
+// ─────────────────────────────────────────────
+//  INIT
+// ─────────────────────────────────────────────
+renderSortHeaders();
+renderTable();
+
+// If first-edition already collected (returning visit), open compartment silently
+if (GameState.hasItem('first-edition')) {
+  compartmentOpen = true;
+  const section = document.getElementById('secretSection');
+  section.classList.add('unlocked');
+  section.querySelector('.lock-icon').textContent = '🔓';
+  document.getElementById('secretHint').textContent = 'The restricted collection is accessible to you.';
+  document.getElementById('compartmentDrawer').classList.add('visible');
+  digits.forEach((d, i) => { d.value = SECRET_CODE[i]; d.disabled = true; d.style.borderColor = 'var(--gold)'; });
+  document.getElementById('submitCode').style.display = 'none';
+  document.getElementById('itemCollectedBadge').style.display = 'inline-flex';
+}
+</script>
+</body>
+</html>
