@@ -460,7 +460,6 @@ function drawWorld(){
   drawJimmy(wx,wy);
   drawDarrell(wx,wy);
   drawBatman(wx,wy);
-  drawSwordItem(wx,wy);
 
   // Player shadow
   const ppx=playerX-wx,ppy=playerY-wy;
@@ -681,7 +680,8 @@ const JIMMY={id:'jimmy',label:'🔨 JIMMY THE SWORDSMITH',title:'JIMMY THE SWORD
   dialogs:[
     {body:"*clang clang* Huh?! Don't sneak up on a man at his anvil! Name's Jimmy. Best swordsmith this mountain ever had."},
     {body:"Most folks can't even find the forge. Takes a good head on your shoulders to navigate these tunnels. I respect that."},
-    {body:"Got a fine sword here — the Outward Blade. It takes more than brute force to wield it. An outward mindset. Look for that phrase in the Library if you want to learn more."},
+    {body:"Got a fine sword here — the Outward Blade. I don't hand it to just anyone. Answer me this riddle and it's yours."},
+    {body:"A warrior fights for glory. A merchant fights for gold. But the mightiest blade is wielded by one who sees not himself in the mirror of battle, but the faces of those he fights for. I am the shift that turns a closed fist into an open hand. What am I?",isRiddle:true},
   ],dialogIdx:0};
 
 function drawJimmy(wx,wy){
@@ -790,35 +790,11 @@ function drawBatman(wx,wy){
   }
 }
 
-// ─── SWORD ITEM ───────────────────────────────────────────────────────────────
-const SWORD_PICKUP={id:'sword_pickup',label:'⚔ THE OUTWARD BLADE',tx:49,ty:22};
-function drawSwordItem(wx,wy){
-  if(swordCollected)return;
-  const sx=SWORD_PICKUP.tx*TILE-wx+TILE/2,sy=SWORD_PICKUP.ty*TILE-wy+TILE/2;
-  const glow=0.4+0.3*Math.sin(Date.now()/300);
-  ctx.fillStyle=`rgba(180,200,255,${glow*0.28})`;ctx.beginPath();ctx.ellipse(sx,sy+4,18,6,0,0,Math.PI*2);ctx.fill();
-  ctx.save();ctx.translate(sx,sy);ctx.rotate(-Math.PI/5);
-  ctx.fillStyle='#a8aab8';ctx.fillRect(-2,-24,4,36);
-  ctx.fillStyle='#c8cad8';ctx.fillRect(-1,-24,2,34);
-  ctx.fillStyle='#c0a000';ctx.fillRect(-10,-2,20,5);ctx.fillStyle='#f0c040';ctx.fillRect(-9,-1,18,3);
-  ctx.fillStyle='#3a2010';ctx.fillRect(-2,3,4,14);
-  for(let wrap=0;wrap<3;wrap++){ctx.fillStyle='#7a4020';ctx.fillRect(-3,5+wrap*4,6,2);}
-  ctx.fillStyle='#c0a000';ctx.beginPath();ctx.arc(0,17,5,0,Math.PI*2);ctx.fill();
-  ctx.restore();
-  const dist=Math.hypot(playerX-(SWORD_PICKUP.tx*TILE+TILE/2),playerY-(SWORD_PICKUP.ty*TILE+TILE/2));
-  if(dist<100){
-    ctx.fillStyle='rgba(13,10,24,0.88)';ctx.fillRect(sx-52,sy-36,104,14);
-    ctx.fillStyle='#a0b8ff';ctx.font='5px "Press Start 2P"';ctx.textAlign='center';ctx.fillText('[A] TAKE SWORD',sx,sy-26);ctx.textAlign='left';
-  }
-}
-
 // ─── INTERACTABLES ────────────────────────────────────────────────────────────
 function distToTile(tx,ty){return Math.hypot(playerX-(tx*TILE+TILE/2),playerY-(ty*TILE+TILE/2));}
 function getNearestInteractable(){
   let best=null,bestD=120;
   [JIMMY,DARRELL,BATMAN].forEach(npc=>{const d=distToTile(npc.tx,npc.ty);if(d<bestD){bestD=d;best={type:'npc',obj:npc};}});
-  // Sword
-  if(!swordCollected){const d=distToTile(SWORD_PICKUP.tx,SWORD_PICKUP.ty);if(d<bestD){bestD=d;best={type:'sword_pickup',obj:SWORD_PICKUP};}}
   return best;
 }
 
@@ -895,7 +871,7 @@ function handleA(){
     if(activeInteractable&&activeInteractable.type==='npc'){
       const npc=activeInteractable.obj;
       const last=npc.dialogIdx===npc.dialogs.length-1;
-      if(npc.id==='jimmy'&&last){handleJimmyTrade();return;}
+      if(npc.id==='jimmy'&&last){handleJimmyRiddle();return;}
       npc.dialogIdx=(npc.dialogIdx+1)%npc.dialogs.length;
       document.getElementById('dialog-body').textContent=npc.dialogs[npc.dialogIdx].body;return;
     }
@@ -909,29 +885,60 @@ function handleA(){
       a.href=GameState.withState('world.html#spawn=hobbies');linksEl.appendChild(a);
       return;
     }
-    if(activeInteractable.type==='sword_pickup'){
-      if(swordCollected){showInlineDialog('⚔ SWORD','You already carry the Outward Blade.','[B] Close');return;}
-      if(JIMMY.dialogIdx>=2){
-        swordCollected=true;GameState.collectItem('sword');
-        showInlineDialog('⚔ THE OUTWARD BLADE','You picked up the Outward Blade. An outward mindset is the key to wielding it well.','[B] Close');
-      } else {
-        showInlineDialog('⚔ SWORD','This sword belongs to Jimmy. You should talk to him first.','[B] Close');
-      }return;
-    }
     openDialog(activeInteractable);
   }
 }
-function handleJimmyTrade(){
+function handleJimmyRiddle(){
   if(swordCollected){showInlineDialog('JIMMY THE SWORDSMITH','You already have the Outward Blade. Use it well.','[B] Close');return;}
   dialogOpen=true;
-  document.getElementById('dialog-title').textContent='JIMMY THE SWORDSMITH';
-  document.getElementById('dialog-body').textContent="The Outward Blade is yours, traveller. It takes an outward mindset to wield it right. There's a book in the Library that'll show you the way.";
+  document.getElementById('dialog-title').textContent='JIMMY THE SWORDSMITH — RIDDLE';
+  document.getElementById('dialog-body').textContent='A warrior fights for glory. A merchant fights for gold. But the mightiest blade is wielded by one who sees not himself in the mirror of battle, but the faces of those he fights for. I am the shift that turns a closed fist into an open hand. What am I?';
   const linksEl=document.getElementById('dialog-links');linksEl.innerHTML='';
-  const btn=document.createElement('button');btn.className='dialog-link';btn.textContent='⚔ TAKE THE SWORD';
-  btn.onclick=()=>{swordCollected=true;GameState.collectItem('sword');closeDialog();showZoneLabel('⚔ Sword collected! +25 pts');};
+
+  // Hint line
+  const hint=document.createElement('div');
+  hint.style.cssText='font-family:VT323,monospace;font-size:14px;color:#a09070;margin-bottom:8px;';
+  hint.textContent='Hint: The answer can be found in one of the leadership books in the Library. Look for something that is outside the box.';
+  linksEl.appendChild(hint);
+
+  // Answer input
+  const input=document.createElement('input');
+  input.type='text';
+  input.placeholder='Your answer...';
+  input.style.cssText='font-family:"Press Start 2P",monospace;font-size:clamp(6px,1vw,8px);background:#1a1a2a;color:#f0e8c0;border:2px solid #f0c040;padding:8px 10px;width:100%;margin-bottom:8px;outline:none;box-sizing:border-box;';
+  linksEl.appendChild(input);
+
+  // Feedback line
+  const feedback=document.createElement('div');
+  feedback.style.cssText='font-family:VT323,monospace;font-size:16px;min-height:20px;margin-bottom:6px;';
+  linksEl.appendChild(feedback);
+
+  // Submit button
+  const btn=document.createElement('button');btn.className='dialog-link';btn.textContent='⚔ SUBMIT ANSWER';
+  btn.onclick=()=>{
+    const answer=input.value.trim().toLowerCase();
+    if(answer==='outward mindset'){
+      swordCollected=true;GameState.collectItem('sword');
+      closeDialog();
+      showZoneLabel('⚔ Correct! The Outward Blade is yours. +25 pts');
+    } else {
+      feedback.style.color='#ff6060';
+      feedback.textContent='That is not the answer. Try again.';
+      input.value='';input.focus();
+    }
+  };
   linksEl.appendChild(btn);
-  const skip=document.createElement('button');skip.className='dialog-link';skip.textContent='Not yet';skip.onclick=()=>closeDialog();linksEl.appendChild(skip);
-  document.getElementById('dialog-box').style.display='block';document.getElementById('zone-label').style.opacity='0';
+
+  // Allow Enter key to submit
+  input.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();btn.click();}});
+
+  const closeHint=document.createElement('span');
+  closeHint.style.cssText='font-family:VT323,monospace;font-size:16px;color:#a09070;display:block;margin-top:4px;';
+  closeHint.textContent='[B] Give up';linksEl.appendChild(closeHint);
+
+  document.getElementById('dialog-box').style.display='block';
+  document.getElementById('zone-label').style.opacity='0';
+  setTimeout(()=>input.focus(),50);
 }
 function handleB(){if(menuOpen){closeMenu();return;}if(dialogOpen&&!playerDead){closeDialog();}}
 function openDialog(interactable){
