@@ -100,7 +100,7 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
 <div id="menu-overlay">
   <div id="menu-box">
     <div id="menu-title">NAVIGATION</div>
-    <a class="menu-item" id="nav-world" href="index.html#spawn=hobbies"><span class="menu-item-icon">🗺</span> WORLD MAP</a>
+    <a class="menu-item" id="nav-world" href="world.html#spawn=hobbies"><span class="menu-item-icon">🗺</span> WORLD MAP</a>
     <a class="menu-item" href="castle-anthrax.html"><span class="menu-item-icon">🏰</span> CASTLE ANTHRAX</a>
     <a class="menu-item" href="andregurule-library.html"><span class="menu-item-icon">⚔</span> HALL OF RECORDS</a>
     <a class="menu-item selected" href="erebor-mountain.html"><span class="menu-item-icon">⛰</span><span id="menu-cursor">▶ </span>EREBOR MOUNTAIN</a>
@@ -462,12 +462,6 @@ function drawWorld(){
   drawBatman(wx,wy);
   drawSwordItem(wx,wy);
 
-  // ── Exit sign ────────────────────────────────────────────────────────────
-  drawExitSign(wx,wy);
-
-  // ── West escape sign ─────────────────────────────────────────────────────
-  drawWestSign(wx,wy);
-
   // Player shadow
   const ppx=playerX-wx,ppy=playerY-wy;
   ctx.fillStyle='rgba(0,0,0,0.30)';ctx.beginPath();ctx.ellipse(ppx,ppy+8,11,4,0,0,Math.PI*2);ctx.fill();
@@ -681,31 +675,7 @@ function drawJunctions(wx,wy){
   });
 }
 
-// ─── EXIT SIGN ────────────────────────────────────────────────────────────────
-function drawExitSign(wx,wy){
-  const sx=28*TILE-wx,sy=0*TILE-wy;
-  ctx.fillStyle='#6b4226';ctx.fillRect(sx-4,sy+28,8,18);ctx.fillRect(sx-12,sy+42,24,6);
-  ctx.fillStyle='#1e1408';ctx.fillRect(sx-48,sy+8,96,22);
-  ctx.fillStyle='#2e2010';ctx.fillRect(sx-46,sy+10,92,18);
-  ctx.fillStyle='#f0c040';ctx.font='6px "Press Start 2P"';ctx.textAlign='center';
-  ctx.fillText('▲ EXIT MOUNTAIN',sx,sy+23);
-  const pulse=0.5+0.5*Math.sin(Date.now()/400);
-  ctx.fillStyle=`rgba(240,192,64,${pulse})`;ctx.font='8px "Press Start 2P"';ctx.fillText('▲',sx,sy+10);
-  ctx.textAlign='left';
-}
-
 // ─── WEST ESCAPE SIGN ─────────────────────────────────────────────────────────
-function drawWestSign(wx,wy){
-  const sx=2*TILE-wx,sy=18*TILE-wy+TILE/2;
-  if(sy<-TILE||sy>canvas.height+TILE)return;
-  ctx.fillStyle='#1e1408';ctx.fillRect(sx-4,sy-10,68,18);
-  ctx.fillStyle='#f0c040';ctx.font='5px "Press Start 2P"';ctx.textAlign='left';
-  ctx.fillText('◀ EXIT',sx,sy+3);
-  const p2=0.4+0.4*Math.sin(Date.now()/500);
-  ctx.fillStyle=`rgba(240,192,64,${p2})`;ctx.fillText('◀',sx-10,sy+3);
-  ctx.textAlign='left';
-}
-
 // ─── JIMMY NPC ────────────────────────────────────────────────────────────────
 const JIMMY={id:'jimmy',label:'🔨 JIMMY THE SWORDSMITH',title:'JIMMY THE SWORDSMITH',tx:47,ty:24,
   dialogs:[
@@ -847,8 +817,6 @@ function distToTile(tx,ty){return Math.hypot(playerX-(tx*TILE+TILE/2),playerY-(t
 function getNearestInteractable(){
   let best=null,bestD=120;
   [JIMMY,DARRELL,BATMAN].forEach(npc=>{const d=distToTile(npc.tx,npc.ty);if(d<bestD){bestD=d;best={type:'npc',obj:npc};}});
-  // Exit sign
-  const exitD=distToTile(28,0);if(exitD<bestD){bestD=exitD;best={type:'exit'};}
   // Sword
   if(!swordCollected){const d=distToTile(SWORD_PICKUP.tx,SWORD_PICKUP.ty);if(d<bestD){bestD=d;best={type:'sword_pickup',obj:SWORD_PICKUP};}}
   return best;
@@ -889,9 +857,9 @@ function updatePlayer(){
     const ny=Math.max(TILE/2,Math.min(PH-TILE/2,playerY+dy));
     const tx=Math.floor(nx/TILE),ty=Math.floor(ny/TILE);
     // West escape — auto redirect to world map
-    if(tx<=1&&ty>=18&&ty<=19){window.location.href=GameState.withState('index.html#spawn=hobbies');return;}
+    if(tx<=1&&ty>=18&&ty<=19){window.location.href=GameState.withState('world.html#spawn=hobbies');return;}
     // North exit
-    if(tx>=27&&tx<=28&&ty<=0){window.location.href=GameState.withState('index.html#spawn=hobbies');return;}
+    if(tx>=27&&tx<=28&&ty<=0){window.location.href=GameState.withState('world.html#spawn=hobbies');return;}
     if(isWalkable(tx,ty)){playerX=nx;playerY=ny;}
     if(++frameTimer>=FRAME_RATE){frame++;frameTimer=0;}
   }
@@ -938,7 +906,7 @@ function handleA(){
       showInlineDialog('LEAVE EREBOR','Return to the world map and appear on the west side of Erebor Mountain?','[A] Confirm  [B] Cancel');
       const linksEl=document.getElementById('dialog-links');linksEl.innerHTML='';
       const a=document.createElement('a');a.className='dialog-link';a.textContent='▲ RETURN TO WORLD MAP';
-      a.href=GameState.withState('index.html#spawn=hobbies');linksEl.appendChild(a);
+      a.href=GameState.withState('world.html#spawn=hobbies');linksEl.appendChild(a);
       return;
     }
     if(activeInteractable.type==='sword_pickup'){
