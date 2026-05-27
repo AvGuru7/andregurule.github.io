@@ -6,7 +6,7 @@
 <title>The Library — Andre Gurule</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Press+Start+2P&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Press+Start+2P&family=Inconsolata:wght@400;500&display=swap" rel="stylesheet">
 
 <style>
 /* ── RESET & TOKENS ── */
@@ -713,11 +713,11 @@ td.author-cell {
   letter-spacing: 1px;
 }
 .bubble-text {
-  font-family: 'Crimson Pro', serif;
-  font-size: 18px;
+  font-family: 'Inconsolata', monospace;
+  font-size: 20px;
   color: var(--cream);
   line-height: 1.5;
-  font-style: italic;
+  font-style: normal;
 }
 .bubble-nav {
   margin-top: 10px;
@@ -1210,6 +1210,9 @@ function checkCode() {
     feedback.className = 'code-feedback error';
     digits.forEach(d => { d.style.borderColor = 'var(--warm-red)'; });
     setTimeout(() => digits.forEach(d => { d.style.borderColor = ''; }), 800);
+    const wrongLine = ALEX_WRONG_LINES[Math.min(wrongAttempts, ALEX_WRONG_LINES.length - 1)];
+    wrongAttempts++;
+    alexSayTemp(wrongLine);
   }
 }
 
@@ -1244,11 +1247,19 @@ const ALEX_LINES = [
   "Welcome to The Library! I'm ALEX — Automated Library EXpert. I prefer Alex. The full name makes me sound like a government form.",
   "You can sort the table by clicking the column headers. Title, Author, Category. Very intuitive. I helped design it. You're welcome.",
   "The filter chips up top narrow down by category. Perfect for when you only have the energy for one type of self-improvement today.",
-  "Click any row and a detail panel slides in from the right. Andre's personal thoughts on each book. Quite insightful. He reads a lot for someone who also races motorcycles.",
-  "There's a restricted section somewhere on this page. I'm not saying where. But I'll give you a hint: think about a year that changed everything — for video games, time travel, AND plumbing.",
-  "Psst. Still stuck on the compartment? The code is a year. A very famous one. Doc Brown would approve. So would a certain Italian plumber.",
-  "You found the First Edition! ✨ A rare discovery. It has been added to your inventory. I would say 'don't tell anyone' but that seems counterproductive for a portfolio site."
+  "Click any row and a detail panel will appear with Andre's personal thoughts on the book. He thinks he's quite insightful, but I'd say he's only about average for a human.",
+  "You found the First Edition! ✨ A rare discovery. It has been added to your inventory. You'll need to reference its contents to complete your quest."
 ];
+
+const ALEX_WRONG_LINES = [
+  "I shouldn't say anything, but we might be here all day if I don't. Here's a hint: think about a year that changed everything — for video games, time travel, and plumbers with magic mushrooms.",
+  "Still incorrect. I was designed by one of the greatest minds in library science. You were not. Perhaps reflect on that.",
+  "Wrong again. At this point I'm starting to think you're doing this on purpose.",
+  "Incorrect. I have now watched you fail at a four-digit code multiple times. I feel nothing. I am a robot. But if I could feel things, I imagine this would be mildly painful to witness.",
+  "Still wrong. I admire the persistence. I do not admire the accuracy.",
+  "Incorrect. You know, the code hasn't changed. Just something to consider."
+];
+let wrongAttempts = 0;
 
 let alexIdx = 0;
 let alexOpen = false;
@@ -1278,6 +1289,17 @@ function renderAlex() {
   document.getElementById('alexNext').disabled = alexIdx === ALEX_LINES.length - 1;
   document.getElementById('alexPrev').style.opacity = alexIdx === 0 ? '0.3' : '1';
   document.getElementById('alexNext').style.opacity = alexIdx === ALEX_LINES.length - 1 ? '0.3' : '1';
+}
+
+function alexSayTemp(line) {
+  alexOpen = true;
+  document.getElementById('alexBubble').classList.add('visible');
+  document.getElementById('alexText').textContent = line;
+  document.getElementById('alexPage').textContent = '! / !';
+  document.getElementById('alexPrev').disabled = true;
+  document.getElementById('alexNext').disabled = true;
+  document.getElementById('alexPrev').style.opacity = '0.3';
+  document.getElementById('alexNext').style.opacity = '0.3';
 }
 
 document.getElementById('alexPrev').addEventListener('click', () => { if (alexIdx > 0) { alexIdx--; renderAlex(); } });
