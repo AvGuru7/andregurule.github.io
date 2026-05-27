@@ -26,8 +26,11 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
 
 /* ── HUD ── */
 #hud{
-  position:fixed;top:10px;left:10px;z-index:100;
+  position:fixed;z-index:100;
   background:var(--ui-bg);border:3px solid var(--gold);padding:8px 13px;
+  transform:translateX(-50%);
+  pointer-events:none;
+  transition:opacity 0.2s;
 }
 #hud::before{content:'';position:absolute;inset:2px;border:1px solid rgba(240,192,64,0.25);pointer-events:none;}
 #hud-name{font-size:clamp(5px,1.1vw,8px);color:var(--gold);margin-bottom:4px;letter-spacing:1px;}
@@ -664,7 +667,7 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
           <div class="ss-label">SELECT</div>
         </div>
         <div style="display:flex;flex-direction:column;align-items:center;">
-          <div class="ss-btn" id="btn-start" onclick="handleA()"></div>
+          <div class="ss-btn" id="btn-start" onclick="toggleHud()"></div>
           <div class="ss-label">START</div>
         </div>
       </div>
@@ -683,7 +686,7 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
     </div>
 
   </div>
-  <div id="ctrl-hint">D-PAD / ARROW KEYS · A=ENTER · B=BACK · MENU=NAV · SELECT=INVENTORY</div>
+  <div id="ctrl-hint">D-PAD / ARROW KEYS · A=ENTER · B=BACK · MENU=NAV · SELECT=INVENTORY · START=HUD</div>
 </div>
 
 <script>
@@ -2121,6 +2124,7 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Escape'||e.key==='b'||e.key==='B'){handleB();}
   if(e.key==='m'||e.key==='M'){toggleMenu();}
   if(e.key==='i'||e.key==='I'){toggleInventory();}
+  if(e.key==='h'||e.key==='H'){toggleHud();}
   if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key))e.preventDefault();
 });
 document.addEventListener('keyup',e=>{
@@ -2381,6 +2385,15 @@ function tryPickupItem(item){
   showPickupFlash(item);
 }
 
+// ── HUD TOGGLE (START button) ──
+let hudVisible=true;
+function toggleHud(){
+  hudVisible=!hudVisible;
+  const hud=document.getElementById('hud');
+  hud.style.opacity=hudVisible?'1':'0';
+  hud.style.pointerEvents='none';
+}
+
 // ── INVENTORY OVERLAY ──
 let inventoryOpen=false;
 let itemDetailOpen=false;
@@ -2482,6 +2495,10 @@ function gameLoop(){
   const ppx=playerX-camX,ppy=playerY-camY;
   const pe=document.getElementById('player');
   pe.style.left=ppx+'px';pe.style.top=ppy+'px';
+  // Keep HUD centered above player
+  const hud=document.getElementById('hud');
+  hud.style.left=ppx+'px';
+  hud.style.top=Math.max(8, ppy-hud.offsetHeight-25)+'px';
   drawMinimap();
   requestAnimationFrame(gameLoop);
 }
