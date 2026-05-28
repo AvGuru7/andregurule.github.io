@@ -222,7 +222,7 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
 .gallery-card.affordable:hover,.gallery-card.affordable:active{border-color:var(--gold);transform:translateY(-2px);}
 .gallery-card.owned{border-color:#40c060;cursor:default;}
 .gallery-card.unaffordable{opacity:0.5;cursor:not-allowed;}
-.gallery-card-img{width:100%;aspect-ratio:4/3;object-fit:contain;background:#0a0818;display:block;image-rendering:auto;}
+.gallery-card-img{width:100%;aspect-ratio:1/1;object-fit:cover;display:block;image-rendering:auto;}
 .gallery-card-body{padding:clamp(6px,1.2vw,10px);flex:1;display:flex;flex-direction:column;gap:4px;}
 .gallery-card-title{font-size:clamp(5px,0.9vw,7px);color:var(--ui-text);line-height:1.5;}
 .gallery-card-price{font-family:"VT323",monospace;font-size:clamp(14px,2.4vw,18px);color:var(--gold);}
@@ -261,7 +261,7 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
 #exit-sign-board{
   background:#1a1a0a;border:3px solid var(--gold2);
   padding:6px 10px;
-  font-size:clamp(5px,0.9vw,7px);color:var(--gold);
+  font-size:8px;color:var(--gold);
   letter-spacing:1px;white-space:nowrap;
 }
 #exit-sign-arrow{
@@ -315,10 +315,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <a class="menu-item" id="menu-world" href="world.html">
       <span class="menu-item-icon">🗺</span> WORLD MAP
     </a>
-    <a class="menu-item" href="hall-of-records.html">
+    <a class="menu-item" id="menu-library" href="andregurule-library.html">
       <span class="menu-item-icon">⚔</span> HALL OF RECORDS
     </a>
-    <a class="menu-item" href="castle-anthrax.html">
+    <a class="menu-item" id="menu-anthrax" href="castle-anthrax.html">
       <span class="menu-item-icon">📖</span> CASTLE ANTHRAX
     </a>
     <a class="menu-item" href="https://www.andregurule.com/hobbies" target="_blank">
@@ -361,7 +361,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div>
       <div id="select-start-row">
         <div style="display:flex;flex-direction:column;align-items:center;">
-          <div class="ss-btn" id="btn-select" onclick="exitToWorld()"></div>
+          <div class="ss-btn" id="btn-select" onclick="toggleInventory()"></div>
           <div class="ss-label">SELECT</div>
         </div>
         <div style="display:flex;flex-direction:column;align-items:center;">
@@ -381,7 +381,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div>
     </div>
   </div>
-  <div id="ctrl-hint">D-PAD · A=INTERACT · B=CLOSE · MENU=NAV · SELECT=EXIT</div>
+  <div id="ctrl-hint">D-PAD · A=INTERACT · B=CLOSE · MENU=NAV · SELECT=INVENTORY</div>
 </div>
 
 <!-- Art Gallery Overlay -->
@@ -394,6 +394,21 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div id="gallery-subtitle">Unique, one-of-a-kind handcrafted art from a husband and wife team.</div>
     <div id="gallery-grid"></div>
     <div id="gallery-close-row"><button id="gallery-close-btn" onclick="closeGallery()">✕ CLOSE</button><a id="gallery-tfa-btn" href="https://www.tahoefluidart.com/" target="_blank">🎨 TAHOE FLUID ART</a></div>
+  </div>
+</div>
+
+<!-- Inventory Overlay -->
+<div id="inventory-overlay" style="display:none;position:fixed;inset:0;background:rgba(10,8,24,0.92);backdrop-filter:blur(4px);z-index:500;align-items:center;justify-content:center;overflow-y:auto;padding:12px;">
+  <div id="inventory-box" style="background:var(--ui-bg);border:4px solid var(--gold);padding:clamp(16px,3vw,28px) clamp(18px,3.5vw,32px);width:min(700px,96vw);position:relative;">
+    <div style="content:'';position:absolute;inset:3px;border:1px solid rgba(240,192,64,0.22);pointer-events:none;"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:clamp(12px,2vh,20px);flex-wrap:wrap;gap:8px;">
+      <div style="font-size:clamp(8px,1.5vw,12px);color:var(--gold);letter-spacing:2px;">★ INVENTORY ★</div>
+      <div id="inv-pts-banner" style="font-size:clamp(6px,1.1vw,9px);color:var(--ui-dim);">POINTS: <span id="inv-pts" style="color:var(--gold);">0</span> / 205</div>
+    </div>
+    <div id="inventory-list"></div>
+    <div style="text-align:center;margin-top:clamp(12px,2vh,20px);font-size:clamp(5px,0.8vw,7px);color:var(--ui-dim);">
+      <span class="hint-badge-sm">B</span> or <span class="hint-badge-sm">SELECT</span> to close
+    </div>
   </div>
 </div>
 
@@ -488,6 +503,7 @@ const keys = {up:false,down:false,left:false,right:false};
 
 // ── DIALOG / MENU STATE ──
 let dialogOpen = false, menuOpen = false, galleryOpen = false;
+let purchaseTimer = null, pickupTimer = null;
 let menuItems = [], menuIdx = 0;
 
 // ── PSEUDO RANDOM (deterministic) ──
@@ -506,7 +522,7 @@ const FR  = Math.min(PW, PH) * 0.13;  // fountain radius
 const SW = PW * 0.16, SH = PH * 0.22;
 const TW = PW * 0.22, TH = PH * 0.2;
 const STALLS = [
-  {x:8,          y:8,         w:SW, h:SH, awning:'#c03030', stripe:'#f06060', goods:'🥖🧀', name:'BAKER\'S STALL',  speech:'Fresh bread baked this morning! 🥖 And aged cheese from the highlands. Take some for the road!'},
+  {x:8,          y:8,         w:SW, h:SH, awning:'#c03030', stripe:'#f06060', goods:'🥖🧀', name:"BAKER'S STALL",  handler:'baker'},
   {x:8,          y:PH-SH-8,   w:SW, h:SH, awning:'#208040', stripe:'#50c060', goods:'🥕🌽', name:'VEGGIE MARKET',   speech:'Finest vegetables in the realm! 🌽 Harvested at dawn from the valley farms.'},
   {x:PW-SW-12,   y:8,         w:SW, h:SH, awning:'#6040c0', stripe:'#9080f0', goods:'🏺🪬', name:'ART GALLERY',    speech:'Handmade wares and trinkets. 🏺 Each piece tells a story. Perhaps one will find you?'},
   {x:PW-SW-12,   y:PH-SH-8,   w:SW, h:SH, awning:'#c07820', stripe:'#f0b040', goods:'🌶️🧄', name:'SPICE TRADER',   speech:'Rare spices from distant lands! 🌶️ Add some fire to your journey.'},
@@ -541,12 +557,7 @@ NPCS.forEach(n=>{
 
 // ── ITEMS on this page ──
 const PAGE_ITEMS = [
-  {id:'artwork', icon:'🖼️', label:'Artwork', points:10,
-   x: PW*0.72, y: PH*0.58,
-   speech:'A small oil painting — a riverside market at dusk. Press A to take it.'},
-  {id:'bread',   icon:'🍞', label:'Bread',   points:10,
-   x: PW*0.28, y: PH*0.58,
-   speech:'A warm loaf of bread from the baker. Press A to collect it.'},
+  // Bread and Artwork are obtained via purchase (Baker's Stall / Art Gallery)
 ];
 
 // ── COLLISION: returns true if a world-pixel point is blocked ──
@@ -774,12 +785,12 @@ function drawNPC(n){
     const _bodyTopY= _legTopY - _bh + Math.round(2*s);
     const _headTopY= _bodyTopY - _hh + Math.round(2*s);
     const badgeY   = Math.round(py + bob + _headTopY - Math.round(14*s));
-    const bw2=n.name.length*5+12;
+    const bw2=n.name.length*7+12;
     ctx.fillStyle='rgba(13,10,24,0.88)';
-    ctx.fillRect(px-bw2/2, badgeY, bw2, 10);
+    ctx.fillRect(px-bw2/2, badgeY, bw2, 12);
     ctx.fillStyle='#f0c040';
-    ctx.font='bold 5px "Press Start 2P"';ctx.textAlign='center';
-    ctx.fillText(n.name, px, badgeY+8);
+    ctx.font='bold 8px "Press Start 2P"';ctx.textAlign='center';
+    ctx.fillText(n.name, px, badgeY+10);
     ctx.textAlign='left';
     // Interact prompt
     const dist=Math.hypot(playerX-n.x,playerY-n.y);
@@ -821,14 +832,14 @@ function drawPageItems(){
 // ── DRAW GROUND ──
 function drawGround(){
   // Base stone
-  ctx.fillStyle='#b89c74';ctx.fillRect(0,0,PW,PH);
+  ctx.fillStyle='#b89c74';ctx.fillRect(-camX,-camY,PW,PH);
   // Cobbles
   for(let gy=0;gy<PH;gy+=10){
     const row=Math.floor(gy/10);
     for(let gx=(row%2)*7;gx<PW;gx+=14){
       ctx.fillStyle=pseudoRand(gx,gy)>0.5?'#c4a87e':'#aa9060';
       ctx.fillRect(gx-camX,gy-camY,12,8);
-      ctx.fillStyle='#b89c74';
+      ctx.fillStyle='#8a7048';
       ctx.fillRect(gx-camX,gy-camY,12,1);
       ctx.fillRect(gx-camX,gy-camY,1,8);
     }
@@ -961,7 +972,7 @@ function updateCamera(){
 
 // ── UPDATE PLAYER ──
 function updatePlayer(){
-  if(dialogOpen||menuOpen||galleryOpen) return;
+  if(dialogOpen||menuOpen||galleryOpen||inventoryOpen) return;
   const SPEED=3; let dx=0,dy=0;
   if(keys.up){dy=-SPEED;facing='up';}
   if(keys.down){dy=SPEED;facing='down';}
@@ -984,6 +995,43 @@ function gameLoop(){
   drawScene();
   drawPlayer();
   requestAnimationFrame(gameLoop);
+}
+
+// ── BAKER'S STALL DIALOG ──
+const BREAD_PRICE = 20;
+function openBakerDialog(){
+  if(GameState.hasItem('bread')){
+    openDialog("BAKER'S STALL", 'You already have a fresh loaf! Come back when you need more. 🥖');
+    return;
+  }
+  const canBuy = GameState.points >= BREAD_PRICE;
+  openDialogWithButtons("BAKER'S STALL",
+    `Fresh bread baked this morning! 🥖 A loaf costs ${BREAD_PRICE} pts. You have ${GameState.points} pts.${!canBuy?' (Not enough points!)':''}`,
+    canBuy
+      ? [
+          {label:`Buy (${BREAD_PRICE} pts)`, action: purchaseBread},
+          {label:'No thanks',               action: closeDialog},
+        ]
+      : [{label:'Maybe later', action: closeDialog}]
+  );
+}
+function purchaseBread(){
+  if(GameState.hasItem('bread') || GameState.points < BREAD_PRICE){ closeDialog(); return; }
+  GameState.points -= BREAD_PRICE;
+  GameState.collectItem('bread');
+  closeDialog();
+  // Show flash with purchase styling (orange deduction)
+  document.getElementById('pickup-flash-icon').textContent = '🍞';
+  document.getElementById('pickup-flash-text').textContent = 'Bread purchased!';
+  document.getElementById('pickup-flash-pts').textContent = '-' + BREAD_PRICE + ' pts';
+  const el = document.getElementById('pickup-flash');
+  el.style.display = 'block';
+  el.querySelector('#pickup-flash-pts').style.color = '#e07030';
+  clearTimeout(purchaseTimer);
+  purchaseTimer = setTimeout(() => {
+    el.style.display = 'none';
+    el.querySelector('#pickup-flash-pts').style.color = '#40c060';
+  }, 2200);
 }
 
 // ── ALICIA BRANCHING DIALOG ──
@@ -1103,6 +1151,10 @@ function purchaseArt(piece, card){
   if(GameState.hasItem(piece.id) || GameState.points < piece.price) return;
   GameState.points -= piece.price;
   GameState.items.push(piece.id);
+  // Award the 'artwork' collectible on the first art purchase
+  if(!GameState.hasItem('artwork')){
+    GameState.collectItem('artwork');
+  }
   document.getElementById('gallery-pts').textContent = GameState.points;
   // ── GTM dataLayer push ──
   window.dataLayer = window.dataLayer || [];
@@ -1124,7 +1176,6 @@ function shakeCard(card){
   card.classList.add('shake');
   setTimeout(() => card.classList.remove('shake'), 400);
 }
-let purchaseTimer = null;
 function showPurchaseFlash(piece){
   document.getElementById('pickup-flash-icon').textContent = '🖼️';
   document.getElementById('pickup-flash-text').textContent = piece.title + ' purchased!';
@@ -1140,7 +1191,6 @@ function showPurchaseFlash(piece){
 }
 
 // ── PICKUP FLASH ──
-let pickupTimer=null;
 function showPickupFlash(item){
   document.getElementById('pickup-flash-icon').textContent=item.icon;
   document.getElementById('pickup-flash-text').textContent=item.label+' obtained!';
@@ -1188,6 +1238,8 @@ function handleA(){
     if(dist<72){
       if(s.name==='ART GALLERY'){
         openGallery();
+      } else if(s.handler==='baker'){
+        openBakerDialog();
       } else {
         openDialog(s.name, s.speech||'The vendor nods at you.');
       }
@@ -1204,6 +1256,7 @@ function handleA(){
 // ── B BUTTON ──
 function handleB(){
   if(menuOpen){closeMenu();return;}
+  if(inventoryOpen){closeInventory();return;}
   if(galleryOpen){closeGallery();return;}
   if(dialogOpen){closeDialog();return;}
 }
@@ -1218,8 +1271,10 @@ function openMenu(){
   menuItems=Array.from(document.querySelectorAll('.menu-item'));
   menuIdx=0;updateMenuCursor();
   document.getElementById('menu-btn').classList.add('pressed');
-  // Rewrite world map link with state
+  // Rewrite internal nav links with state
   document.getElementById('menu-world').href=GameState.withState('world.html#spawn=contact');
+  document.getElementById('menu-library').href=GameState.withState('andregurule-library.html');
+  document.getElementById('menu-anthrax').href=GameState.withState('castle-anthrax.html');
 }
 function closeMenu(){
   menuOpen=false;
@@ -1234,6 +1289,56 @@ function updateMenuCursor(){
   });
 }
 function menuSelectCurrent(){if(menuItems[menuIdx])menuItems[menuIdx].click();}
+
+// ── INVENTORY ──
+let inventoryOpen = false;
+function toggleInventory(){ inventoryOpen ? closeInventory() : openInventory(); }
+function openInventory(){
+  if(menuOpen) closeMenu();
+  if(dialogOpen) closeDialog();
+  inventoryOpen = true;
+  document.getElementById('inv-pts').textContent = GameState.points;
+  // Build item list grouped by category
+  const groups = [
+    {label:'Quest Items',   cat:'quest'},
+    {label:'Key Items',     cat:'key'},
+    {label:'Collectibles',  cat:'collectible'},
+  ];
+  const list = document.getElementById('inventory-list');
+  list.innerHTML = '';
+  groups.forEach(g => {
+    const groupItems = ITEMS.filter(i => i.category === g.cat);
+    if(!groupItems.length) return;
+    const heading = document.createElement('div');
+    heading.style.cssText = 'font-size:clamp(6px,1vw,8px);color:var(--gold);margin:clamp(10px,1.8vh,16px) 0 8px;letter-spacing:1px;border-bottom:1px solid rgba(240,192,64,0.2);padding-bottom:4px;';
+    heading.textContent = g.label;
+    list.appendChild(heading);
+    const grid = document.createElement('div');
+    grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(clamp(120px,18vw,160px),1fr));gap:clamp(6px,1.2vw,10px);margin-bottom:8px;';
+    groupItems.forEach(item => {
+      const collected = GameState.hasItem(item.id);
+      const card = document.createElement('div');
+      card.style.cssText = `background:#0a0818;border:3px solid ${collected?'#40c060':'#3a3060'};padding:clamp(8px,1.4vw,12px);display:flex;flex-direction:column;gap:4px;position:relative;opacity:${collected?'1':'0.55'};`;
+      card.innerHTML = `
+        <div style="font-size:clamp(18px,3vw,24px);text-align:center;">${collected?item.icon:'❓'}</div>
+        <div style="font-size:clamp(5px,0.85vw,7px);color:var(--ui-text);line-height:1.5;text-align:center;">${collected?item.label:'???'}</div>
+        <div style="font-family:'VT323',monospace;font-size:clamp(12px,2vw,16px);color:var(--ui-dim);text-align:center;">${item.page}</div>
+        <div style="position:absolute;top:4px;right:4px;font-size:clamp(4px,0.7vw,6px);${collected?'color:#40c060;':'color:#c04040;'}">${collected?'✓':'🔒'}</div>
+        ${item.points>0?`<div style="font-family:'VT323',monospace;font-size:clamp(12px,2vw,16px);color:var(--gold);text-align:center;">+${item.points} pts</div>`:''}
+      `;
+      grid.appendChild(card);
+    });
+    list.appendChild(grid);
+  });
+  const ov = document.getElementById('inventory-overlay');
+  ov.style.display = 'flex';
+  document.getElementById('btn-select').classList.add('pressed');
+}
+function closeInventory(){
+  inventoryOpen = false;
+  document.getElementById('inventory-overlay').style.display = 'none';
+  document.getElementById('btn-select').classList.remove('pressed');
+}
 
 // ── EXIT ──
 function exitToWorld(){
@@ -1257,6 +1362,7 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Enter'||e.key===' '||e.key==='a'||e.key==='A'){handleA();e.preventDefault();}
   if(e.key==='Escape'||e.key==='b'||e.key==='B') handleB();
   if(e.key==='m'||e.key==='M') toggleMenu();
+  if(e.key==='i'||e.key==='I') toggleInventory();
   if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) e.preventDefault();
 });
 document.addEventListener('keyup',e=>{
