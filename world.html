@@ -2386,7 +2386,13 @@ function tryPickupItem(item){
 }
 
 // ── HUD TOGGLE (START button) ──
-let hudVisible=true;
+// Show HUD only when arriving fresh (no #spawn= hash = came from index.html).
+// Hide it when returning from a sub-page (spawn hash was present).
+let hudVisible=!_spawnHash;
+(function(){
+  const hud=document.getElementById('hud');
+  if(hud)hud.style.opacity=hudVisible?'1':'0';
+})();
 function toggleHud(){
   hudVisible=!hudVisible;
   const hud=document.getElementById('hud');
