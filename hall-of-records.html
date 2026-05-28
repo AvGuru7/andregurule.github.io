@@ -1010,6 +1010,11 @@ function selectBook(proj) {
     if (!clueGiven) { openLibrarian('no_clue'); return; }
     openSecretPrompt(); return;
   }
+  // Training Portfolio opens directly — no dialog
+  if (proj.id === 'proj1' && proj.link && proj.link !== '#') {
+    window.location.href = proj.link;
+    return;
+  }
   showBookPanel(proj);
 }
 
