@@ -514,7 +514,7 @@ function getRaymondDialog() {
       "Something about this lake just clears the mind right out. Pure alpine magic.",
       "Say — I've got an extra fishing rod I'd be willing to part with.",
       "It's a real special edition — made in 1985. Only one of its kind.",
-      "The Flux Capacitor 3000. Greatest fishing pole ever engineered. Don't ask me how it works.",
+      "The Flux Capacitor. Greatest fishing pole ever engineered. Don't ask me how it works.",
       "I'll let it go for 25 points. You interested? [ A = BUY  ·  B = No thanks ]",
     ]
   };
@@ -534,7 +534,7 @@ const LANDING = { nx: 0.50, ny: 0.90, r: 36 };
 //  HIDDEN FISH ITEM (center of lake)
 //  Only visible / catchable when player has fishing-rod
 // ─────────────────────────────────────────────
-const FISH_ITEM = { nx: 0.52, ny: 0.42, r: 30 }; // near center
+const FISH_ITEM = { nx: 0.32, ny: 0.62, r: 30 }; // southwest
 
 // ─────────────────────────────────────────────
 //  DECORATIONS (trees, boulders, cabins)
@@ -714,7 +714,7 @@ function advanceDialog() {
     npcDialogIdx[npcId] = 0;
     closeDialog();
     showFlashDialog('🎣 RAYMOND',
-      "She's all yours! The Flux Capacitor 3000 — treat her well.",
+      "She's all yours! The Flux Capacitor — treat her well.",
       "Greatest fishing rod ever made. And yes, the name is intentional.",
       "Now get out there and find yourself a fish!"
     );
