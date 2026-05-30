@@ -301,9 +301,10 @@ const GameState = (() => {
     items.push(id); points += pts; return true;
   };
   const consumeItem = id => { items = items.filter(x => x !== id); };
+  const spendPoints = n => { points = Math.max(0, points - n); };
 
   return { get points(){ return points; }, visited, unlocked, items,
-           toParams, withState, visitZone, unlock, hasItem, collectItem, consumeItem };
+           toParams, withState, visitZone, unlock, hasItem, collectItem, consumeItem, spendPoints };
 })();
 
 // Rewrite menu links with state
@@ -452,15 +453,72 @@ const NPCS = [
     id: 'fisherman',
     label: '🎣 RAYMOND',
     nx: 0.38, ny: 0.22,  // northwest of south end
-    dialog: [
-      "Mornin'! Nice kayak you got there.",
-      "Been fishin' Tahoe for 30 years.",
-      "The big ones are out near the middle — but don't tell anyone.",
-      "Something about this place clears your head right up.",
-      "Now shush — you're scaring my fish!"
-    ]
+    dialog: [] // built dynamically — see getRaymondDialog()
   }
 ];
+
+// ─────────────────────────────────────────────
+//  RAYMOND DIALOG — dynamic based on game state
+// ─────────────────────────────────────────────
+// Dialog modes:
+//   'intro'    — player has no rod, can afford it
+//   'broke'    — player has no rod, can't afford it
+//   'owned'    — player already has the rod (gives fish tip)
+//   'purchase' — last page of intro: the offer
+function getRaymondDialog() {
+  const hasRod  = GameState.hasItem('fishing-rod');
+  const hasFish = GameState.hasItem('tahoe-fish');
+
+  if (hasRod && hasFish) {
+    return {
+      mode: 'owned-fish',
+      pages: [
+        "Oh, you caught one! Look at that beauty.",
+        "A Tahoe cutthroat trout. Worth its weight in gold around here.",
+        "You've got the eye for it now. Come back anytime.",
+      ]
+    };
+  }
+
+  if (hasRod) {
+    return {
+      mode: 'owned',
+      pages: [
+        "Good to see you out on the water again!",
+        "That rod treating you well? She's a special one.",
+        "Now — if you want to put her to use, head out toward the center of the lake.",
+        "There's a big cutthroat trout lurking right around the middle. Can't miss it.",
+        "Just paddle up close and press A. She'll practically jump in the boat.",
+      ]
+    };
+  }
+
+  if (GameState.points < 25) {
+    return {
+      mode: 'broke',
+      pages: [
+        "Mornin'! Beautiful day out here, isn't it?",
+        "I've been coming to Tahoe for thirty years. Never gets old.",
+        "Say — I've got an extra fishing rod I'd be willing to part with.",
+        "It's a real special edition — only 25 points.",
+        "This rod is too nice to sell for less than that. Come back when you've got the points.",
+      ]
+    };
+  }
+
+  return {
+    mode: 'intro',
+    pages: [
+      "Mornin'! Beautiful day out here, isn't it?",
+      "I've been coming to Tahoe for thirty years. Never gets old.",
+      "Something about this lake just clears the mind right out. Pure alpine magic.",
+      "Say — I've got an extra fishing rod I'd be willing to part with.",
+      "It's a real special edition — made in 1985. Only one of its kind.",
+      "The Flux Capacitor 3000. Greatest fishing pole ever engineered. Don't ask me how it works.",
+      "I'll let it go for 25 points. You interested? [ A = BUY  ·  B = No thanks ]",
+    ]
+  };
+}
 
 let npcDialogIdx = {};
 let activeDialog = null; // { npcId, pageIndex }
@@ -471,6 +529,12 @@ let dialogPages = [];
 // ─────────────────────────────────────────────
 // Normalized center of landing
 const LANDING = { nx: 0.50, ny: 0.90, r: 36 };
+
+// ─────────────────────────────────────────────
+//  HIDDEN FISH ITEM (center of lake)
+//  Only visible / catchable when player has fishing-rod
+// ─────────────────────────────────────────────
+const FISH_ITEM = { nx: 0.52, ny: 0.42, r: 30 }; // near center
 
 // ─────────────────────────────────────────────
 //  DECORATIONS (trees, boulders, cabins)
@@ -522,6 +586,14 @@ document.addEventListener('keydown', e => {
   if (e.key === 'i' || e.key === 'I') toggleInventory();
   if (e.key === 'Escape' || e.key === 'b' || e.key === 'B') {
     if (inventoryOpen) { closeInventory(); return; }
+    // If on Raymond's purchase offer, treat B as "No thanks"
+    if (activeDialog && activeDialog.npcId === 'fisherman' && currentDialogMode === 'intro'
+        && activeDialog.pageIndex >= dialogPages.length - 1) {
+      npcDialogIdx['fisherman'] = 0;
+      closeDialog();
+      showFlashDialog('🎣 RAYMOND', "No problem. I'll hold onto her a while longer. Come find me when you're ready.");
+      return;
+    }
     closeDialog(); closeMenu();
   }
   if (e.key === 'Enter' || e.key === ' ' || e.key === 'a' || e.key === 'A') {
@@ -551,7 +623,17 @@ document.addEventListener('mouseup', () => {
 
 document.getElementById('btnA').addEventListener('click', handleInteract);
 document.getElementById('btnSelect').addEventListener('click', toggleInventory);
-document.getElementById('btnB').addEventListener('click', () => { if (inventoryOpen) { closeInventory(); return; } closeDialog(); closeMenu(); });
+document.getElementById('btnB').addEventListener('click', () => {
+  if (inventoryOpen) { closeInventory(); return; }
+  if (activeDialog && activeDialog.npcId === 'fisherman' && currentDialogMode === 'intro'
+      && activeDialog.pageIndex >= dialogPages.length - 1) {
+    npcDialogIdx['fisherman'] = 0;
+    closeDialog();
+    showFlashDialog('🎣 RAYMOND', "No problem. I'll hold onto her a while longer. Come find me when you're ready.");
+    return;
+  }
+  closeDialog(); closeMenu();
+});
 // btnMenu wired via inline onclick
 document.getElementById('menuClose').addEventListener('click', closeMenu);
 document.getElementById('btnStart').addEventListener('click', handleInteract);
@@ -578,22 +660,67 @@ function closeMenu() {
 // ─────────────────────────────────────────────
 //  DIALOG
 // ─────────────────────────────────────────────
+let currentDialogMode = null;
+
 function openDialog(npcId, pages) {
-  dialogPages = pages;
+  let resolvedPages = pages;
+  let mode = null;
+  if (npcId === 'fisherman') {
+    const result = getRaymondDialog();
+    resolvedPages = result.pages;
+    mode = result.mode;
+  }
+  currentDialogMode = mode;
+  dialogPages = resolvedPages;
   const idx = npcDialogIdx[npcId] || 0;
   const npc = NPCS.find(n => n.id === npcId);
   activeDialog = { npcId, pageIndex: idx };
   const box = document.getElementById('dialogBox');
   box.style.display = 'block';
   document.getElementById('dialogSpeaker').textContent = npc.label;
-  document.getElementById('dialogText').textContent = pages[idx];
+  document.getElementById('dialogText').textContent = resolvedPages[idx];
+  updateDialogPrompt(npcId, idx, resolvedPages, mode);
+}
+
+function updateDialogPrompt(npcId, idx, pages, mode) {
   const isLast = idx >= pages.length - 1;
-  document.getElementById('dialogPrompt').textContent = isLast ? '[ A / ▶ Close ]' : '[ A / ▶ Next ]';
+  let prompt = isLast ? '[ A / ▶ Close ]' : '[ A / ▶ Next ]';
+  if (npcId === 'fisherman' && mode === 'intro' && isLast) {
+    prompt = '[ A = BUY  ·  B = No thanks ]';
+  }
+  document.getElementById('dialogPrompt').textContent = prompt;
 }
 
 function advanceDialog() {
   if (!activeDialog) return;
   const { npcId, pageIndex } = activeDialog;
+
+  // Flash dialog handler
+  if (npcId === '__flash__') {
+    const nextIdx = pageIndex + 1;
+    if (nextIdx >= dialogPages.length) { closeDialog(); return; }
+    activeDialog.pageIndex = nextIdx;
+    document.getElementById('dialogText').textContent = dialogPages[nextIdx];
+    const isLast = nextIdx >= dialogPages.length - 1;
+    document.getElementById('dialogPrompt').textContent = isLast ? '[ A / ▶ Close ]' : '[ A / ▶ Next ]';
+    return;
+  }
+
+  // Purchase confirmation — last page of intro mode
+  if (npcId === 'fisherman' && currentDialogMode === 'intro' && pageIndex >= dialogPages.length - 1) {
+    GameState.spendPoints(25);
+    GameState.collectItem('fishing-rod', 0);
+    document.getElementById('pointsDisplay').textContent = GameState.points;
+    npcDialogIdx[npcId] = 0;
+    closeDialog();
+    showFlashDialog('🎣 RAYMOND',
+      "She's all yours! The Flux Capacitor 3000 — treat her well.",
+      "Greatest fishing rod ever made. And yes, the name is intentional.",
+      "Now get out there and find yourself a fish!"
+    );
+    return;
+  }
+
   const nextIdx = pageIndex + 1;
   if (nextIdx >= dialogPages.length) {
     npcDialogIdx[npcId] = 0;
@@ -602,14 +729,26 @@ function advanceDialog() {
     npcDialogIdx[npcId] = nextIdx;
     activeDialog.pageIndex = nextIdx;
     document.getElementById('dialogText').textContent = dialogPages[nextIdx];
-    const isLast = nextIdx >= dialogPages.length - 1;
-    document.getElementById('dialogPrompt').textContent = isLast ? '[ A / ▶ Close ]' : '[ A / ▶ Next ]';
+    updateDialogPrompt(npcId, nextIdx, dialogPages, currentDialogMode);
   }
 }
 
 function closeDialog() {
   activeDialog = null;
+  currentDialogMode = null;
   document.getElementById('dialogBox').style.display = 'none';
+}
+
+// Flash dialog — one-off multi-page dialog with no NPC state tracking
+function showFlashDialog(speaker, ...pages) {
+  dialogPages = pages;
+  const box = document.getElementById('dialogBox');
+  box.style.display = 'block';
+  document.getElementById('dialogSpeaker').textContent = speaker;
+  document.getElementById('dialogText').textContent = pages[0];
+  document.getElementById('dialogPrompt').textContent = pages.length > 1 ? '[ A / ▶ Next ]' : '[ A / ▶ Close ]';
+  activeDialog = { npcId: '__flash__', pageIndex: 0 };
+  currentDialogMode = null;
 }
 
 // ─────────────────────────────────────────────
@@ -633,6 +772,25 @@ function handleInteract() {
       openDialog(npc.id, npc.dialog);
       return;
     }
+  }
+
+  // Check hidden fish item (only catchable with fishing rod)
+  const fp = lakePoint(FISH_ITEM.nx, FISH_ITEM.ny);
+  if (Math.hypot(playerX - fp.x, playerY - fp.y) < FISH_ITEM.r + 20) {
+    if (!GameState.hasItem('fishing-rod')) {
+      showFlashDialog('🐟 ???', "Something stirs beneath the surface...", "You'll need a fishing rod to catch it.");
+    } else if (GameState.hasItem('tahoe-fish')) {
+      showFlashDialog('🐟 TAHOE TROUT', "You already caught this one. Catch and release!");
+    } else {
+      GameState.collectItem('tahoe-fish', 25);
+      document.getElementById('pointsDisplay').textContent = GameState.points;
+      showFlashDialog('🐟 TAHOE TROUT',
+        "Got one! A beautiful Tahoe cutthroat trout!",
+        "★ +25 points — Tahoe Trout added to inventory!",
+        "Raymond would be proud."
+      );
+    }
+    return;
   }
 }
 
@@ -1350,6 +1508,34 @@ function draw() {
       ctx.font = '8px "Press Start 2P", monospace';
       ctx.textAlign = 'center';
       ctx.fillText('▲ EXIT MAP', lp.x, lp.y - 38);
+      ctx.restore();
+    }
+  }
+
+  // ── HIDDEN FISH ITEM ──
+  if (!GameState.hasItem('tahoe-fish')) {
+    const fp = lakePoint(FISH_ITEM.nx, FISH_ITEM.ny);
+    if (GameState.hasItem('fishing-rod')) {
+      // Visible + bobbing when player has the rod
+      ctx.save();
+      ctx.globalAlpha = 0.6 + 0.3 * Math.sin(Date.now() * 0.003);
+      ctx.font = '20px serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('🐟', fp.x, fp.y + Math.sin(Date.now() * 0.002) * 3);
+      ctx.restore();
+      if (!activeDialog && !menuOpen && Math.hypot(playerX - fp.x, playerY - fp.y) < FISH_ITEM.r + 20) {
+        drawInteractPrompt(fp.x, fp.y - 14, '🐟 CATCH');
+      }
+    } else {
+      // Subtle ripple — teaser with no rod
+      ctx.save();
+      ctx.globalAlpha = 0.12 + 0.08 * Math.sin(Date.now() * 0.002);
+      ctx.strokeStyle = '#80d0ff';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.ellipse(fp.x, fp.y, 18, 7, 0, 0, Math.PI * 2);
+      ctx.stroke();
       ctx.restore();
     }
   }
