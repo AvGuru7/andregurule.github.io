@@ -1040,13 +1040,17 @@ function purchaseBread(){
 
 // ── ALICIA BRANCHING DIALOG ──
 function openAliciaDialog(){
+  const hasBread = GameState.hasItem('bread');
   openDialogWithButtons('ALICIA',
     'Do you have any bread?',
     [
-      {label:'Yes', action: aliciaAsksForBread},
+      {label:'Yes', action: hasBread ? aliciaAsksForBread : aliciaNoBread},
       {label:'No',  action: closeDialog},
     ]
   );
+}
+function aliciaNoBread(){
+  openDialog('ALICIA', "Hmm, it doesn't look like you have any bread. Try the baker's stall!");
 }
 function aliciaAsksForBread(){
   openDialogWithButtons('ALICIA',
@@ -1058,6 +1062,7 @@ function aliciaAsksForBread(){
   );
 }
 function aliciaThankYou(){
+  GameState.consumeItem('bread');
   openDialog('ALICIA',
     'Thank you! Since you are a nice person, I\'ll share some information that might help you on your quest. The lakes are worth checking out, but you will need a kayak. The king may be able to help you, but I recommend taking him something nice to trade. He tends to like art.'
   );
