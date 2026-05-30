@@ -46,7 +46,7 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
 .hint-badge-sm{background:#222;border:1.5px solid #555;color:#aaa;padding:1px 5px;border-radius:2px;font-size:inherit;}
 @media(pointer:fine){body{cursor:none;}#cursor{position:fixed;width:12px;height:12px;border:2px solid var(--gold);pointer-events:none;z-index:9999;transform:translate(-50%,-50%);}}
 @media(pointer:coarse){#cursor{display:none;}}
-#nes-controller{position:fixed;bottom:0;left:0;right:0;z-index:300;display:flex;flex-direction:column;align-items:center;gap:8px;background:#0d0a18;padding:clamp(8px,1.5vh,16px) 0 clamp(8px,1.5vh,14px);border-top:2px solid #2a2040;}
+#nes-controller{position:fixed;bottom:0;left:0;right:0;z-index:600;display:flex;flex-direction:column;align-items:center;gap:8px;background:#0d0a18;padding:clamp(8px,1.5vh,16px) 0 clamp(8px,1.5vh,14px);border-top:2px solid #2a2040;}
 #controller-body{position:relative;width:clamp(388.8px,60.75vw,518.4px);height:clamp(90px,14vw,120px);background:linear-gradient(180deg,#3a3a40 0%,#2e2e34 60%,#252528 100%);border-radius:6px 6px 10px 10px;border:2px solid #555;box-shadow:0 4px 18px rgba(0,0,0,0.7),0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.08),inset 0 -2px 0 rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:space-between;padding:0 clamp(18px,4vw,28px);}
 #controller-body::before{content:'';position:absolute;top:10px;left:12px;right:12px;height:2px;background:rgba(255,255,255,0.05);border-radius:1px;}
 #controller-body::after{content:'';position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:clamp(60px,12vw,90px);height:6px;background:rgba(255,255,255,0.04);border-radius:3px;}
@@ -81,27 +81,6 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
 .ab-label{font-family:'Press Start 2P',monospace;font-size:clamp(4px,0.7vw,5px);color:#555;width:clamp(36px,6.5vw,50px);text-align:center;}
 #ab-col{display:flex;flex-direction:column;align-items:center;flex-shrink:0;}
 #ctrl-hint{font-family:'VT323',monospace;font-size:clamp(10px,1.8vw,13px);color:var(--gold);text-align:center;opacity:0.75;}
-/* ── INVENTORY OVERLAY ── */
-#inventory-overlay{position:fixed;inset:0;background:rgba(10,8,24,0.95);backdrop-filter:blur(4px);z-index:500;display:none;align-items:flex-start;justify-content:center;padding:clamp(12px,2vh,24px) clamp(8px,2vw,16px);overflow-y:auto;}
-#inventory-box{background:var(--ui-bg);border:4px solid var(--gold);padding:clamp(16px,3vw,28px) clamp(18px,3.5vw,32px);width:min(700px,96vw);position:relative;}
-#inventory-box::before{content:'';position:absolute;inset:3px;border:1px solid rgba(240,192,64,0.22);pointer-events:none;}
-#inventory-title{font-size:clamp(9px,1.6vw,13px);color:var(--gold);text-align:center;margin-bottom:clamp(6px,1.2vh,12px);letter-spacing:2px;}
-#inventory-subtitle{font-family:'VT323',monospace;font-size:clamp(14px,2.5vw,18px);color:var(--ui-dim);text-align:center;margin-bottom:clamp(12px,2vh,20px);border-bottom:1px solid rgba(240,192,64,0.18);padding-bottom:clamp(8px,1.5vh,14px);}
-#inventory-points-banner{font-family:'VT323',monospace;font-size:clamp(16px,3vw,22px);color:var(--gold);text-align:center;margin-bottom:clamp(10px,1.8vh,18px);}
-.inv-category{font-size:clamp(6px,1vw,8px);color:var(--ui-dim);letter-spacing:2px;margin:clamp(10px,1.8vh,16px) 0 clamp(6px,1vh,10px);border-bottom:1px solid rgba(240,192,64,0.12);padding-bottom:4px;}
-.inv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(clamp(140px,22vw,200px),1fr));gap:clamp(6px,1.2vw,12px);margin-bottom:clamp(8px,1.5vh,14px);}
-.inv-item{border:2px solid rgba(240,192,64,0.18);padding:clamp(8px,1.4vw,12px);display:flex;flex-direction:column;gap:4px;position:relative;}
-.inv-item.obtained{border-color:rgba(240,192,64,0.6);}
-.inv-item.locked{opacity:0.45;}
-.inv-icon{font-size:clamp(18px,3.5vw,26px);line-height:1;}
-.inv-name{font-size:clamp(5px,0.9vw,7px);color:var(--ui-text);line-height:1.4;}
-.inv-name.locked-name{color:var(--ui-dim);}
-.inv-location{font-family:'VT323',monospace;font-size:clamp(11px,2vw,14px);color:var(--ui-dim);}
-.inv-pts{font-size:clamp(5px,0.85vw,7px);color:var(--gold);margin-top:2px;}
-.inv-check{position:absolute;top:6px;right:8px;font-size:clamp(10px,1.8vw,14px);color:#40c060;}
-.inv-lock{position:absolute;top:6px;right:8px;font-size:clamp(9px,1.6vw,12px);color:#554433;}
-#inventory-close-hint{text-align:center;margin-top:clamp(12px,2vh,20px);font-size:clamp(5px,0.8vw,7px);color:var(--ui-dim);}
-.ss-btn.pressed{transform:translateY(1px);box-shadow:none;}
 </style>
 </head>
 <body>
@@ -129,7 +108,7 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
 <div id="menu-overlay">
   <div id="menu-box">
     <div id="menu-title">NAVIGATION</div>
-    <a class="menu-item" id="menu-world" href="world.html#spawn=story"><span class="menu-item-icon">🗺</span> WORLD MAP</a>
+    <a class="menu-item" href="world.html#spawn=story"><span class="menu-item-icon">🗺</span> WORLD MAP</a>
     <a class="menu-item selected" href="castle-anthrax.html"><span class="menu-item-icon">🏰</span><span id="menu-cursor">▶ </span>CASTLE ANTHRAX</a>
     <a class="menu-item" href="andregurule-library.html"><span class="menu-item-icon">⚔</span> HALL OF RECORDS</a>
     <a class="menu-item" href="https://www.andregurule.com/hobbies" target="_blank"><span class="menu-item-icon">🏕</span> HOBBIES</a>
@@ -160,7 +139,7 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
       </div>
       <div id="select-start-row">
         <div style="display:flex;flex-direction:column;align-items:center;">
-          <div class="ss-btn" id="btn-select" onclick="toggleInventory()"></div><div class="ss-label">SELECT</div>
+          <div class="ss-btn"></div><div class="ss-label">SELECT</div>
         </div>
         <div style="display:flex;flex-direction:column;align-items:center;">
           <div class="ss-btn" onclick="handleA()"></div><div class="ss-label">START</div>
@@ -178,20 +157,7 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
       </div>
     </div>
   </div>
-  <div id="ctrl-hint">D-PAD / ARROW KEYS · A=TALK · B=CLOSE · MENU=NAV · SELECT=INVENTORY</div>
-</div>
-
-<!-- Inventory Overlay -->
-<div id="inventory-overlay">
-  <div id="inventory-box">
-    <div id="inventory-title">★ INVENTORY ★</div>
-    <div id="inventory-subtitle">Items collected on your journey</div>
-    <div id="inventory-points-banner"></div>
-    <div id="inventory-list"></div>
-    <div id="inventory-close-hint">
-      <span class="hint-badge-sm">SELECT</span> or <span class="hint-badge-sm">B</span> to close
-    </div>
-  </div>
+  <div id="ctrl-hint">D-PAD / ARROW KEYS · A=TALK · B=CLOSE · MENU=NAV</div>
 </div>
 
 <script>
@@ -380,72 +346,12 @@ const GameState={
   hasItem(id){return this.items.includes(id);},
   consumeItem(id){this.items=this.items.filter(i=>i!==id);},
   unlock(key){if(!this.unlocked.includes(key))this.unlocked.push(key);},
-  withState(href){
-    const [base,hash]=href.split('#');
-    const sep=base.includes('?')?'&':'?';
-    return base+sep+new URLSearchParams({points:this.points,visited:this.visited.join(','),unlocked:this.unlocked.join(','),items:this.items.join(',')}).toString()+(hash?'#'+hash:'');
-  }
+  withState(href){return href+(href.includes('?')?'&':'?')+new URLSearchParams({points:this.points,visited:this.visited.join(','),unlocked:this.unlocked.join(','),items:this.items.join(',')}).toString();}
 };
 // Restore treasury door state from URL params
 treasuryOpen=GameState.unlocked.includes('skeleton-key');
 kayakEarned=GameState.unlocked.includes('kayak-earned');
 kayakCollected=GameState.unlocked.includes('kayak-collected');
-
-// ── MASTER ITEM REGISTRY (full list for inventory display) ──────────────────
-const ITEMS=[
-  {id:'holy-grail',    icon:'🏆', label:'Holy Grail',         category:'quest',       points:50, page:'Castle Anthrax'},
-  {id:'skeleton-key',  icon:'🔑', label:'Skeleton Key',        category:'key',         points:30, page:'World Map'},
-  {id:'sword',         icon:'⚔️', label:'Sword',               category:'quest',       points:25, page:'Erebor Mountain'},
-  {id:'cert-badge',    icon:'📜', label:'Certification Badge', category:'collectible', points:20, page:'Hall of Records'},
-  {id:'first-edition', icon:'📖', label:'First Edition',       category:'collectible', points:20, page:'Scroll Library'},
-  {id:'fishing-rod',   icon:'🎣', label:'Fishing Rod',         category:'collectible', points:15, page:'Lake Tahoe'},
-  {id:'blue-kayak',    icon:'🚣', label:'Blue Kayak',          category:'quest',       points:15, page:'Castle Anthrax'},
-  {id:'artwork',       icon:'🖼️', label:'Artwork',             category:'collectible', points:10, page:'Town Square'},
-  {id:'bread',         icon:'🍞', label:'Bread',               category:'collectible', points:10, page:'Town Square'},
-  {id:'old-compass',   icon:'🧭', label:'Old Compass',         category:'collectible', points:10, page:'The Lake'},
-  {id:'sapphire',      icon:'💎', label:'Sapphire',            category:'key',         points:75, page:'World Map'},
-  {id:'ruby',          icon:'🔴', label:'Ruby',                category:'key',         points:75, page:'World Map'},
-];
-
-// ── INVENTORY ────────────────────────────────────────────────────────────────
-let inventoryOpen=false;
-function toggleInventory(){inventoryOpen?closeInventory():openInventory();}
-function openInventory(){
-  if(dialogOpen)closeDialog();
-  if(menuOpen)closeMenu();
-  inventoryOpen=true;
-  document.getElementById('btn-select').classList.add('pressed');
-  renderInventory();
-  document.getElementById('inventory-overlay').style.display='flex';
-}
-function closeInventory(){
-  inventoryOpen=false;
-  document.getElementById('inventory-overlay').style.display='none';
-  document.getElementById('btn-select').classList.remove('pressed');
-}
-function renderInventory(){
-  const total=ITEMS.reduce((s,i)=>s+i.points,0);
-  document.getElementById('inventory-points-banner').textContent='Points: '+GameState.points+' / '+total;
-  const list=document.getElementById('inventory-list');
-  list.innerHTML='';
-  [{key:'quest',label:'QUEST ITEMS'},{key:'key',label:'KEY ITEMS'},{key:'collectible',label:'COLLECTIBLES'}].forEach(cat=>{
-    const catItems=ITEMS.filter(i=>i.category===cat.key);
-    if(!catItems.length)return;
-    const h=document.createElement('div');h.className='inv-category';h.textContent=cat.label;list.appendChild(h);
-    const grid=document.createElement('div');grid.className='inv-grid';
-    catItems.forEach(item=>{
-      const got=GameState.hasItem(item.id);
-      const card=document.createElement('div');card.className='inv-item '+(got?'obtained':'locked');
-      const icon=document.createElement('div');icon.className='inv-icon';icon.textContent=got?item.icon:'❓';
-      const name=document.createElement('div');name.className='inv-name'+(got?'':' locked-name');name.textContent=got?item.label:'???';
-      const loc=document.createElement('div');loc.className='inv-location';loc.textContent=item.page;
-      const pts=document.createElement('div');pts.className='inv-pts';pts.textContent=item.points+' pts';
-      const badge=document.createElement('div');badge.className=got?'inv-check':'inv-lock';badge.textContent=got?'✓':'🔒';
-      card.append(icon,name,loc,pts,badge);grid.appendChild(card);
-    });
-    list.appendChild(grid);
-  });
-}
 
 let camX=0,camY=0;
 let playerX=22*TILE,playerY=29*TILE;  // spawn at exit sign bottom
@@ -1095,7 +1001,7 @@ function getRoomAt2(tx,ty){return ROOMS.find(r=>tx>=r.x&&tx<r.x+r.w&&ty>=r.y&&ty
 
 // ── PLAYER UPDATE ─────────────────────────────────────────────────────────────
 function updatePlayer(){
-  if(dialogOpen||menuOpen||inventoryOpen) return;
+  if(dialogOpen||menuOpen) return;
   const SPEED=3;let dx=0,dy=0;
   if(keys.up){dy=-SPEED;facing='up';}if(keys.down){dy=SPEED;facing='down';}
   if(keys.left){dx=-SPEED;facing='left';}if(keys.right){dx=SPEED;facing='right';}
@@ -1153,7 +1059,7 @@ function handleA(){
     openDialog(activeInteractable);
   }
 }
-function handleB(){if(menuOpen){closeMenu();return;}if(inventoryOpen){closeInventory();return;}if(dialogOpen){closeDialog();return;}}
+function handleB(){if(menuOpen){closeMenu();return;}if(dialogOpen){closeDialog();return;}}
 
 function openDialog(interactable){
   dialogOpen=true;
@@ -1187,7 +1093,6 @@ function openMenu(){
   document.getElementById('menu-overlay').style.display='flex';
   menuItems=Array.from(document.querySelectorAll('.menu-item'));menuIdx=0;updateMenuCursor();
   document.getElementById('menu-btn').classList.add('pressed');
-  document.getElementById('menu-world').href=GameState.withState('world.html#spawn=story');
 }
 function closeMenu(){menuOpen=false;document.getElementById('menu-overlay').style.display='none';document.getElementById('menu-btn').classList.remove('pressed');}
 function updateMenuCursor(){
@@ -1214,7 +1119,6 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Enter'||e.key===' '||e.key==='a'||e.key==='A'){handleA();e.preventDefault();}
   if(e.key==='Escape'||e.key==='b'||e.key==='B')handleB();
   if(e.key==='m'||e.key==='M')toggleMenu();
-  if(e.key==='i'||e.key==='I')toggleInventory();
   if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key))e.preventDefault();
 });
 document.addEventListener('keyup',e=>{

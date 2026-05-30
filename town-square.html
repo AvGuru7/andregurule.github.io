@@ -128,7 +128,7 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
 
 /* ── NES CONTROLLER ── */
 #nes-controller{
-  position:fixed;bottom:0;left:0;right:0;z-index:300;
+  position:fixed;bottom:0;left:0;right:0;z-index:600;
   display:flex;flex-direction:column;align-items:center;gap:8px;
   background:#0d0a18;padding:clamp(8px,1.5vh,16px) 0 clamp(8px,1.5vh,14px);
   border-top:2px solid #2a2040;
@@ -442,11 +442,7 @@ const GameState = {
       unlocked:this.unlocked.join(','),items:this.items.join(',')
     }).toString();
   },
-  withState(href){
-    const [base,hash]=href.split('#');
-    const sep=base.includes('?')?'&':'?';
-    return base+sep+this.toParams()+(hash?'#'+hash:'');
-  }
+  withState(href){return href+(href.includes('?')?'&':'?')+this.toParams();}
 };
 
 // Mark this zone visited on arrival
