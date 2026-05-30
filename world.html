@@ -480,15 +480,33 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
 }
 
 /* ── ITEM PICKUP FLASH ── */
+@keyframes pickupSlideIn{
+  0%{opacity:0;transform:translate(-50%,-40%) scale(0.85);}
+  18%{opacity:1;transform:translate(-50%,-60%) scale(1.06);}
+  28%{transform:translate(-50%,-60%) scale(1);}
+  72%{opacity:1;transform:translate(-50%,-60%) scale(1);}
+  100%{opacity:0;transform:translate(-50%,-68%) scale(0.95);}
+}
 #pickup-flash{
   position:fixed;top:50%;left:50%;transform:translate(-50%,-60%);
-  background:var(--ui-bg);border:3px solid var(--gold);
-  padding:clamp(10px,1.8vh,16px) clamp(14px,2.5vw,22px);
+  background:var(--ui-bg);
+  border:3px solid var(--gold);
+  box-shadow:0 0 28px rgba(240,192,64,0.45), 0 0 60px rgba(240,192,64,0.18), inset 0 0 0 1px rgba(240,192,64,0.18);
+  padding:clamp(12px,2vh,20px) clamp(18px,3vw,30px);
   z-index:600;display:none;text-align:center;pointer-events:none;
+  min-width:clamp(180px,32vw,260px);
 }
-#pickup-flash-icon{font-size:clamp(24px,5vw,36px);display:block;margin-bottom:6px;}
-#pickup-flash-text{font-size:clamp(6px,1vw,8px);color:var(--gold);line-height:1.6;}
-#pickup-flash-pts{font-family:'VT323',monospace;font-size:clamp(16px,3vw,22px);color:#40c060;margin-top:4px;}
+#pickup-flash.show{
+  display:block;
+  animation:pickupSlideIn 2.4s ease forwards;
+}
+#pickup-flash-label{
+  font-size:clamp(5px,0.8vw,7px);color:var(--ui-dim);
+  letter-spacing:2px;margin-bottom:6px;
+}
+#pickup-flash-icon{font-size:clamp(28px,5.5vw,42px);display:block;margin-bottom:8px;line-height:1;}
+#pickup-flash-text{font-size:clamp(6px,1vw,8px);color:var(--ui-text);line-height:1.6;}
+#pickup-flash-pts{font-family:'VT323',monospace;font-size:clamp(18px,3.2vw,26px);color:#40c060;margin-top:6px;}
 
 /* ── RIDDLE INPUT ── */
 #riddle-wrap{margin-top:clamp(10px,1.8vh,16px);}
@@ -633,6 +651,7 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
 
 <!-- Pickup Flash -->
 <div id="pickup-flash">
+  <div id="pickup-flash-label">ITEM OBTAINED!</div>
   <span id="pickup-flash-icon"></span>
   <div id="pickup-flash-text"></div>
   <div id="pickup-flash-pts"></div>
@@ -2246,6 +2265,97 @@ function drawWorldItems(wx,wy){
       // Highlight sparkle
       ctx.fillStyle='rgba(255,200,200,0.85)';
       ctx.fillRect(gx-s*0.15, gy-s*1.3, 3, 3);
+    } else if(item.id==='sapphire'){
+      // Pixel art blue sapphire — oval cabochon cut, larger & glowing
+      const t=Date.now();
+      const gx=sx, gy=sy-6, s=13;
+      // Animated outer glow
+      ctx.save();
+      const glowPulse=0.45+0.25*Math.sin(t/500);
+      const glow=ctx.createRadialGradient(gx,gy,2,gx,gy,s*2.4);
+      glow.addColorStop(0,`rgba(80,140,255,${glowPulse})`);
+      glow.addColorStop(0.5,`rgba(40,80,220,${glowPulse*0.45})`);
+      glow.addColorStop(1,'rgba(20,40,180,0)');
+      ctx.fillStyle=glow;
+      ctx.beginPath();ctx.ellipse(gx,gy,s*2.4,s*2.4,0,0,Math.PI*2);ctx.fill();
+      ctx.restore();
+      // Bottom pavilion (dark, deep navy)
+      ctx.fillStyle='#0a1060';
+      ctx.beginPath();
+      ctx.moveTo(gx, gy+s*1.2); // bottom culet
+      ctx.lineTo(gx-s*0.8, gy+s*0.2);
+      ctx.lineTo(gx, gy+s*0.35);
+      ctx.closePath(); ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(gx, gy+s*1.2);
+      ctx.lineTo(gx+s*0.8, gy+s*0.2);
+      ctx.lineTo(gx, gy+s*0.35);
+      ctx.closePath(); ctx.fill();
+      // Mid pavilion facets (royal blue)
+      ctx.fillStyle='#1a2cb0';
+      ctx.beginPath();
+      ctx.moveTo(gx-s*0.8, gy+s*0.2);
+      ctx.lineTo(gx-s,     gy-s*0.3);
+      ctx.lineTo(gx,       gy+s*0.35);
+      ctx.closePath(); ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(gx+s*0.8, gy+s*0.2);
+      ctx.lineTo(gx+s,     gy-s*0.3);
+      ctx.lineTo(gx,       gy+s*0.35);
+      ctx.closePath(); ctx.fill();
+      // Upper crown facets (vivid sapphire blue)
+      ctx.fillStyle='#2a50e8';
+      ctx.beginPath();
+      ctx.moveTo(gx-s*0.5, gy-s*1.0);
+      ctx.lineTo(gx-s,     gy-s*0.3);
+      ctx.lineTo(gx,       gy+s*0.35);
+      ctx.lineTo(gx+s,     gy-s*0.3);
+      ctx.lineTo(gx+s*0.5, gy-s*1.0);
+      ctx.closePath(); ctx.fill();
+      // Table face (top flat) — bright electric blue
+      ctx.fillStyle='#5090ff';
+      ctx.beginPath();
+      ctx.moveTo(gx-s*0.5, gy-s*1.0);
+      ctx.lineTo(gx+s*0.5, gy-s*1.0);
+      ctx.lineTo(gx+s*0.22,gy-s*1.52);
+      ctx.lineTo(gx-s*0.22,gy-s*1.52);
+      ctx.closePath(); ctx.fill();
+      // Star reflection on table
+      ctx.fillStyle='rgba(200,225,255,0.9)';
+      ctx.fillRect(gx-2, gy-s*1.5, 4, 2); // horizontal
+      ctx.fillRect(gx-1, gy-s*1.55, 2, 6); // vertical
+      // Small inner highlight on crown
+      ctx.fillStyle='rgba(160,210,255,0.65)';
+      ctx.beginPath();
+      ctx.ellipse(gx-s*0.18, gy-s*0.55, s*0.22, s*0.14, -0.5, 0, Math.PI*2);
+      ctx.fill();
+      // Animated sparkle stars around gem
+      const sparkle=Math.sin(t/380);
+      ctx.fillStyle=`rgba(200,225,255,${0.55+0.45*sparkle})`;
+      const sp=s*1.65;
+      // top sparkle
+      ctx.beginPath();
+      ctx.moveTo(gx,         gy-sp-4);
+      ctx.lineTo(gx+2,       gy-sp);
+      ctx.lineTo(gx,         gy-sp+4);
+      ctx.lineTo(gx-2,       gy-sp);
+      ctx.closePath(); ctx.fill();
+      // right sparkle
+      ctx.fillStyle=`rgba(200,225,255,${0.4+0.4*Math.sin(t/380+1)})`;
+      ctx.beginPath();
+      ctx.moveTo(gx+sp+3,    gy-2);
+      ctx.lineTo(gx+sp,      gy+1);
+      ctx.lineTo(gx+sp-3,    gy-2);
+      ctx.lineTo(gx+sp,      gy-5);
+      ctx.closePath(); ctx.fill();
+      // left sparkle
+      ctx.fillStyle=`rgba(200,225,255,${0.4+0.4*Math.sin(t/380+2)})`;
+      ctx.beginPath();
+      ctx.moveTo(gx-sp-3,    gy-2);
+      ctx.lineTo(gx-sp,      gy+1);
+      ctx.lineTo(gx-sp+3,    gy-2);
+      ctx.lineTo(gx-sp,      gy-5);
+      ctx.closePath(); ctx.fill();
     } else {
       // Default: emoji sprite
       ctx.font=`${TILE*0.55}px serif`;
@@ -2275,11 +2385,18 @@ let pickupTimer=null;
 function showPickupFlash(item){
   const el=document.getElementById('pickup-flash');
   document.getElementById('pickup-flash-icon').textContent=item.icon;
-  document.getElementById('pickup-flash-text').textContent=item.label+' obtained!';
+  document.getElementById('pickup-flash-text').textContent=item.label;
   document.getElementById('pickup-flash-pts').textContent='+'+item.points+' pts';
-  el.style.display='block';
+  // Reset animation
+  el.classList.remove('show');
+  el.style.display='none';
+  void el.offsetWidth; // force reflow
+  el.classList.add('show');
   clearTimeout(pickupTimer);
-  pickupTimer=setTimeout(()=>{el.style.display='none';},2000);
+  pickupTimer=setTimeout(()=>{
+    el.classList.remove('show');
+    el.style.display='none';
+  },2400);
   updateHudPoints();
 }
 
