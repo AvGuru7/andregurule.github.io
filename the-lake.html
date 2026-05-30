@@ -16,7 +16,7 @@
     --ui-text: #f0e8c0;
     --lake-deep: #0d4848;
     --lake-mid: #1a7060;
-    --controller-h: 110px;
+    --controller-h: 160px;
   }
 
   html, body {
@@ -117,67 +117,130 @@
   .menu-btn:hover { background: var(--gold); color: var(--ui-bg); }
 
   /* ── NES CONTROLLER ── */
-  #controller {
-    position: fixed;
-    bottom: 0; left: 0; right: 0;
-    height: var(--controller-h);
-    background: #1a1a2e;
-    border-top: 3px solid #2a2a4e;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 clamp(12px, 4vw, 40px);
-    z-index: 150;
-    border-radius: 6px 6px 10px 10px;
-    user-select: none;
+  #nes-controller{position:fixed;bottom:0;left:0;right:0;z-index:300;display:flex;flex-direction:column;align-items:center;gap:8px;background:#0d0a18;padding:clamp(8px,1.5vh,16px) 0 clamp(8px,1.5vh,14px);border-top:2px solid #2a2040;}
+  #controller-body{position:relative;width:clamp(388.8px,60.75vw,518.4px);height:clamp(90px,14vw,120px);background:linear-gradient(180deg,#3a3a40 0%,#2e2e34 60%,#252528 100%);border-radius:6px 6px 10px 10px;border:2px solid #555;box-shadow:0 4px 18px rgba(0,0,0,0.7),0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.08),inset 0 -2px 0 rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:space-between;padding:0 clamp(18px,4vw,28px);}
+  #controller-body::before{content:'';position:absolute;top:10px;left:12px;right:12px;height:2px;background:rgba(255,255,255,0.05);border-radius:1px;}
+  #controller-body::after{content:'';position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:clamp(60px,12vw,90px);height:6px;background:rgba(255,255,255,0.04);border-radius:3px;}
+  #dpad{position:relative;width:clamp(70px,13vw,96px);height:clamp(70px,13vw,96px);flex-shrink:0;}
+  .dpad-h,.dpad-v{position:absolute;background:linear-gradient(180deg,#4c4c56,#38383f);border:2.5px solid #1a1a20;border-radius:3px;}
+  .dpad-h{left:0;right:0;top:33.3%;bottom:33.3%;box-shadow:inset 0 2px 0 rgba(255,255,255,0.09),inset 0 -2px 0 rgba(0,0,0,0.4);}
+  .dpad-v{top:0;bottom:0;left:33.3%;right:33.3%;box-shadow:inset 2px 0 0 rgba(255,255,255,0.09),inset -2px 0 0 rgba(0,0,0,0.4);}
+  .dpad-center{position:absolute;left:33.3%;right:33.3%;top:33.3%;bottom:33.3%;background:#3c3c44;border-radius:2px;z-index:2;}
+  .dpad-btn{position:absolute;z-index:3;display:flex;align-items:center;justify-content:center;cursor:pointer;user-select:none;touch-action:none;-webkit-tap-highlight-color:transparent;}
+  #btn-up{top:0;left:33.3%;right:33.3%;height:33.3%;}
+  #btn-down{bottom:0;left:33.3%;right:33.3%;height:33.3%;}
+  #btn-left{left:0;top:33.3%;bottom:33.3%;width:33.3%;}
+  #btn-right{right:0;top:33.3%;bottom:33.3%;width:33.3%;}
+  #btn-up::after{content:'▲';}#btn-down::after{content:'▼';}
+  #btn-left::after{content:'◀';}#btn-right::after{content:'▶';}
+  .dpad-btn::after{font-size:clamp(8px,1.6vw,12px);color:rgba(255,255,255,0.3);}
+  .dpad-btn.pressing::after{color:var(--gold);text-shadow:0 0 7px var(--gold);}
+  #center-section{display:flex;flex-direction:column;align-items:center;gap:clamp(6px,1.2vw,10px);flex-shrink:0;margin-left:clamp(8px,2vw,16px);margin-right:clamp(0px,1vw,8px);}
+  #select-start-row{display:flex;gap:clamp(8px,1.8vw,14px);align-items:center;}
+  .ss-btn{width:clamp(32px,6vw,46px);height:clamp(10px,2vw,14px);background:linear-gradient(180deg,#3a3a42,#28282e);border:1.5px solid #1a1a20;border-radius:clamp(5px,1vw,7px);box-shadow:0 2px 0 rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.07);cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;display:flex;align-items:center;justify-content:center;transition:transform 0.06s,box-shadow 0.06s;}
+  .ss-btn:active,.ss-btn.pressed{transform:translateY(1px);box-shadow:none;}
+  .ss-label{font-family:'Press Start 2P',monospace;font-size:clamp(4px,0.8vw,6px);color:#666;letter-spacing:0.5px;margin-top:clamp(2px,0.5vh,4px);text-align:center;}
+  #menu-btn-wrap{display:flex;flex-direction:column;align-items:center;}
+  #btnMenu{width:clamp(36px,6.5vw,50px);height:clamp(36px,6.5vw,50px);border-radius:50%;background:radial-gradient(circle at 42% 38%,#4a4a54,#26262e);border:2.5px solid #1a1a20;box-shadow:0 3px 0 rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.1),0 0 0 3px rgba(240,192,64,0.15);cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;display:flex;align-items:center;justify-content:center;transition:transform 0.06s,box-shadow 0.06s;}
+  #btnMenu:hover{box-shadow:0 3px 0 rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.1),0 0 0 4px rgba(240,192,64,0.35);}
+  #btnMenu:active,#btnMenu.pressed{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,0.55);}
+  #menu-btn-icon{font-family:'Press Start 2P',monospace;font-size:clamp(5px,0.9vw,7px);color:rgba(240,192,64,0.85);letter-spacing:0.5px;line-height:1.3;text-align:center;}
+  #menu-btn-label{font-family:'Press Start 2P',monospace;font-size:clamp(4px,0.7vw,5px);color:#c8982a;margin-top:4px;letter-spacing:0.5px;}
+  #ab-buttons{display:flex;gap:clamp(8px,1.8vw,14px);align-items:center;flex-shrink:0;transform:rotate(-18deg);}
+  .ab-btn{width:clamp(36px,6.5vw,50px);height:clamp(36px,6.5vw,50px);border-radius:50%;border:2.5px solid #1a1a20;display:flex;align-items:center;justify-content:center;font-family:'Press Start 2P',monospace;font-size:clamp(9px,1.6vw,12px);cursor:pointer;touch-action:manipulation;user-select:none;box-shadow:0 4px 0 rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.15);transition:transform 0.06s,box-shadow 0.06s;-webkit-tap-highlight-color:transparent;}
+  .ab-btn:active,.ab-btn.pressed{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,0.55);}
+  #btnB{background:radial-gradient(circle at 40% 35%,#cc4466,#aa2244);color:rgba(255,255,255,0.85);}
+  #btnA{background:radial-gradient(circle at 40% 35%,#cc4466,#aa2244);color:rgba(255,255,255,0.85);}
+  .ab-label-row{display:flex;gap:clamp(8px,1.8vw,14px);transform:rotate(-18deg);margin-top:clamp(2px,0.5vh,4px);}
+  .ab-label{font-family:'Press Start 2P',monospace;font-size:clamp(4px,0.7vw,5px);color:#555;width:clamp(36px,6.5vw,50px);text-align:center;}
+  #ab-col{display:flex;flex-direction:column;align-items:center;flex-shrink:0;}
+  #ctrl-hint{font-family:'VT323',monospace;font-size:clamp(10px,1.8vw,13px);color:var(--gold);text-align:center;opacity:0.75;}
+
+  /* ── INVENTORY OVERLAY ── */
+  #inventory-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(10,8,24,0.95);
+    backdrop-filter: blur(4px);
+    z-index: 400;
+    align-items: flex-start;
+    justify-content: center;
+    padding: clamp(12px,2vh,24px) clamp(8px,2vw,16px);
+    overflow-y: auto;
   }
-  .dpad {
+  #inventory-overlay.open { display: flex; }
+  #inventory-box {
+    background: var(--ui-bg);
+    border: 4px solid var(--gold);
+    padding: clamp(16px,3vw,28px) clamp(18px,3.5vw,32px);
+    width: min(700px, 96vw);
+    position: relative;
+  }
+  #inventory-box::before {
+    content: '';
+    position: absolute; inset: 3px;
+    border: 1px solid rgba(240,192,64,0.22);
+    pointer-events: none;
+  }
+  #inventory-title {
+    font-size: clamp(9px,1.6vw,13px);
+    color: var(--gold);
+    text-align: center;
+    margin-bottom: clamp(6px,1.2vh,12px);
+    letter-spacing: 2px;
+  }
+  #inventory-subtitle {
+    font-family: 'VT323', monospace;
+    font-size: clamp(14px,2.5vw,18px);
+    color: #a09070;
+    text-align: center;
+    margin-bottom: clamp(12px,2vh,20px);
+    border-bottom: 1px solid rgba(240,192,64,0.18);
+    padding-bottom: clamp(8px,1.5vh,14px);
+  }
+  #inventory-points-banner {
+    font-family: 'VT323', monospace;
+    font-size: clamp(16px,3vw,22px);
+    color: var(--gold);
+    text-align: center;
+    margin-bottom: clamp(10px,1.8vh,18px);
+  }
+  .inv-category {
+    font-size: clamp(6px,1vw,8px);
+    color: #a09070;
+    letter-spacing: 2px;
+    margin: clamp(10px,1.8vh,16px) 0 clamp(6px,1vh,10px);
+    border-bottom: 1px solid rgba(240,192,64,0.12);
+    padding-bottom: 4px;
+  }
+  .inv-grid {
     display: grid;
-    grid-template-columns: repeat(3, 32px);
-    grid-template-rows: repeat(3, 32px);
-    gap: 2px;
+    grid-template-columns: repeat(auto-fill, minmax(clamp(140px,22vw,200px), 1fr));
+    gap: clamp(6px,1.2vw,12px);
+    margin-bottom: clamp(8px,1.5vh,14px);
   }
-  .dpad-btn {
-    background: #2c2c50; border: none; border-radius: 3px;
-    cursor: pointer; display: flex; align-items: center; justify-content: center;
-    color: var(--ui-text); font-size: 14px;
-    transition: background 0.08s;
-    -webkit-tap-highlight-color: transparent;
+  .inv-item {
+    border: 2px solid rgba(240,192,64,0.18);
+    padding: clamp(8px,1.4vw,12px);
+    display: flex; flex-direction: column; gap: 4px;
+    position: relative;
   }
-  .dpad-btn:active, .dpad-btn.pressed { background: #4a4a80; }
-  .dpad-center { background: #222240; cursor: default; }
-  .center-group {
-    display: flex; flex-direction: column; align-items: center; gap: 6px;
+  .inv-item.obtained { border-color: rgba(240,192,64,0.6); }
+  .inv-item.locked   { opacity: 0.45; }
+  .inv-icon     { font-size: clamp(18px,3.5vw,26px); line-height: 1; }
+  .inv-name     { font-size: clamp(5px,0.9vw,7px); color: var(--ui-text); line-height: 1.4; }
+  .inv-name.locked-name { color: #a09070; }
+  .inv-location { font-family: 'VT323', monospace; font-size: clamp(11px,2vw,14px); color: #a09070; }
+  .inv-pts      { font-size: clamp(5px,0.85vw,7px); color: var(--gold); margin-top: 2px; }
+  .inv-check    { position: absolute; top: 6px; right: 8px; font-size: clamp(10px,1.8vw,14px); color: #40c060; }
+  .inv-lock     { position: absolute; top: 6px; right: 8px; font-size: clamp(9px,1.6vw,12px); color: #554433; }
+  #inventory-close-hint {
+    text-align: center;
+    margin-top: clamp(12px,2vh,20px);
+    font-size: clamp(5px,0.8vw,7px);
+    color: #a09070;
   }
-  .menu-circle {
-    width: 46px; height: 46px; border-radius: 50%;
-    background: #111128; border: 3px solid var(--gold);
-    box-shadow: 0 0 8px var(--gold); cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Press Start 2P', monospace; font-size: 7px; color: var(--gold);
-    -webkit-tap-highlight-color: transparent;
-  }
-  .menu-circle:active { box-shadow: 0 0 18px var(--gold); }
-  .menu-label-below { font-family: 'Press Start 2P', monospace; font-size: 7px; color: var(--gold); }
-  .small-btns { display: flex; gap: 10px; margin-top: 2px; }
-  .oval-btn {
-    background: #2c2c50; border: 2px solid #3a3a60; border-radius: 20px;
-    padding: 4px 10px; font-family: 'Press Start 2P', monospace;
-    font-size: 6px; color: #8888bb; cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .oval-btn:active { background: #4a4a80; }
-  .ab-group {
-    display: flex; gap: 10px; align-items: flex-end; transform: rotate(-18deg);
-  }
-  .ab-btn {
-    width: 38px; height: 38px; border-radius: 50%; background: #c0202a;
-    border: none; font-family: 'Press Start 2P', monospace; font-size: 9px; color: #fff;
-    cursor: pointer; box-shadow: 0 3px 0 #7a0010;
-    transition: box-shadow 0.08s, transform 0.08s;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .ab-btn:active { box-shadow: none; transform: translateY(2px); }
+  .oval-btn.pressed { background: #4a4a80; }
 </style>
 </head>
 <body>
@@ -200,30 +263,43 @@
 
 <canvas id="gameCanvas"></canvas>
 
-<div id="controller">
-  <div class="dpad">
-    <div></div>
-    <button class="dpad-btn" id="btn-up">▲</button>
-    <div></div>
-    <button class="dpad-btn" id="btn-left">◀</button>
-    <div class="dpad-center"></div>
-    <button class="dpad-btn" id="btn-right">▶</button>
-    <div></div>
-    <button class="dpad-btn" id="btn-down">▼</button>
-    <div></div>
-  </div>
-  <div class="center-group">
-    <button class="menu-circle" id="btnMenu">MENU</button>
-    <div class="menu-label-below">MENU</div>
-    <div class="small-btns">
-      <button class="oval-btn" id="btnSelect">SELECT</button>
-      <button class="oval-btn" id="btnStart">START</button>
+<div id="nes-controller">
+  <div id="controller-body">
+    <div id="dpad">
+      <div class="dpad-h"></div><div class="dpad-v"></div><div class="dpad-center"></div>
+      <div class="dpad-btn" id="btn-up"    data-dir="up"></div>
+      <div class="dpad-btn" id="btn-down"  data-dir="down"></div>
+      <div class="dpad-btn" id="btn-left"  data-dir="left"></div>
+      <div class="dpad-btn" id="btn-right" data-dir="right"></div>
+    </div>
+    <div id="center-section">
+      <div id="menu-btn-wrap">
+        <div id="btnMenu" onclick="toggleMenu()"><div id="menu-btn-icon">MENU</div></div>
+        <div id="menu-btn-label">MENU</div>
+      </div>
+      <div id="select-start-row">
+        <div style="display:flex;flex-direction:column;align-items:center;">
+          <div class="ss-btn" id="btnSelect"></div>
+          <div class="ss-label">SELECT</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;">
+          <div class="ss-btn" id="btnStart"></div>
+          <div class="ss-label">START</div>
+        </div>
+      </div>
+    </div>
+    <div id="ab-col">
+      <div id="ab-buttons">
+        <div class="ab-btn" id="btnB">B</div>
+        <div class="ab-btn" id="btnA">A</div>
+      </div>
+      <div class="ab-label-row">
+        <div class="ab-label">BACK</div>
+        <div class="ab-label">INTERACT</div>
+      </div>
     </div>
   </div>
-  <div class="ab-group">
-    <button class="ab-btn" id="btnB">B</button>
-    <button class="ab-btn" id="btnA">A</button>
-  </div>
+  <div id="ctrl-hint">D-PAD · A=INTERACT · B=CLOSE · MENU=NAV · SELECT=INVENTORY</div>
 </div>
 
 <script>
@@ -461,23 +537,33 @@ document.addEventListener('keydown', e => {
   keys[e.key] = true;
   if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) e.preventDefault();
   if (e.key === 'm' || e.key === 'M') toggleMenu();
-  if (e.key === 'Escape' || e.key === 'b' || e.key === 'B') { closeDialog(); closeMenu(); }
+  if (e.key === 'i' || e.key === 'I') toggleInventory();
+  if (e.key === 'Escape' || e.key === 'b' || e.key === 'B') { if (inventoryOpen) { closeInventory(); return; } closeDialog(); closeMenu(); }
   if (e.key === 'Enter' || e.key === ' ' || e.key === 'a' || e.key === 'A') handleInteract();
 });
 document.addEventListener('keyup', e => { keys[e.key] = false; });
 document.addEventListener('mouseup', () => { Object.keys(keys).forEach(k => { keys[k] = false; }); });
 
-const dpadMap = { 'btn-up':'ArrowUp','btn-down':'ArrowDown','btn-left':'ArrowLeft','btn-right':'ArrowRight' };
-Object.entries(dpadMap).forEach(([id, key]) => {
-  const btn = document.getElementById(id);
-  if (!btn) return;
-  btn.addEventListener('pointerdown', () => { keys[key] = true; });
-  btn.addEventListener('pointerup',   () => { keys[key] = false; });
-  btn.addEventListener('pointerleave',() => { keys[key] = false; });
+const dirKeyMap = { up:'ArrowUp', down:'ArrowDown', left:'ArrowLeft', right:'ArrowRight' };
+document.querySelectorAll('.dpad-btn').forEach(btn => {
+  const dir = btn.dataset.dir;
+  if (!dir) return;
+  const key = dirKeyMap[dir];
+  btn.addEventListener('pointerdown',  e => { e.preventDefault(); keys[key] = true;  btn.classList.add('pressing'); });
+  btn.addEventListener('pointerup',    e => { e.preventDefault(); keys[key] = false; btn.classList.remove('pressing'); });
+  btn.addEventListener('pointerleave', e => { keys[key] = false; btn.classList.remove('pressing'); });
+  btn.addEventListener('touchstart',   e => { e.preventDefault(); keys[key] = true;  btn.classList.add('pressing'); }, { passive: false });
+  btn.addEventListener('touchend',     e => { e.preventDefault(); keys[key] = false; btn.classList.remove('pressing'); }, { passive: false });
+});
+document.addEventListener('mouseup', () => {
+  document.querySelectorAll('.dpad-btn').forEach(btn => {
+    if (btn.dataset.dir) { keys[dirKeyMap[btn.dataset.dir]] = false; btn.classList.remove('pressing'); }
+  });
 });
 document.getElementById('btnA').addEventListener('click', handleInteract);
-document.getElementById('btnB').addEventListener('click', () => { closeDialog(); closeMenu(); });
-document.getElementById('btnMenu').addEventListener('click', toggleMenu);
+document.getElementById('btnSelect').addEventListener('click', toggleInventory);
+document.getElementById('btnB').addEventListener('click', () => { if (inventoryOpen) { closeInventory(); return; } closeDialog(); closeMenu(); });
+// btnMenu onclick is inline; also wire here for safety
 document.getElementById('menuClose').addEventListener('click', closeMenu);
 document.getElementById('btnStart').addEventListener('click', handleInteract);
 canvas.addEventListener('click', handleInteract);
@@ -549,7 +635,7 @@ function handleInteract() {
 //  UPDATE
 // ─────────────────────────────────────────────
 function update(dt) {
-  if (menuOpen || activeDialog) return;
+  if (menuOpen || activeDialog || inventoryOpen) return;
 
   let dx = 0, dy = 0;
   if (keys['ArrowUp']    || keys['w']) { dy = -1; playerDir = 'up'; }
@@ -1260,6 +1346,75 @@ function draw() {
   ctx.restore();
 }
 
+
+// ─────────────────────────────────────────────
+//  INVENTORY
+// ─────────────────────────────────────────────
+const ITEMS = [
+  {id:'holy-grail',    icon:'🏆', label:'Holy Grail',         category:'quest',       points:50, page:'Castle Anthrax'},
+  {id:'skeleton-key',  icon:'🔑', label:'Skeleton Key',        category:'key',         points:30, page:'World Map'},
+  {id:'sword',         icon:'⚔️', label:'Sword',               category:'quest',       points:25, page:'Erebor Mountain'},
+  {id:'cert-badge',    icon:'📜', label:'Certification Badge', category:'collectible', points:20, page:'Hall of Records'},
+  {id:'first-edition', icon:'📖', label:'First Edition',       category:'collectible', points:20, page:'Scroll Library'},
+  {id:'fishing-rod',   icon:'🎣', label:'Fishing Rod',         category:'collectible', points:15, page:'Lake Tahoe'},
+  {id:'blue-kayak',    icon:'🚣', label:'Blue Kayak',          category:'quest',       points:15, page:'Castle Anthrax'},
+  {id:'artwork',       icon:'🖼️', label:'Artwork',             category:'collectible', points:10, page:'Town Square'},
+  {id:'bread',         icon:'🍞', label:'Bread',               category:'collectible', points:10, page:'Town Square'},
+  {id:'old-compass',   icon:'🧭', label:'Old Compass',         category:'collectible', points:10, page:'The Lake'},
+  {id:'sapphire',      icon:'💎', label:'Sapphire',            category:'key',         points:75, page:'World Map'},
+  {id:'ruby',          icon:'🔴', label:'Ruby',                category:'key',         points:75, page:'World Map'},
+];
+
+let inventoryOpen = false;
+function toggleInventory() { inventoryOpen ? closeInventory() : openInventory(); }
+function openInventory() {
+  if (activeDialog) closeDialog();
+  if (menuOpen) closeMenu();
+  inventoryOpen = true;
+  document.getElementById('btnSelect').classList.add('pressed');
+  renderInventory();
+  document.getElementById('inventory-overlay').classList.add('open');
+}
+function closeInventory() {
+  inventoryOpen = false;
+  document.getElementById('inventory-overlay').classList.remove('open');
+  document.getElementById('btnSelect').classList.remove('pressed');
+}
+function renderInventory() {
+  const total = ITEMS.reduce((s, i) => s + i.points, 0);
+  document.getElementById('inventory-points-banner').textContent =
+    'Points: ' + GameState.points + ' / ' + total;
+  const list = document.getElementById('inventory-list');
+  list.innerHTML = '';
+  [{key:'quest',label:'QUEST ITEMS'},{key:'key',label:'KEY ITEMS'},{key:'collectible',label:'COLLECTIBLES'}]
+    .forEach(cat => {
+      const catItems = ITEMS.filter(i => i.category === cat.key);
+      if (!catItems.length) return;
+      const h = document.createElement('div');
+      h.className = 'inv-category'; h.textContent = cat.label; list.appendChild(h);
+      const grid = document.createElement('div'); grid.className = 'inv-grid';
+      catItems.forEach(item => {
+        const got = GameState.hasItem(item.id);
+        const card = document.createElement('div');
+        card.className = 'inv-item ' + (got ? 'obtained' : 'locked');
+        const icon = document.createElement('div'); icon.className = 'inv-icon';
+        icon.textContent = got ? item.icon : '❓';
+        const name = document.createElement('div');
+        name.className = 'inv-name' + (got ? '' : ' locked-name');
+        name.textContent = got ? item.label : '???';
+        const loc = document.createElement('div'); loc.className = 'inv-location';
+        loc.textContent = item.page;
+        const pts = document.createElement('div'); pts.className = 'inv-pts';
+        pts.textContent = item.points + ' pts';
+        const badge = document.createElement('div');
+        badge.className = got ? 'inv-check' : 'inv-lock';
+        badge.textContent = got ? '✓' : '🔒';
+        card.append(icon, name, loc, pts, badge);
+        grid.appendChild(card);
+      });
+      list.appendChild(grid);
+    });
+}
 // ─────────────────────────────────────────────
 //  LOOP
 // ─────────────────────────────────────────────
@@ -1275,5 +1430,20 @@ requestAnimationFrame(loop);
 
 GameState.visitZone('the-lake', 10);
 </script>
+
+<div id="inventory-overlay">
+  <div id="inventory-box">
+    <div id="inventory-title">★ INVENTORY ★</div>
+    <div id="inventory-subtitle">Items collected on your journey</div>
+    <div id="inventory-points-banner"></div>
+    <div id="inventory-list"></div>
+    <div id="inventory-close-hint">
+      <span style="background:#222;border:1.5px solid #555;color:#aaa;padding:1px 5px;border-radius:2px;">SELECT</span>
+      or
+      <span style="background:#222;border:1.5px solid #555;color:#aaa;padding:1px 5px;border-radius:2px;">B</span>
+      to close
+    </div>
+  </div>
+</div>
 </body>
 </html>
