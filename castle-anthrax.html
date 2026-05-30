@@ -346,7 +346,11 @@ const GameState={
   hasItem(id){return this.items.includes(id);},
   consumeItem(id){this.items=this.items.filter(i=>i!==id);},
   unlock(key){if(!this.unlocked.includes(key))this.unlocked.push(key);},
-  withState(href){return href+(href.includes('?')?'&':'?')+new URLSearchParams({points:this.points,visited:this.visited.join(','),unlocked:this.unlocked.join(','),items:this.items.join(',')}).toString();}
+  withState(href){
+    const [base,hash]=href.split('#');
+    const sep=base.includes('?')?'&':'?';
+    return base+sep+new URLSearchParams({points:this.points,visited:this.visited.join(','),unlocked:this.unlocked.join(','),items:this.items.join(',')}).toString()+(hash?'#'+hash:'');
+  }
 };
 // Restore treasury door state from URL params
 treasuryOpen=GameState.unlocked.includes('skeleton-key');

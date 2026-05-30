@@ -442,7 +442,11 @@ const GameState = {
       unlocked:this.unlocked.join(','),items:this.items.join(',')
     }).toString();
   },
-  withState(href){return href+(href.includes('?')?'&':'?')+this.toParams();}
+  withState(href){
+    const [base,hash]=href.split('#');
+    const sep=base.includes('?')?'&':'?';
+    return base+sep+this.toParams()+(hash?'#'+hash:'');
+  }
 };
 
 // Mark this zone visited on arrival
