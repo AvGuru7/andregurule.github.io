@@ -156,7 +156,7 @@ nav a.active { color: var(--gold-glow); border-bottom: 1px solid var(--gold); pa
 }
 .page-subtitle {
   font-family: 'Crimson Pro', serif;
-  font-size: clamp(30px, 4vw, 38px);
+  font-size: clamp(15px, 2vw, 19px);
   color: var(--stone);
   font-style: italic;
   margin-bottom: 0;
@@ -805,7 +805,7 @@ footer a:hover { color: var(--gold-glow); }
 <!-- ── HEADER ── -->
 <header>
   <nav>
-    <a href="index.html#spawn=projects">World Map</a>
+    <a href="world.html#spawn=projects">World Map</a>
     <a href="andregurule-library.html" class="active">Library</a>
   </nav>
 </header>
@@ -940,7 +940,7 @@ footer a:hover { color: var(--gold-glow); }
 
 <!-- ── FOOTER ── -->
 <footer>
-  <p><a href="index.html#spawn=projects">← RETURN TO WORLD MAP</a> &nbsp;·&nbsp; ANDRE GURULE &nbsp;·&nbsp; THE LIBRARY</p>
+  <p><a href="world.html#spawn=projects">← RETURN TO WORLD MAP</a> &nbsp;·&nbsp; ANDRE GURULE &nbsp;·&nbsp; THE LIBRARY</p>
 </footer>
 
 <script>
@@ -979,8 +979,11 @@ const GameState = (() => {
 
 // Rewrite nav links with state
 document.querySelectorAll('nav a, footer a').forEach(a => {
-  const href = a.getAttribute('href');
-  if (href && !href.startsWith('http')) a.href = GameState.withState(href);
+  let href = a.getAttribute('href');
+  if (!href || href.startsWith('http')) return;
+  // Guard: index.html is the splash screen — world map links must point to world.html
+  href = href.replace(/^index\.html/, 'world.html');
+  a.href = GameState.withState(href);
 });
 GameState.visitZone('blog', 10);
 
