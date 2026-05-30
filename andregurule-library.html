@@ -805,7 +805,7 @@ footer a:hover { color: var(--gold-glow); }
 <!-- ── HEADER ── -->
 <header>
   <nav>
-    <a href="world.html#spawn=projects">World Map</a>
+    <a href="world.html#spawn=library">World Map</a>
     <a href="andregurule-library.html" class="active">Library</a>
   </nav>
 </header>
@@ -940,7 +940,7 @@ footer a:hover { color: var(--gold-glow); }
 
 <!-- ── FOOTER ── -->
 <footer>
-  <p><a href="world.html#spawn=projects">← RETURN TO WORLD MAP</a> &nbsp;·&nbsp; ANDRE GURULE &nbsp;·&nbsp; THE LIBRARY</p>
+  <p><a href="world.html#spawn=library">← RETURN TO WORLD MAP</a> &nbsp;·&nbsp; ANDRE GURULE &nbsp;·&nbsp; THE LIBRARY</p>
 </footer>
 
 <script>
@@ -983,6 +983,7 @@ document.querySelectorAll('nav a, footer a').forEach(a => {
   if (!href || href.startsWith('http')) return;
   // Guard: index.html is the splash screen — world map links must point to world.html
   href = href.replace(/^index\.html/, 'world.html');
+  href = href.replace('spawn=projects', 'spawn=library');
   a.href = GameState.withState(href);
 });
 GameState.visitZone('blog', 10);
