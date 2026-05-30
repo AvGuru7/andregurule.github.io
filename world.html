@@ -1857,15 +1857,15 @@ function drawGreekLibrary(wx,wy,zone){
 
 function drawBuilding(wx,wy,zone){
   // Hall of Records gets the special NYPL treatment
-  if(zone.id==='projects'){drawNYPLBuilding(wx,wy,zone);return;}
+  if(zone.id==='hall-of-records'){drawNYPLBuilding(wx,wy,zone);return;}
   // Castle Anthrax gets the castle treatment
-  if(zone.id==='story'){drawCastleBuilding(wx,wy,zone);return;}
+  if(zone.id==='castle-anthrax'){drawCastleBuilding(wx,wy,zone);return;}
   // Erebor Mountain gets the mountain treatment
-  if(zone.id==='hobbies'){drawMountainBuilding(wx,wy,zone);return;}
+  if(zone.id==='erebor-mountain'){drawMountainBuilding(wx,wy,zone);return;}
   // Town Square gets the market treatment
-  if(zone.id==='contact'){drawTownSquare(wx,wy,zone);return;}
+  if(zone.id==='town-square'){drawTownSquare(wx,wy,zone);return;}
   // Library gets the Greek temple treatment
-  if(zone.id==='blog'){drawGreekLibrary(wx,wy,zone);return;}
+  if(zone.id==='library'){drawGreekLibrary(wx,wy,zone);return;}
 
   const bx=zone.x*TILE-wx,by=zone.y*TILE-wy,bw=zone.w*TILE,bh=zone.h*TILE;
   ctx.fillStyle='rgba(0,0,0,0.22)';ctx.fillRect(bx+6,by+bh-6,bw,12);
