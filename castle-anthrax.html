@@ -1118,21 +1118,22 @@ function openMenu(){
 function closeMenu(){menuOpen=false;document.getElementById('menu-overlay').style.display='none';document.getElementById('menu-btn').classList.remove('pressed');}
 
 // ── INVENTORY ─────────────────────────────────────────────────────────────────
-const ALL_ITEMS=[
-  {id:'holy-grail',   icon:'🏆', name:'Holy Grail',          location:'Castle Anthrax', cat:'Quest',       pts:50},
-  {id:'skeleton-key', icon:'🔑', name:'Skeleton Key',         location:'World Map',      cat:'Key',         pts:30},
-  {id:'sword',        icon:'⚔️', name:'Sword',                location:'Erebor Mountain',cat:'Quest',       pts:25},
-  {id:'cert-badge',   icon:'📜', name:'Certification Badge',  location:'Hall of Records',cat:'Collectible', pts:20},
-  {id:'first-edition',icon:'📖', name:'First Edition',        location:'Scroll Library', cat:'Collectible', pts:20},
-  {id:'fishing-rod',  icon:'🎣', name:'Fishing Rod',          location:'Lake Tahoe',     cat:'Collectible', pts:15},
-  {id:'blue-kayak',   icon:'🚣', name:'Blue Kayak',           location:'Castle Anthrax', cat:'Quest',       pts:15},
-  {id:'artwork',      icon:'🖼️', name:'Artwork',              location:'Town Square',    cat:'Collectible', pts:10},
-  {id:'bread',        icon:'🍞', name:'Bread',                location:'Town Square',    cat:'Collectible', pts:10},
-  {id:'old-compass',  icon:'🧭', name:'Old Compass',          location:'The Lake',       cat:'Collectible', pts:10},
-  {id:'sapphire',     icon:'💎', name:'Sapphire',             location:'World Map',      cat:'Key',         pts:75},
-  {id:'ruby',         icon:'🔴', name:'Ruby',                 location:'World Map',      cat:'Key',         pts:75},
+const ITEMS=[
+  {id:'holy-grail',    icon:'🏆', label:'Holy Grail',          category:'quest',       points:50, page:'Castle Anthrax'},
+  {id:'skeleton-key',  icon:'🔑', label:'Skeleton Key',         category:'key',         points:30, page:'World Map'},
+  {id:'sword',         icon:'⚔️', label:'Sword',                category:'quest',       points:25, page:'Erebor Mountain'},
+  {id:'cert-badge',    icon:'📜', label:'Certification Badge',  category:'collectible', points:20, page:'Hall of Records'},
+  {id:'first-edition', icon:'📖', label:'First Edition',        category:'collectible', points:20, page:'Scroll Library'},
+  {id:'fishing-rod',   icon:'🎣', label:'Fishing Rod',          category:'collectible', points:15, page:'Lake Tahoe'},
+  {id:'tahoe-fish',    icon:'🐟', label:'Tahoe Trout',          category:'collectible', points:25, page:'Lake Tahoe'},
+  {id:'blue-kayak',    icon:'🚣', label:'Blue Kayak',           category:'quest',       points:15, page:'Castle Anthrax'},
+  {id:'artwork',       icon:'🖼️', label:'Artwork',              category:'collectible', points:10, page:'Town Square'},
+  {id:'bread',         icon:'🍞', label:'Bread',                category:'collectible', points:10, page:'Town Square'},
+  {id:'old-compass',   icon:'🧭', label:'Old Compass',          category:'collectible', points:10, page:'The Lake'},
+  {id:'sapphire',      icon:'💎', label:'Sapphire',             category:'key',         points:75, page:'World Map'},
+  {id:'ruby',          icon:'🔴', label:'Ruby',                 category:'key',         points:75, page:'World Map'},
 ];
-const CAT_ORDER=['Quest','Key','Collectible'];
+const CAT_ORDER=[{key:'quest',label:'QUEST ITEMS'},{key:'key',label:'KEY ITEMS'},{key:'collectible',label:'COLLECTIBLES'}];
 let inventoryOpen=false;
 
 function openInventory(){
@@ -1140,14 +1141,16 @@ function openInventory(){
   if(menuOpen)closeMenu();
   inventoryOpen=true;
   // Render
-  document.getElementById('inv-points-banner').textContent=`Points: ${GameState.points} / 355`;
+  const total=ITEMS.reduce((s,i)=>s+i.points,0);
+  document.getElementById('inv-points-banner').textContent=`Points: ${GameState.points} / ${total}`;
   const list=document.getElementById('inv-items-list');
   list.innerHTML='';
   CAT_ORDER.forEach(cat=>{
-    const catItems=ALL_ITEMS.filter(i=>i.cat===cat);
+    const catItems=ITEMS.filter(i=>i.category===cat.key);
+    if(!catItems.length)return;
     const hdr=document.createElement('div');
     hdr.style.cssText='font-size:clamp(6px,1vw,8px);color:var(--gold2);letter-spacing:1px;margin:12px 0 6px;border-bottom:1px solid rgba(240,192,64,0.2);padding-bottom:4px;';
-    hdr.textContent=cat.toUpperCase()+' ITEMS';
+    hdr.textContent=cat.label;
     list.appendChild(hdr);
     catItems.forEach(item=>{
       const has=GameState.hasItem(item.id);
@@ -1156,8 +1159,8 @@ function openInventory(){
       card.innerHTML=`
         <span style="font-size:18px;width:24px;text-align:center;">${has?item.icon:'❓'}</span>
         <div style="flex:1;">
-          <div style="font-size:clamp(6px,1vw,8px);color:${has?'var(--ui-text)':'var(--ui-dim)'};">${has?item.name:'???'}</div>
-          <div style="font-family:'VT323',monospace;font-size:clamp(12px,2vw,15px);color:var(--ui-dim);margin-top:2px;">${has?item.location:'Unknown location'} · ${item.pts} pts</div>
+          <div style="font-size:clamp(6px,1vw,8px);color:${has?'var(--ui-text)':'var(--ui-dim)'};">${has?item.label:'???'}</div>
+          <div style="font-family:'VT323',monospace;font-size:clamp(12px,2vw,15px);color:var(--ui-dim);margin-top:2px;">${has?item.page:'Unknown location'} · ${item.points} pts</div>
         </div>
         <span style="font-size:14px;">${has?'✓':'🔒'}</span>`;
       list.appendChild(card);
