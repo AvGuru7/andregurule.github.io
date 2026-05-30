@@ -199,7 +199,7 @@
 <!-- Menu Overlay -->
 <div id="menuOverlay">
   <h2>⚓ LAKE TAHOE</h2>
-  <a class="menu-btn" id="menuWorldLink" href="index.html#spawn=lake-tahoe">🗺 WORLD MAP</a>
+  <a class="menu-btn" id="menuWorldLink" href="world.html#spawn=lake-tahoe">🗺 WORLD MAP</a>
   <a class="menu-btn" href="andregurule-library.html">📚 HALL OF RECORDS</a>
   <a class="menu-btn" href="castle-anthrax.html">🏰 CASTLE ANTHRAX</a>
   <button class="menu-btn" id="menuClose">✕ CLOSE</button>
@@ -622,7 +622,7 @@ function handleInteract() {
   // Check boat landing exit
   const lp = lakePoint(LANDING.nx, LANDING.ny);
   if (Math.hypot(playerX - lp.x, playerY - lp.y) < LANDING.r + 24) {
-    navigate(GameState.withState('index.html#spawn=lake-tahoe'));
+    navigate(GameState.withState('world.html#spawn=lake-tahoe'));
     return;
   }
 

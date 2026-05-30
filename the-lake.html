@@ -255,7 +255,7 @@
 
 <div id="menuOverlay">
   <h2>🌊 THE LAKE</h2>
-  <a class="menu-btn" id="menuWorldLink" href="index.html#spawn=the-lake">🗺 WORLD MAP</a>
+  <a class="menu-btn" id="menuWorldLink" href="world.html#spawn=the-lake">🗺 WORLD MAP</a>
   <a class="menu-btn" href="andregurule-library.html">📚 HALL OF RECORDS</a>
   <a class="menu-btn" href="castle-anthrax.html">🏰 CASTLE ANTHRAX</a>
   <button class="menu-btn" id="menuClose">✕ CLOSE</button>
@@ -619,7 +619,7 @@ function handleInteract() {
   // Dock exit
   const dp = lakePoint(DOCK.nx, DOCK.ny);
   if (Math.hypot(playerX - dp.x, playerY - dp.y) < DOCK.r + 22) {
-    window.location.href = GameState.withState('index.html#spawn=the-lake');
+    window.location.href = GameState.withState('world.html#spawn=the-lake');
     return;
   }
   // NPCs
