@@ -327,9 +327,10 @@ const GameState = (() => {
   const visitZone  = (id, pts) => { if (!visited.includes(id)) { visited.push(id); points += pts; } };
   const hasItem    = id => items.includes(id);
   const collectItem = (id, pts = 0) => { if (items.includes(id)) return false; items.push(id); points += pts; return true; };
+  const consumeItem = id => { items = items.filter(x => x !== id); };
 
   return { get points(){ return points; }, visited, unlocked, items,
-           toParams, withState, visitZone, hasItem, collectItem };
+           toParams, withState, visitZone, hasItem, collectItem, consumeItem };
 })();
 
 document.querySelectorAll('#menuOverlay a.menu-btn').forEach(a => {
@@ -436,14 +437,7 @@ const NPCS = [
     id: 'duck',
     label: '🦆 DR. MALLARD',
     nx: 0.50, ny: 0.38,
-    dialog: [
-      "QUACK! Oh — pardon me. Dr. Mallard, at your service.",
-      "I hold a doctorate in Aquatic Loitering from the University of Central Park.",
-      "I've been studying these waters for eleven years.",
-      "The humans are... tolerable. They bring bread.",
-      "Andre once gave me half a pretzel. I consider him a colleague.",
-      "Now if you'll excuse me — I have important floating to attend to. QUACK."
-    ]
+    dialog: [] // built dynamically — see getDuckDialog()
   },
   {
     id: 'raquel',
@@ -538,7 +532,17 @@ document.addEventListener('keydown', e => {
   if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) e.preventDefault();
   if (e.key === 'm' || e.key === 'M') toggleMenu();
   if (e.key === 'i' || e.key === 'I') toggleInventory();
-  if (e.key === 'Escape' || e.key === 'b' || e.key === 'B') { if (inventoryOpen) { closeInventory(); return; } closeDialog(); closeMenu(); }
+  if (e.key === 'Escape' || e.key === 'b' || e.key === 'B') {
+    if (inventoryOpen) { closeInventory(); return; }
+    if (activeDialog && activeDialog.npcId === 'duck' && currentDialogMode === 'trade'
+        && activeDialog.pageIndex >= dialogPages.length - 1) {
+      npcDialogIdx['duck'] = 0;
+      closeDialog();
+      showFlashDialog('🦆 DR. MALLARD', "Hmph. Your loss. QUACK.");
+      return;
+    }
+    closeDialog(); closeMenu();
+  }
   if (e.key === 'Enter' || e.key === ' ' || e.key === 'a' || e.key === 'A') handleInteract();
 });
 document.addEventListener('keyup', e => { keys[e.key] = false; });
@@ -562,7 +566,17 @@ document.addEventListener('mouseup', () => {
 });
 document.getElementById('btnA').addEventListener('click', handleInteract);
 document.getElementById('btnSelect').addEventListener('click', toggleInventory);
-document.getElementById('btnB').addEventListener('click', () => { if (inventoryOpen) { closeInventory(); return; } closeDialog(); closeMenu(); });
+document.getElementById('btnB').addEventListener('click', () => {
+  if (inventoryOpen) { closeInventory(); return; }
+  if (activeDialog && activeDialog.npcId === 'duck' && currentDialogMode === 'trade'
+      && activeDialog.pageIndex >= dialogPages.length - 1) {
+    npcDialogIdx['duck'] = 0;
+    closeDialog();
+    showFlashDialog('🦆 DR. MALLARD', "Hmph. Your loss. QUACK.");
+    return;
+  }
+  closeDialog(); closeMenu();
+});
 // btnMenu onclick is inline; also wire here for safety
 document.getElementById('menuClose').addEventListener('click', closeMenu);
 document.getElementById('btnStart').addEventListener('click', handleInteract);
@@ -582,32 +596,133 @@ function openMenu() {
 }
 function closeMenu() { menuOpen = false; document.getElementById('menuOverlay').classList.remove('open'); }
 
-function openDialog(npcId, pages) {
+// ─────────────────────────────────────────────
+//  DR. MALLARD DIALOG — dynamic based on state
+// ─────────────────────────────────────────────
+function getDuckDialog() {
+  const hasCompass = GameState.hasItem('old-compass');
+  const hasBread   = GameState.hasItem('bread');
+
+  if (hasCompass) {
+    return {
+      mode: 'has-compass',
+      pages: [
+        "QUACK! Ah, you again.",
+        "I trust the compass is treating you well.",
+        "Mario and Luigi said it points toward something extraordinary.",
+        "Pigeons are surprisingly well-informed. Occupational hazard of living in New York. QUACK."
+      ]
+    };
+  }
+
+  if (hasBread) {
+    return {
+      mode: 'trade',
+      pages: [
+        "QUACK! Oh — pardon me. Dr. Mallard, at your service.",
+        "I hold a doctorate in Aquatic Loitering from the University of Central Park.",
+        "The humans are... tolerable. They bring bread.",
+        "Wait — is that BREAD? Actual bread? For me?",
+        "I have something for you in return. Two Brooklyn pigeons — Mario and Luigi — gave me this old compass.",
+        "They said it was linked to a special treasure. Pigeons don't lie about these things.",
+        "A trade, then. Your bread for the compass. [ A = TRADE  ·  B = Keep bread ]"
+      ]
+    };
+  }
+
+  return {
+    mode: 'no-bread',
+    pages: [
+      "QUACK! Oh — pardon me. Dr. Mallard, at your service.",
+      "I hold a doctorate in Aquatic Loitering from the University of Central Park.",
+      "I've been studying these waters for eleven years.",
+      "The humans are... tolerable. They bring bread.",
+      "Andre once gave me half a pretzel. I consider him a colleague.",
+      "Now if you'll excuse me — I have important floating to attend to. QUACK."
+    ]
+  };
+}
+
+// Flash dialog — one-off multi-page dialog with no NPC state tracking
+let currentDialogMode = null;
+function showFlashDialog(speaker, ...pages) {
   dialogPages = pages;
+  document.getElementById('dialogBox').style.display = 'block';
+  document.getElementById('dialogSpeaker').textContent = speaker;
+  document.getElementById('dialogText').textContent = pages[0];
+  document.getElementById('dialogPrompt').textContent = pages.length > 1 ? '[ A / ▶ Next ]' : '[ A / ▶ Close ]';
+  activeDialog = { npcId: '__flash__', pageIndex: 0 };
+  currentDialogMode = null;
+}
+
+function openDialog(npcId, pages) {
+  let resolvedPages = pages;
+  let mode = null;
+  if (npcId === 'duck') {
+    const result = getDuckDialog();
+    resolvedPages = result.pages;
+    mode = result.mode;
+  }
+  currentDialogMode = mode;
+  dialogPages = resolvedPages;
   const idx = npcDialogIdx[npcId] || 0;
   const npc = NPCS.find(n => n.id === npcId);
   activeDialog = { npcId, pageIndex: idx };
   document.getElementById('dialogBox').style.display = 'block';
   document.getElementById('dialogSpeaker').textContent = npc.label;
-  document.getElementById('dialogText').textContent = pages[idx];
+  document.getElementById('dialogText').textContent = resolvedPages[idx];
+  updateDialogPrompt(npcId, idx, resolvedPages, mode);
+}
+
+function updateDialogPrompt(npcId, idx, pages, mode) {
   const isLast = idx >= pages.length - 1;
-  document.getElementById('dialogPrompt').textContent = isLast ? '[ A / ▶ Close ]' : '[ A / ▶ Next ]';
+  let prompt = isLast ? '[ A / ▶ Close ]' : '[ A / ▶ Next ]';
+  if (npcId === 'duck' && mode === 'trade' && isLast) {
+    prompt = '[ A = TRADE  ·  B = Keep bread ]';
+  }
+  document.getElementById('dialogPrompt').textContent = prompt;
 }
 
 function advanceDialog() {
   if (!activeDialog) return;
   const { npcId, pageIndex } = activeDialog;
+
+  // Flash dialog handler
+  if (npcId === '__flash__') {
+    const nextIdx = pageIndex + 1;
+    if (nextIdx >= dialogPages.length) { closeDialog(); return; }
+    activeDialog.pageIndex = nextIdx;
+    document.getElementById('dialogText').textContent = dialogPages[nextIdx];
+    document.getElementById('dialogPrompt').textContent =
+      nextIdx >= dialogPages.length - 1 ? '[ A / ▶ Close ]' : '[ A / ▶ Next ]';
+    return;
+  }
+
+  // Trade confirmation — last page of trade mode
+  if (npcId === 'duck' && currentDialogMode === 'trade' && pageIndex >= dialogPages.length - 1) {
+    GameState.consumeItem('bread');
+    GameState.collectItem('old-compass', 10);
+    document.getElementById('pointsDisplay').textContent = GameState.points;
+    npcDialogIdx[npcId] = 0;
+    closeDialog();
+    showFlashDialog('🦆 DR. MALLARD',
+      "QUACK! Excellent! I love fresh bread.",
+      "Don't tell the penguins I gave you the compass if you stop by the zoo.",
+      "★ +10 points — Old Compass added to inventory!"
+    );
+    return;
+  }
+
   const nextIdx = pageIndex + 1;
   if (nextIdx >= dialogPages.length) { npcDialogIdx[npcId] = 0; closeDialog(); }
   else {
     npcDialogIdx[npcId] = nextIdx;
     activeDialog.pageIndex = nextIdx;
     document.getElementById('dialogText').textContent = dialogPages[nextIdx];
-    document.getElementById('dialogPrompt').textContent =
-      nextIdx >= dialogPages.length - 1 ? '[ A / ▶ Close ]' : '[ A / ▶ Next ]';
+    updateDialogPrompt(npcId, nextIdx, dialogPages, currentDialogMode);
   }
 }
-function closeDialog() { activeDialog = null; document.getElementById('dialogBox').style.display = 'none'; }
+function closeDialog() { activeDialog = null; currentDialogMode = null; document.getElementById('dialogBox').style.display = 'none'; }
 
 // ─────────────────────────────────────────────
 //  INTERACT
