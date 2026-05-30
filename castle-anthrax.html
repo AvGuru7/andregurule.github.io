@@ -123,6 +123,16 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
   </div>
 </div>
 
+<div id="inventory-overlay" style="position:fixed;inset:0;background:rgba(10,8,24,0.92);backdrop-filter:blur(4px);z-index:500;display:none;align-items:center;justify-content:center;">
+  <div id="inventory-box" style="background:var(--ui-bg);border:4px solid var(--gold);padding:clamp(16px,3vw,28px) clamp(18px,4vw,36px);min-width:clamp(280px,55vw,480px);max-width:92vw;max-height:80vh;overflow-y:auto;position:relative;">
+    <div style="position:absolute;inset:3px;border:1px solid rgba(240,192,64,0.22);pointer-events:none;"></div>
+    <div style="font-size:clamp(8px,1.5vw,12px);color:var(--gold);text-align:center;margin-bottom:clamp(14px,2.5vh,22px);letter-spacing:2px;">★ INVENTORY ★</div>
+    <div id="inv-points-banner" style="text-align:center;font-family:'VT323',monospace;font-size:clamp(15px,2.5vw,19px);color:#a0d8ff;margin-bottom:clamp(10px,1.8vh,18px);"></div>
+    <div id="inv-items-list"></div>
+    <div style="text-align:center;margin-top:clamp(12px,2vh,18px);font-size:clamp(5px,0.8vw,7px);color:var(--ui-dim);"><span class="hint-badge-sm">SELECT</span> or <span class="hint-badge-sm">B</span> to close</div>
+  </div>
+</div>
+
 <div id="nes-controller">
   <div id="controller-body">
     <div id="dpad">
@@ -139,7 +149,7 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
       </div>
       <div id="select-start-row">
         <div style="display:flex;flex-direction:column;align-items:center;">
-          <div class="ss-btn"></div><div class="ss-label">SELECT</div>
+          <div class="ss-btn" onclick="openInventory()"></div><div class="ss-label">SELECT</div>
         </div>
         <div style="display:flex;flex-direction:column;align-items:center;">
           <div class="ss-btn" onclick="handleA()"></div><div class="ss-label">START</div>
@@ -292,8 +302,9 @@ let kayakCollected=false; // set from GameState after initialisation
 function collectKayak(){
   if(kayakCollected) return;
   kayakCollected=true;
+  GameState.collectItem('blue-kayak',15);
   GameState.unlock('kayak-collected');
-  showInlineDialog('🚣 BLUE KAYAK','You collected the Blue Kayak! It\'s yours to keep.','[B] Close');
+  showInlineDialog('🚣 BLUE KAYAK','You collected the Blue Kayak! It\'s yours to keep. [+15 pts]','[B] Close');
 }
 
 const SIGNS=[
@@ -344,12 +355,19 @@ const GameState={
   unlocked:_p.get('unlocked')?_p.get('unlocked').split(',').filter(Boolean):[],
   items:_p.get('items')?_p.get('items').split(',').filter(Boolean):[],
   hasItem(id){return this.items.includes(id);},
+  collectItem(id,pts){
+    if(this.items.includes(id))return false;
+    this.items.push(id);
+    if(pts)this.points+=pts;
+    return true;
+  },
   consumeItem(id){this.items=this.items.filter(i=>i!==id);},
   unlock(key){if(!this.unlocked.includes(key))this.unlocked.push(key);},
+  toParams(){return new URLSearchParams({points:this.points,visited:this.visited.join(','),unlocked:this.unlocked.join(','),items:this.items.join(',')}).toString();},
   withState(href){
     const [base,hash]=href.split('#');
     const sep=base.includes('?')?'&':'?';
-    return base+sep+new URLSearchParams({points:this.points,visited:this.visited.join(','),unlocked:this.unlocked.join(','),items:this.items.join(',')}).toString()+(hash?'#'+hash:'');
+    return base+sep+this.toParams()+(hash?'#'+hash:'');
   }
 };
 // Restore treasury door state from URL params
@@ -1005,7 +1023,7 @@ function getRoomAt2(tx,ty){return ROOMS.find(r=>tx>=r.x&&tx<r.x+r.w&&ty>=r.y&&ty
 
 // ── PLAYER UPDATE ─────────────────────────────────────────────────────────────
 function updatePlayer(){
-  if(dialogOpen||menuOpen) return;
+  if(dialogOpen||menuOpen||inventoryOpen) return;
   const SPEED=3;let dx=0,dy=0;
   if(keys.up){dy=-SPEED;facing='up';}if(keys.down){dy=SPEED;facing='down';}
   if(keys.left){dx=-SPEED;facing='left';}if(keys.right){dx=SPEED;facing='right';}
@@ -1063,7 +1081,7 @@ function handleA(){
     openDialog(activeInteractable);
   }
 }
-function handleB(){if(menuOpen){closeMenu();return;}if(dialogOpen){closeDialog();return;}}
+function handleB(){if(menuOpen){closeMenu();return;}if(inventoryOpen){closeInventory();return;}if(dialogOpen){closeDialog();return;}}
 
 function openDialog(interactable){
   dialogOpen=true;
@@ -1099,6 +1117,56 @@ function openMenu(){
   document.getElementById('menu-btn').classList.add('pressed');
 }
 function closeMenu(){menuOpen=false;document.getElementById('menu-overlay').style.display='none';document.getElementById('menu-btn').classList.remove('pressed');}
+
+// ── INVENTORY ─────────────────────────────────────────────────────────────────
+const ALL_ITEMS=[
+  {id:'holy-grail',   icon:'🏆', name:'Holy Grail',          location:'Castle Anthrax', cat:'Quest',       pts:50},
+  {id:'skeleton-key', icon:'🔑', name:'Skeleton Key',         location:'World Map',      cat:'Key',         pts:30},
+  {id:'sword',        icon:'⚔️', name:'Sword',                location:'Erebor Mountain',cat:'Quest',       pts:25},
+  {id:'cert-badge',   icon:'📜', name:'Certification Badge',  location:'Hall of Records',cat:'Collectible', pts:20},
+  {id:'first-edition',icon:'📖', name:'First Edition',        location:'Scroll Library', cat:'Collectible', pts:20},
+  {id:'fishing-rod',  icon:'🎣', name:'Fishing Rod',          location:'Lake Tahoe',     cat:'Collectible', pts:15},
+  {id:'blue-kayak',   icon:'🚣', name:'Blue Kayak',           location:'Castle Anthrax', cat:'Quest',       pts:15},
+  {id:'artwork',      icon:'🖼️', name:'Artwork',              location:'Town Square',    cat:'Collectible', pts:10},
+  {id:'bread',        icon:'🍞', name:'Bread',                location:'Town Square',    cat:'Collectible', pts:10},
+  {id:'old-compass',  icon:'🧭', name:'Old Compass',          location:'The Lake',       cat:'Collectible', pts:10},
+  {id:'sapphire',     icon:'💎', name:'Sapphire',             location:'World Map',      cat:'Key',         pts:75},
+  {id:'ruby',         icon:'🔴', name:'Ruby',                 location:'World Map',      cat:'Key',         pts:75},
+];
+const CAT_ORDER=['Quest','Key','Collectible'];
+let inventoryOpen=false;
+
+function openInventory(){
+  if(dialogOpen)closeDialog();
+  if(menuOpen)closeMenu();
+  inventoryOpen=true;
+  // Render
+  document.getElementById('inv-points-banner').textContent=`Points: ${GameState.points} / 355`;
+  const list=document.getElementById('inv-items-list');
+  list.innerHTML='';
+  CAT_ORDER.forEach(cat=>{
+    const catItems=ALL_ITEMS.filter(i=>i.cat===cat);
+    const hdr=document.createElement('div');
+    hdr.style.cssText='font-size:clamp(6px,1vw,8px);color:var(--gold2);letter-spacing:1px;margin:12px 0 6px;border-bottom:1px solid rgba(240,192,64,0.2);padding-bottom:4px;';
+    hdr.textContent=cat.toUpperCase()+' ITEMS';
+    list.appendChild(hdr);
+    catItems.forEach(item=>{
+      const has=GameState.hasItem(item.id);
+      const card=document.createElement('div');
+      card.style.cssText=`display:flex;align-items:center;gap:10px;padding:7px 8px;margin-bottom:4px;background:${has?'rgba(240,192,64,0.07)':'rgba(0,0,0,0.2)'};border:1px solid ${has?'rgba(240,192,64,0.25)':'rgba(255,255,255,0.06)'};`;
+      card.innerHTML=`
+        <span style="font-size:18px;width:24px;text-align:center;">${has?item.icon:'❓'}</span>
+        <div style="flex:1;">
+          <div style="font-size:clamp(6px,1vw,8px);color:${has?'var(--ui-text)':'var(--ui-dim)'};">${has?item.name:'???'}</div>
+          <div style="font-family:'VT323',monospace;font-size:clamp(12px,2vw,15px);color:var(--ui-dim);margin-top:2px;">${has?item.location:'Unknown location'} · ${item.pts} pts</div>
+        </div>
+        <span style="font-size:14px;">${has?'✓':'🔒'}</span>`;
+      list.appendChild(card);
+    });
+  });
+  document.getElementById('inventory-overlay').style.display='flex';
+}
+function closeInventory(){inventoryOpen=false;document.getElementById('inventory-overlay').style.display='none';}
 function updateMenuCursor(){
   menuItems.forEach((item,i)=>{
     item.classList.toggle('selected',i===menuIdx);
@@ -1123,6 +1191,7 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Enter'||e.key===' '||e.key==='a'||e.key==='A'){handleA();e.preventDefault();}
   if(e.key==='Escape'||e.key==='b'||e.key==='B')handleB();
   if(e.key==='m'||e.key==='M')toggleMenu();
+  if(e.key==='i'||e.key==='I'){inventoryOpen?closeInventory():openInventory();}
   if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key))e.preventDefault();
 });
 document.addEventListener('keyup',e=>{
