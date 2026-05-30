@@ -124,29 +124,28 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
 </div>
 
 <div id="inventory-overlay" style="position:fixed;inset:0;background:rgba(10,8,24,0.95);backdrop-filter:blur(4px);z-index:500;display:none;flex-direction:column;">
-  <div id="inv-header" style="flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:10px 18px 8px;border-bottom:1px solid rgba(240,192,64,0.25);">
+  <div style="flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:10px 18px 8px;border-bottom:1px solid rgba(240,192,64,0.25);">
     <div style="font-size:clamp(9px,1.8vw,13px);color:var(--gold);letter-spacing:2px;">★ INVENTORY ★</div>
     <div id="inv-points-banner" style="font-family:'VT323',monospace;font-size:clamp(14px,2.5vw,18px);color:#a0d8ff;"></div>
     <div style="font-size:clamp(7px,1.2vw,9px);color:var(--ui-dim);"><span class="hint-badge-sm">SELECT</span> or <span class="hint-badge-sm">B</span> to close</div>
   </div>
-  <div id="inv-body" style="flex:1;display:flex;overflow:hidden;min-height:0;">
-    <div id="inv-list-panel" style="width:200px;flex-shrink:0;overflow-y:auto;border-right:1px solid rgba(240,192,64,0.15);padding:10px 8px;">
+  <div style="flex:1;display:flex;overflow:hidden;min-height:0;">
+    <div style="width:200px;flex-shrink:0;overflow-y:auto;border-right:1px solid rgba(240,192,64,0.15);padding:10px 8px;">
       <div id="inv-items-list"></div>
     </div>
-    <div id="inv-detail-panel" style="flex:1;overflow-y:auto;padding:16px 18px;">
-      <div id="inv-detail-content" style="color:var(--ui-dim);font-family:'VT323',monospace;font-size:16px;text-align:center;margin-top:24px;">← Select an item to view details</div>
+    <div style="flex:1;overflow-y:auto;padding:16px 18px;">
+      <div id="inv-detail-content" style="color:var(--ui-dim);font-family:'VT323',monospace;font-size:16px;text-align:center;margin-top:24px;">Select an item to view details</div>
     </div>
   </div>
 </div>
 
-<!-- Book Modal -->
 <div id="book-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:600;align-items:center;justify-content:center;flex-direction:column;gap:12px;">
-  <canvas id="book-canvas" style="max-width:96vw;max-height:calc(100vh - 160px);border:2px solid var(--gold);box-shadow:0 0 40px rgba(240,192,64,0.2);"></canvas>
+  <canvas id="book-canvas" style="max-width:96vw;max-height:calc(100vh - 160px);border:2px solid var(--gold);"></canvas>
   <div style="display:flex;gap:12px;align-items:center;">
-    <button id="book-prev" onclick="bookPage(-1)" style="background:var(--ui-bg);border:1px solid var(--gold);color:var(--gold);font-family:'Press Start 2P',monospace;font-size:8px;padding:8px 14px;cursor:pointer;">◀ PREV</button>
+    <button id="book-prev" style="background:var(--ui-bg);border:1px solid var(--gold);color:var(--gold);font-family:'Press Start 2P',monospace;font-size:8px;padding:8px 14px;cursor:pointer;">&#9664; PREV</button>
     <span id="book-page-label" style="font-family:'Press Start 2P',monospace;font-size:8px;color:var(--ui-dim);"></span>
-    <button id="book-next" onclick="bookPage(1)" style="background:var(--ui-bg);border:1px solid var(--gold);color:var(--gold);font-family:'Press Start 2P',monospace;font-size:8px;padding:8px 14px;cursor:pointer;">NEXT ▶</button>
-    <button onclick="closeBook()" style="background:var(--ui-bg);border:1px solid rgba(240,192,64,0.4);color:var(--ui-dim);font-family:'Press Start 2P',monospace;font-size:8px;padding:8px 14px;cursor:pointer;">✕ CLOSE</button>
+    <button id="book-next" style="background:var(--ui-bg);border:1px solid var(--gold);color:var(--gold);font-family:'Press Start 2P',monospace;font-size:8px;padding:8px 14px;cursor:pointer;">NEXT &#9654;</button>
+    <button id="book-close" style="background:var(--ui-bg);border:1px solid rgba(240,192,64,0.4);color:var(--ui-dim);font-family:'Press Start 2P',monospace;font-size:8px;padding:8px 14px;cursor:pointer;">&#10005; CLOSE</button>
   </div>
 </div>
 
@@ -396,7 +395,6 @@ let playerX=22*TILE,playerY=29*TILE;  // spawn at exit sign bottom
 let facing='up',moving=false,frame=0,frameTimer=0;
 const FRAME_RATE=8;
 let dialogOpen=false,menuOpen=false,activeInteractable=null,zoneLabelTimer=0;
-let inventoryOpen=false,selectedItemId=null,compassActive=false;
 const keys={up:false,down:false,left:false,right:false};
 let menuItems=[],menuIdx=0;
 
@@ -1152,13 +1150,13 @@ const ITEMS=[
   {id:'ruby',          icon:'🔴', label:'Ruby',                 category:'key',         points:75, page:'World Map'},
 ];
 const ITEM_DETAILS={
-  'old-compass':  {desc:"An old compass from Dr. Mallard at The Lake. Rumored to point toward hidden treasure.", action:{label:'🧭 ACTIVATE COMPASS',fn:'activateCompass'}},
-  'first-edition':{desc:"A rare first-edition volume from the Library's restricted collection. Contains clues for those who seek them.", action:{label:'📖 READ BOOK',fn:'openBook'}},
+  'old-compass':  {desc:'An old compass from Dr. Mallard at The Lake. Rumored to point toward hidden treasure.', action:{label:'ACTIVATE COMPASS',fn:'activateCompass'}},
+  'first-edition':{desc:"A rare first-edition from the Library's restricted collection. Contains clues for those who seek them.", action:{label:'READ BOOK',fn:'openBook'}},
   'skeleton-key': {desc:'A master key of unknown origin. Opens locks that others cannot.'},
   'holy-grail':   {desc:'The Holy Grail — the ultimate prize of Castle Anthrax.'},
-  'sword':        {desc:'A sword from the Erebor Mountain swordsmith, given only to those who have proven their qualifications.'},
+  'sword':        {desc:'A sword from the Erebor Mountain swordsmith, given only to those who proved their qualifications.'},
   'blue-kayak':   {desc:'A fine blue kayak. A gift from King Lyn, traded for a piece of artwork.'},
-  'fishing-rod':  {desc:'The Flux Capacitor — a special edition 1985 fishing rod from Raymond at Lake Tahoe.'},
+  'fishing-rod':  {desc:'The Flux Capacitor — a special 1985 fishing rod from Raymond at Lake Tahoe.'},
   'tahoe-fish':   {desc:'A Tahoe cutthroat trout, caught in the southwest waters of Lake Tahoe.'},
   'cert-badge':   {desc:'A certification badge from the Hall of Records.'},
   'artwork':      {desc:'A piece of artwork from Town Square.'},
@@ -1169,206 +1167,189 @@ const ITEM_DETAILS={
 const CAT_ORDER=[{key:'quest',label:'QUEST ITEMS'},{key:'key',label:'KEY ITEMS'},{key:'collectible',label:'COLLECTIBLES'}];
 let inventoryOpen=false;
 let selectedItemId=null;
-
-// ── COMPASS OVERLAY ───────────────────────────────────────────────────────────
-const COMPASS_TARGET={tx:37,ty:6}; // Treasury east wall center
 let compassActive=false;
 
+// ── COMPASS OVERLAY ──────────────────────────────────────────────────────────
+const COMPASS_TARGET={tx:37,ty:6};
 function activateCompass(){compassActive=true;closeInventory();}
-
 function drawCompassOverlay(){
   if(!compassActive||!GameState.hasItem('old-compass'))return;
-  const sx=playerX-camX+TILE/2, sy=playerY-camY+TILE/2;
-  const targetSX=COMPASS_TARGET.tx*TILE+TILE/2-camX;
-  const targetSY=COMPASS_TARGET.ty*TILE+TILE/2-camY;
-  const angle=Math.atan2(targetSY-sy,targetSX-sx);
+  const sx=playerX-camX+TILE/2,sy=playerY-camY+TILE/2;
+  const tsx=COMPASS_TARGET.tx*TILE+TILE/2-camX,tsy=COMPASS_TARGET.ty*TILE+TILE/2-camY;
+  const angle=Math.atan2(tsy-sy,tsx-sx);
   const dialR=Math.min(canvas.width,canvas.height)*0.22;
-  const now=Date.now();
+  const pulse=0.7+0.3*Math.sin(Date.now()*0.004);
   ctx.save();
-  // Dial ring
   ctx.strokeStyle='rgba(240,192,64,0.35)';ctx.lineWidth=2;ctx.setLineDash([6,4]);
   ctx.beginPath();ctx.arc(sx,sy,dialR,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);
-  // Cardinals
-  ['N','E','S','W'].forEach((c,i)=>{
-    const ca=[-Math.PI/2,0,Math.PI/2,Math.PI][i];
+  ['N','E','S','W'].forEach(function(c,i){
+    var ca=[-Math.PI/2,0,Math.PI/2,Math.PI][i];
     ctx.strokeStyle='rgba(240,192,64,0.5)';ctx.lineWidth=1.5;
-    ctx.beginPath();ctx.moveTo(sx+Math.cos(ca)*(dialR-8),sy+Math.sin(ca)*(dialR-8));ctx.lineTo(sx+Math.cos(ca)*dialR,sy+Math.sin(ca)*dialR);ctx.stroke();
-    ctx.fillStyle='rgba(240,192,64,0.7)';ctx.font='8px "Press Start 2P",monospace';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.beginPath();ctx.moveTo(sx+Math.cos(ca)*(dialR-8),sy+Math.sin(ca)*(dialR-8));
+    ctx.lineTo(sx+Math.cos(ca)*dialR,sy+Math.sin(ca)*dialR);ctx.stroke();
+    ctx.fillStyle='rgba(240,192,64,0.7)';ctx.font='8px "Press Start 2P",monospace';
+    ctx.textAlign='center';ctx.textBaseline='middle';
     ctx.fillText(c,sx+Math.cos(ca)*(dialR+10),sy+Math.sin(ca)*(dialR+10));
   });
-  // Arrow
-  const pulse=0.7+0.3*Math.sin(now*0.004);
-  const arrowX=sx+Math.cos(angle)*(dialR-10), arrowY=sy+Math.sin(angle)*(dialR-10);
+  var ax=sx+Math.cos(angle)*(dialR-10),ay=sy+Math.sin(angle)*(dialR-10);
   ctx.shadowColor='#f0c040';ctx.shadowBlur=10*pulse;
-  ctx.strokeStyle=`rgba(240,192,64,${pulse})`;ctx.lineWidth=2.5;
-  ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(arrowX,arrowY);ctx.stroke();
-  const hl=10,ha=Math.PI/6;
-  ctx.fillStyle=`rgba(240,192,64,${pulse})`;
-  ctx.beginPath();ctx.moveTo(arrowX,arrowY);
-  ctx.lineTo(arrowX-hl*Math.cos(angle-ha),arrowY-hl*Math.sin(angle-ha));
-  ctx.lineTo(arrowX-hl*Math.cos(angle+ha),arrowY-hl*Math.sin(angle+ha));
+  ctx.strokeStyle='rgba(240,192,64,'+pulse+')';ctx.lineWidth=2.5;
+  ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(ax,ay);ctx.stroke();
+  var hl=10,ha=Math.PI/6;
+  ctx.fillStyle='rgba(240,192,64,'+pulse+')';
+  ctx.beginPath();ctx.moveTo(ax,ay);
+  ctx.lineTo(ax-hl*Math.cos(angle-ha),ay-hl*Math.sin(angle-ha));
+  ctx.lineTo(ax-hl*Math.cos(angle+ha),ay-hl*Math.sin(angle+ha));
   ctx.closePath();ctx.fill();ctx.shadowBlur=0;
-  // Label
-  const lx=sx+Math.cos(angle)*(dialR+28),ly=sy+Math.sin(angle)*(dialR+28);
+  var lx=sx+Math.cos(angle)*(dialR+28),ly=sy+Math.sin(angle)*(dialR+28);
   ctx.fillStyle='rgba(10,8,24,0.75)';ctx.fillRect(lx-38,ly-9,76,16);
-  ctx.fillStyle='#f0c040';ctx.font='7px "Press Start 2P",monospace';ctx.textAlign='center';ctx.textBaseline='middle';
-  ctx.fillText('TREASURY',lx,ly);
-  // Dismiss hint
-  ctx.fillStyle='rgba(160,160,200,0.7)';ctx.font='6px "Press Start 2P",monospace';ctx.textAlign='right';ctx.textBaseline='alphabetic';
+  ctx.fillStyle='#f0c040';ctx.font='7px "Press Start 2P",monospace';
+  ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('TREASURY',lx,ly);
+  ctx.fillStyle='rgba(160,160,200,0.7)';ctx.font='6px "Press Start 2P",monospace';
+  ctx.textAlign='right';ctx.textBaseline='alphabetic';
   ctx.fillText('[B] dismiss compass',canvas.width-8,canvas.height-8);
   ctx.restore();
 }
 
-// ── FIRST EDITION BOOK ────────────────────────────────────────────────────────
-let bookCurrentPage=0;
-const BOOK_PAGES=['cover','clue','map'];
-
+// ── FIRST EDITION BOOK ───────────────────────────────────────────────────────
+var bookCurrentPage=0;
+var BOOK_PAGES=['cover','clue','map'];
 function openBook(){closeInventory();bookCurrentPage=0;document.getElementById('book-modal').style.display='flex';renderBookPage();}
 function closeBook(){document.getElementById('book-modal').style.display='none';}
-function bookPage(dir){bookCurrentPage=Math.max(0,Math.min(BOOK_PAGES.length-1,bookCurrentPage+dir));renderBookPage();}
-
-function wrapText(c,text,x,y,maxW,lh){
-  const words=text.split(' ');let line='';
-  for(let i=0;i<words.length;i++){
-    const test=line+words[i]+' ';
+function bookPageNav(dir){bookCurrentPage=Math.max(0,Math.min(BOOK_PAGES.length-1,bookCurrentPage+dir));renderBookPage();}
+function wrapBookText(c,text,x,y,maxW,lh){
+  var words=text.split(' '),line='';
+  for(var i=0;i<words.length;i++){
+    var test=line+words[i]+' ';
     if(c.measureText(test).width>maxW&&i>0){c.fillText(line,x,y);line=words[i]+' ';y+=lh;}
     else line=test;
   }
   c.fillText(line,x,y);
 }
-
 function renderBookPage(){
-  const bc=document.getElementById('book-canvas');
-  const w=Math.min(window.innerWidth*0.92,520);
-  const h=Math.min(window.innerHeight-160,400);
+  var bc=document.getElementById('book-canvas');
+  var w=Math.min(window.innerWidth*0.92,520);
+  var h=Math.min(window.innerHeight-160,400);
   bc.width=w;bc.height=h;
-  const bx=bc.getContext('2d');
-  const page=BOOK_PAGES[bookCurrentPage];
-  // Parchment
-  const pg=bx.createLinearGradient(0,0,w,h);
+  var bx=bc.getContext('2d');
+  var pg=bx.createLinearGradient(0,0,w,h);
   pg.addColorStop(0,'#f5ead0');pg.addColorStop(0.5,'#ede0b8');pg.addColorStop(1,'#e8d5a0');
   bx.fillStyle=pg;bx.fillRect(0,0,w,h);
-  // Border
   bx.strokeStyle='rgba(120,80,20,0.4)';bx.lineWidth=1.5;bx.strokeRect(12,12,w-24,h-24);
-  bx.strokeStyle='rgba(120,80,20,0.2)';bx.lineWidth=1;bx.strokeRect(16,16,w-32,h-32);
-  const mid=w/2;
-
+  var mid=w/2,page=BOOK_PAGES[bookCurrentPage];
   if(page==='cover'){
     bx.strokeStyle='rgba(120,80,20,0.5)';bx.lineWidth=2;
     bx.beginPath();bx.moveTo(40,h*0.22);bx.lineTo(w-40,h*0.22);bx.stroke();
     bx.beginPath();bx.moveTo(40,h*0.78);bx.lineTo(w-40,h*0.78);bx.stroke();
     bx.textAlign='center';bx.fillStyle='#3a1a04';
-    bx.font=`bold ${Math.round(w*0.065)}px Palatino,Georgia,serif`;
+    bx.font='bold '+Math.round(w*0.065)+'px Palatino,Georgia,serif';
     bx.fillText('FIRST EDITION',mid,h*0.35);
-    bx.font=`italic ${Math.round(w*0.036)}px Palatino,Georgia,serif`;
+    bx.font='italic '+Math.round(w*0.034)+'px Palatino,Georgia,serif';
     bx.fillStyle='#6b3a10';
     bx.fillText('A Rare Volume from the Restricted Collection',mid,h*0.48);
-    bx.font=`${Math.round(w*0.07)}px serif`;bx.fillText('📖',mid,h*0.64);
-    bx.font=`${Math.round(w*0.026)}px Palatino,Georgia,serif`;
-    bx.fillStyle='rgba(80,40,10,0.5)';
-    bx.fillText('THE LIBRARY · CLASSIFIED SECTION',mid,h*0.82);
+    bx.font=Math.round(w*0.07)+'px serif';bx.fillText('\uD83D\uDCD6',mid,h*0.64);
+    bx.font=Math.round(w*0.026)+'px Palatino,Georgia,serif';
+    bx.fillStyle='rgba(80,40,10,0.5)';bx.fillText('THE LIBRARY \u00B7 CLASSIFIED SECTION',mid,h*0.82);
   } else if(page==='clue'){
     bx.textAlign='center';bx.fillStyle='#3a1a04';
-    bx.font=`bold ${Math.round(w*0.04)}px Palatino,Georgia,serif`;
-    bx.fillText('— A Note to the Seeker —',mid,h*0.14);
+    bx.font='bold '+Math.round(w*0.04)+'px Palatino,Georgia,serif';
+    bx.fillText('\u2014 A Note to the Seeker \u2014',mid,h*0.14);
     bx.strokeStyle='rgba(120,80,20,0.3)';bx.lineWidth=1;
     bx.beginPath();bx.moveTo(40,h*0.19);bx.lineTo(w-40,h*0.19);bx.stroke();
-    bx.font=`italic ${Math.round(w*0.034)}px Palatino,Georgia,serif`;
+    bx.font='italic '+Math.round(w*0.034)+'px Palatino,Georgia,serif';
     bx.fillStyle='#2a1004';bx.textAlign='left';
-    wrapText(bx,"To complete this quest, you must be qualified to wield a knight's sword. The swordsmith in the mountain will only give swords to those who can prove their qualifications. However, the means of gaining those skills is classified.",36,h*0.30,w-72,Math.round(w*0.044));
+    wrapBookText(bx,"To complete this quest, you must be qualified to wield a knight's sword. The swordsmith in the mountain will only give swords to those who can prove their qualifications. However, the means of gaining those skills is classified.",36,h*0.30,w-72,Math.round(w*0.044));
     bx.textAlign='center';bx.fillStyle='rgba(80,40,10,0.4)';
-    bx.font=`${Math.round(w*0.025)}px Palatino,Georgia,serif`;
-    bx.fillText('— Page II —',mid,h*0.92);
-  } else if(page==='map'){
+    bx.font=Math.round(w*0.025)+'px Palatino,Georgia,serif';
+    bx.fillText('\u2014 Page II \u2014',mid,h*0.92);
+  } else {
     bx.textAlign='center';bx.fillStyle='#3a1a04';
-    bx.font=`bold ${Math.round(w*0.036)}px Palatino,Georgia,serif`;
-    bx.fillText('Erebor Mountain — Interior Chart',mid,h*0.12);
+    bx.font='bold '+Math.round(w*0.036)+'px Palatino,Georgia,serif';
+    bx.fillText('Erebor Mountain \u2014 Interior Chart',mid,h*0.12);
     bx.strokeStyle='rgba(120,80,20,0.3)';bx.lineWidth=1;
     bx.beginPath();bx.moveTo(40,h*0.17);bx.lineTo(w-40,h*0.17);bx.stroke();
-    const mx=40,my=h*0.21,mw=w-80,mh=h*0.62;
+    var mx=40,my=h*0.21,mw=w-80,mh=h*0.62;
     bx.fillStyle='rgba(160,110,40,0.12)';bx.fillRect(mx,my,mw,mh);
     bx.strokeStyle='rgba(120,80,20,0.4)';bx.lineWidth=1.5;bx.setLineDash([6,4]);
     bx.strokeRect(mx,my,mw,mh);bx.setLineDash([]);
     bx.fillStyle='rgba(80,40,10,0.4)';
-    bx.font=`italic ${Math.round(w*0.032)}px Palatino,Georgia,serif`;
+    bx.font='italic '+Math.round(w*0.032)+'px Palatino,Georgia,serif';
     bx.fillText('[ Map coming soon ]',mid,my+mh/2-10);
-    bx.font=`${Math.round(w*0.024)}px Palatino,Georgia,serif`;
+    bx.font=Math.round(w*0.024)+'px Palatino,Georgia,serif';
     bx.fillText('Erebor Mountain interior chart will appear here',mid,my+mh/2+16);
     bx.textAlign='center';bx.fillStyle='rgba(80,40,10,0.4)';
-    bx.font=`${Math.round(w*0.025)}px Palatino,Georgia,serif`;
-    bx.fillText('— Page III —',mid,h*0.92);
+    bx.font=Math.round(w*0.025)+'px Palatino,Georgia,serif';
+    bx.fillText('\u2014 Page III \u2014',mid,h*0.92);
   }
-  document.getElementById('book-page-label').textContent=`${bookCurrentPage+1} / ${BOOK_PAGES.length}`;
+  document.getElementById('book-page-label').textContent=(bookCurrentPage+1)+' / '+BOOK_PAGES.length;
   document.getElementById('book-prev').disabled=bookCurrentPage===0;
   document.getElementById('book-next').disabled=bookCurrentPage===BOOK_PAGES.length-1;
 }
 
-// ── INVENTORY ─────────────────────────────────────────────────────────────────
+// ── INVENTORY RENDER ─────────────────────────────────────────────────────────
 function openInventory(){
   if(dialogOpen)closeDialog();
   if(menuOpen)closeMenu();
   inventoryOpen=true;
   selectedItemId=null;
-  const ctrlH=ctrlHeight();
-  const overlay=document.getElementById('inventory-overlay');
-  overlay.style.bottom=ctrlH+'px';
+  var overlay=document.getElementById('inventory-overlay');
+  overlay.style.bottom=ctrlHeight()+'px';
   overlay.style.display='flex';
-  const total=ITEMS.reduce((s,i)=>s+i.points,0);
-  document.getElementById('inv-points-banner').textContent=`★ ${GameState.points} / ${total} pts`;
+  var total=ITEMS.reduce(function(s,i){return s+i.points;},0);
+  document.getElementById('inv-points-banner').textContent='★ '+GameState.points+' / '+total+' pts';
   renderItemList();
   renderItemDetail(null);
 }
-
 function renderItemList(){
-  const list=document.getElementById('inv-items-list');
+  var list=document.getElementById('inv-items-list');
   list.innerHTML='';
-  CAT_ORDER.forEach(cat=>{
-    const catItems=ITEMS.filter(i=>i.category===cat.key);
+  CAT_ORDER.forEach(function(cat){
+    var catItems=ITEMS.filter(function(i){return i.category===cat.key;});
     if(!catItems.length)return;
-    const hdr=document.createElement('div');
+    var hdr=document.createElement('div');
     hdr.style.cssText='font-size:7px;color:var(--gold2);letter-spacing:1px;margin:10px 0 5px;padding-bottom:3px;border-bottom:1px solid rgba(240,192,64,0.15);';
-    hdr.textContent=cat.label;
-    list.appendChild(hdr);
-    catItems.forEach(item=>{
-      const has=GameState.hasItem(item.id);
-      const isSel=item.id===selectedItemId;
-      const card=document.createElement('div');
-      card.style.cssText=`display:flex;align-items:center;gap:7px;padding:6px 7px;margin-bottom:3px;
-        background:${isSel?'rgba(240,192,64,0.15)':has?'rgba(240,192,64,0.05)':'rgba(0,0,0,0.15)'};
-        border:1px solid ${isSel?'rgba(240,192,64,0.6)':has?'rgba(240,192,64,0.2)':'rgba(255,255,255,0.05)'};
-        cursor:${has?'pointer':'default'};border-radius:2px;`;
-      card.innerHTML=`<span style="font-size:16px;width:20px;text-align:center;">${has?item.icon:'❓'}</span>
-        <div style="flex:1;min-width:0;">
-          <div style="font-size:8px;color:${has?'var(--ui-text)':'var(--ui-dim)'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${has?item.label:'???'}</div>
-          <div style="font-family:'VT323',monospace;font-size:13px;color:var(--ui-dim);">${item.points}pts</div>
-        </div>`;
-      if(has)card.addEventListener('click',()=>selectItem(item.id));
+    hdr.textContent=cat.label;list.appendChild(hdr);
+    catItems.forEach(function(item){
+      var has=GameState.hasItem(item.id);
+      var isSel=item.id===selectedItemId;
+      var card=document.createElement('div');
+      card.style.cssText='display:flex;align-items:center;gap:7px;padding:6px 7px;margin-bottom:3px;'
+        +'background:'+(isSel?'rgba(240,192,64,0.15)':has?'rgba(240,192,64,0.05)':'rgba(0,0,0,0.15)')+';'
+        +'border:1px solid '+(isSel?'rgba(240,192,64,0.6)':has?'rgba(240,192,64,0.2)':'rgba(255,255,255,0.05)')+';'
+        +'cursor:'+(has?'pointer':'default')+';border-radius:2px;';
+      card.innerHTML='<span style="font-size:16px;width:20px;text-align:center;">'+(has?item.icon:'❓')+'</span>'
+        +'<div style="flex:1;min-width:0;">'
+        +'<div style="font-size:8px;color:'+(has?'var(--ui-text)':'var(--ui-dim)')+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+(has?item.label:'???')+'</div>'
+        +'<div style="font-family:\'VT323\',monospace;font-size:13px;color:var(--ui-dim);">'+item.points+'pts</div>'
+        +'</div>';
+      if(has)card.addEventListener('click',function(){selectItem(item.id);});
       list.appendChild(card);
     });
   });
 }
-
 function selectItem(id){selectedItemId=id;renderItemList();renderItemDetail(id);}
-
 function renderItemDetail(id){
-  const panel=document.getElementById('inv-detail-content');
-  if(!id){panel.innerHTML='<div style="color:var(--ui-dim);font-family:\'VT323\',monospace;font-size:16px;text-align:center;margin-top:30px;">&larr; Select an item to view details</div>';return;}
-  const item=ITEMS.find(i=>i.id===id);
-  const detail=ITEM_DETAILS[id];
-  const has=GameState.hasItem(id);
+  var panel=document.getElementById('inv-detail-content');
+  if(!id){panel.innerHTML='<div style="color:var(--ui-dim);font-family:\'VT323\',monospace;font-size:16px;text-align:center;margin-top:30px;">Select an item to view details</div>';return;}
+  var item=ITEMS.find(function(i){return i.id===id;});
+  var detail=ITEM_DETAILS[id];
+  var has=GameState.hasItem(id);
   if(!item)return;
-  const actionBtn=(detail&&detail.action&&has)
-    ?`<button onclick="${detail.action.fn}()" style="margin-top:14px;padding:10px 16px;background:var(--ui-bg);border:1.5px solid var(--gold);color:var(--gold);font-family:'Press Start 2P',monospace;font-size:8px;cursor:pointer;border-radius:2px;width:100%;">${detail.action.label}</button>`
-    :'';
-  panel.innerHTML=`
-    <div style="font-size:28px;text-align:center;margin-bottom:10px;">${has?item.icon:'❓'}</div>
-    <div style="font-size:10px;color:var(--gold);letter-spacing:1px;text-align:center;margin-bottom:4px;">${has?item.label:'???'}</div>
-    <div style="font-family:'VT323',monospace;font-size:14px;color:var(--ui-dim);text-align:center;margin-bottom:12px;">${item.page} &middot; ${item.points} pts</div>
-    <div style="width:100%;height:1px;background:rgba(240,192,64,0.15);margin-bottom:12px;"></div>
-    <div style="font-family:'VT323',monospace;font-size:16px;color:var(--ui-text);line-height:1.5;">${has&&detail?detail.desc:has?'A collected item.':'Not yet found. Keep exploring.'}</div>
-    ${actionBtn}`;
+  var actionBtn='';
+  if(detail&&detail.action&&has){
+    actionBtn='<button id="inv-action-btn" style="margin-top:14px;padding:10px 16px;background:var(--ui-bg);border:1.5px solid var(--gold);color:var(--gold);font-family:\'Press Start 2P\',monospace;font-size:8px;cursor:pointer;border-radius:2px;width:100%;">'+detail.action.label+'</button>';
+  }
+  panel.innerHTML='<div style="font-size:28px;text-align:center;margin-bottom:10px;">'+(has?item.icon:'❓')+'</div>'
+    +'<div style="font-size:10px;color:var(--gold);letter-spacing:1px;text-align:center;margin-bottom:4px;">'+(has?item.label:'???')+'</div>'
+    +'<div style="font-family:\'VT323\',monospace;font-size:14px;color:var(--ui-dim);text-align:center;margin-bottom:12px;">'+item.page+' &middot; '+item.points+' pts</div>'
+    +'<div style="width:100%;height:1px;background:rgba(240,192,64,0.15);margin-bottom:12px;"></div>'
+    +'<div style="font-family:\'VT323\',monospace;font-size:16px;color:var(--ui-text);line-height:1.5;">'+(has&&detail?detail.desc:has?'A collected item.':'Not yet found. Keep exploring.')+'</div>'
+    +actionBtn;
+  if(detail&&detail.action&&has){
+    var fn=detail.action.fn;
+    document.getElementById('inv-action-btn').addEventListener('click',function(){window[fn]();});
+  }
 }
-
 function closeInventory(){inventoryOpen=false;document.getElementById('inventory-overlay').style.display='none';}
 function updateMenuCursor(){
   menuItems.forEach((item,i)=>{
@@ -1426,7 +1407,12 @@ function gameLoop(){
   pe.style.left=(playerX-camX)+'px';pe.style.top=(playerY-camY)+'px';
   requestAnimationFrame(gameLoop);
 }
-window.addEventListener('load',()=>resize());
+window.addEventListener('load',function(){
+  resize();
+  document.getElementById('book-prev').addEventListener('click',function(){bookPageNav(-1);});
+  document.getElementById('book-next').addEventListener('click',function(){bookPageNav(1);});
+  document.getElementById('book-close').addEventListener('click',function(){closeBook();});
+});
 requestAnimationFrame(gameLoop);
 </script>
 </body>
