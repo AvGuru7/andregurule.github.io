@@ -26,8 +26,11 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
 
 /* ── HUD ── */
 #hud{
-  position:fixed;top:10px;left:10px;z-index:100;
+  position:fixed;z-index:100;
   background:var(--ui-bg);border:3px solid var(--gold);padding:8px 13px;
+  transform:translateX(-50%);
+  pointer-events:none;
+  transition:opacity 0.2s;
 }
 #hud::before{content:'';position:absolute;inset:2px;border:1px solid rgba(240,192,64,0.25);pointer-events:none;}
 #hud-name{font-size:clamp(5px,1.1vw,8px);color:var(--gold);margin-bottom:4px;letter-spacing:1px;}
@@ -142,6 +145,7 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
   padding:1px 5px;border-radius:2px;font-size:inherit;
 }
 #menu-cursor{color:var(--gold);font-size:10px;margin-right:4px;}
+.menu-kayak-lock{font-size:clamp(4px,0.65vw,5px);color:#886644;margin-left:6px;vertical-align:middle;}
 
 /* ── CURSOR (desktop) ── */
 @media(pointer:fine){
@@ -157,7 +161,7 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
   position:fixed;
   bottom:0;
   left:0; right:0;
-  z-index:300;
+  z-index:600;
   display:flex;
   flex-direction:column;align-items:center;
   gap:8px;
@@ -418,6 +422,64 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
   font-size:clamp(5px,0.8vw,7px);color:var(--ui-dim);
 }
 
+/* ── ITEM DETAIL PANEL ── */
+#item-detail{
+  display:none;
+  position:absolute;inset:0;
+  background:var(--ui-bg);
+  border:4px solid var(--gold);
+  padding:clamp(16px,3vw,28px) clamp(18px,3.5vw,32px);
+  overflow-y:auto;
+  z-index:10;
+  flex-direction:column;
+}
+#item-detail::before{content:'';position:absolute;inset:3px;border:1px solid rgba(240,192,64,0.22);pointer-events:none;}
+#item-detail-header{
+  display:flex;align-items:center;gap:clamp(8px,1.5vw,14px);
+  margin-bottom:clamp(10px,1.8vh,18px);
+  padding-bottom:clamp(8px,1.5vh,14px);
+  border-bottom:1px solid rgba(240,192,64,0.25);
+}
+#item-detail-icon{font-size:clamp(24px,5vw,38px);line-height:1;}
+#item-detail-title{
+  font-size:clamp(8px,1.4vw,11px);color:var(--gold);letter-spacing:1px;
+}
+#item-detail-subtitle{
+  font-family:'VT323',monospace;
+  font-size:clamp(13px,2.2vw,17px);color:var(--ui-dim);
+  margin-top:4px;
+}
+#item-detail-body{
+  flex:1;display:flex;flex-direction:column;gap:clamp(14px,2.5vh,24px);
+}
+.detail-page{
+  border-left:3px solid rgba(240,192,64,0.35);
+  padding-left:clamp(10px,1.8vw,18px);
+}
+.detail-page-heading{
+  font-size:clamp(6px,1vw,8px);color:var(--gold);
+  margin-bottom:clamp(6px,1vh,10px);letter-spacing:1px;
+}
+.detail-page-body{
+  font-family:'VT323',monospace;
+  font-size:clamp(15px,2.6vw,20px);
+  color:var(--ui-text);line-height:1.55;
+}
+#item-detail-back-hint{
+  text-align:center;margin-top:clamp(14px,2.5vh,24px);
+  font-size:clamp(5px,0.8vw,7px);color:var(--ui-dim);
+}
+.inv-item.obtained.has-content{cursor:pointer;}
+.inv-item.obtained.has-content:hover{
+  border-color:var(--gold);
+  background:rgba(240,192,64,0.06);
+}
+.inv-item.obtained.has-content::after{
+  content:'▶ READ';
+  position:absolute;bottom:6px;right:8px;
+  font-size:clamp(4px,0.7vw,6px);color:var(--gold);opacity:0.7;
+}
+
 /* ── ITEM PICKUP FLASH ── */
 #pickup-flash{
   position:fixed;top:50%;left:50%;transform:translate(-50%,-60%);
@@ -478,7 +540,7 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
 <!-- HUD -->
 <div id="hud">
   <div id="hud-name">ANDRE GURULE</div>
-  <div id="hud-title">Welcome!<br>Please excuse the mess.<br>Site under construction.</div>
+  <div id="hud-title">Welcome! If you would like to review my profile,<br>visit the Hall of Records.<br>Otherwise, feel free to look around.<br>The game is still under construction (5/29/26).<br>I should have it working soon.<br>The Start button opens<br>and closes this dialogue.</div>
 </div>
 
 <!-- Minimap -->
@@ -515,19 +577,19 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
     <a class="menu-item" href="https://www.andregurule.com/about" target="_blank">
       <span class="menu-item-icon">📖</span> CASTLE ANTHRAX
     </a>
-    <a class="menu-item" href="https://www.andregurule.com/hobbies" target="_blank">
+    <a class="menu-item" href="erebor-mountain.html">
       <span class="menu-item-icon">⛰</span> EREBOR MOUNTAIN
     </a>
     <a class="menu-item" href="andregurule-library.html">
       <span class="menu-item-icon">📜</span> LIBRARY
     </a>
     <div id="menu-divider"></div>
-    <a class="menu-item" href="https://www.andregurule.com/hobbies" target="_blank">
-      <span class="menu-item-icon">🏔</span> LAKE TAHOE
-    </a>
-    <a class="menu-item" href="https://www.andregurule.com/blog" target="_blank">
-      <span class="menu-item-icon">🌊</span> THE LAKE
-    </a>
+    <span id="menu-lake-tahoe" class="menu-item" style="opacity:0.4;cursor:default;pointer-events:none;">
+      <span class="menu-item-icon">🏔</span> LAKE TAHOE <span class="menu-kayak-lock">[🚣 need kayak]</span>
+    </span>
+    <span id="menu-the-lake" class="menu-item" style="opacity:0.4;cursor:default;pointer-events:none;">
+      <span class="menu-item-icon">🌊</span> THE LAKE <span class="menu-kayak-lock">[🚣 need kayak]</span>
+    </span>
     <a class="menu-item" href="https://linkedin.com/in/andregurule" target="_blank">
       <span class="menu-item-icon">💼</span> LINKEDIN
     </a>
@@ -551,6 +613,22 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
     <div id="inventory-close-hint">
       <span class="hint-badge-sm">SELECT</span> or <span class="hint-badge-sm">B</span> to close
     </div>
+
+    <!-- Item Detail Panel — slides over the inventory list -->
+    <div id="item-detail">
+      <div id="item-detail-header">
+        <div id="item-detail-icon"></div>
+        <div>
+          <div id="item-detail-title"></div>
+          <div id="item-detail-subtitle"></div>
+        </div>
+      </div>
+      <div id="item-detail-body"></div>
+      <div id="item-detail-back-hint">
+        <span class="hint-badge-sm">B</span> or <span class="hint-badge-sm">A</span> to go back
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -590,7 +668,7 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
           <div class="ss-label">SELECT</div>
         </div>
         <div style="display:flex;flex-direction:column;align-items:center;">
-          <div class="ss-btn" id="btn-start" onclick="handleA()"></div>
+          <div class="ss-btn" id="btn-start" onclick="toggleHud()"></div>
           <div class="ss-label">START</div>
         </div>
       </div>
@@ -609,7 +687,7 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
     </div>
 
   </div>
-  <div id="ctrl-hint">D-PAD / ARROW KEYS · A=ENTER · B=BACK · MENU=NAV · SELECT=INVENTORY</div>
+  <div id="ctrl-hint">D-PAD / ARROW KEYS · A=ENTER · B=BACK · MENU=NAV · SELECT=INVENTORY · START=HUD</div>
 </div>
 
 <script>
@@ -668,14 +746,14 @@ const GameState = {
 };
 
 let camX=0,camY=0;
-let playerX=16*TILE,playerY=9*TILE;
+let playerX=16*TILE,playerY=17*TILE;
 
 const SPAWN_POINTS={
-  projects:  {x:25,y:9},
-  story:     {x:5, y:9},
-  hobbies:   {x:5, y:19},
-  blog:      {x:25,y:19},
-  contact:   {x:16,y:14},
+    'hall-of-records':{x:25,y:9},
+    'castle-anthrax': {x:5, y:9},
+    'erebor-mountain':{x:5, y:19},
+    'library':        {x:25,y:19},
+    'town-square':    {x:16,y:14},
   'lake-tahoe':{x:11,y:21},
   'the-lake':  {x:19,y:9},
 };
@@ -695,31 +773,35 @@ let menuItems=[];
 let menuIdx=0;
 
 const ZONES=[
-  {id:'projects',label:'⚔ HALL OF RECORDS',x:22,y:4,w:6,h:5,color:'#e84393',
+  {id:'hall-of-records',label:'⚔ HALL OF RECORDS',x:22,y:4,w:6,h:5,color:'#e84393',
    title:'HALL OF RECORDS',
    body:'Enter to learn more about my professional projects and certifications.',
    links:[{label:'📁 ENTER THE HALL',href:'hall-of-records.html',local:true}]},
-  {id:'story',label:'📖 CASTLE ANTHRAX',x:2,y:4,w:6,h:5,color:'#4080ff',
+  {id:'castle-anthrax',label:'📖 CASTLE ANTHRAX',x:2,y:4,w:6,h:5,color:'#4080ff',
    title:'CASTLE ANTHRAX',
    body:'Feel free to explore the castle. Who knows, you might find the Holy Grail.',
    links:[{label:'🏰 ENTER CASTLE ANTHRAX',href:'castle-anthrax.html',local:true}]},
-  {id:'hobbies',label:'⛰ EREBOR MOUNTAIN',x:2,y:14,w:6,h:5,color:'#40c060',
+  {id:'erebor-mountain',label:'⛰ EREBOR MOUNTAIN',x:2,y:14,w:6,h:5,color:'#40c060',
    title:'EREBOR MOUNTAIN',
-   body:'Motorcycles, off-roading, LEGO, and the great outdoors. Come explore life beyond the keyboard.',
-   links:[{label:'⛰ MY HOBBIES',href:'under-construction.html',local:true}]},
-  {id:'blog',label:'📜 LIBRARY',x:22,y:14,w:6,h:5,color:'#f0c040',
+   body:'You are welcome to explore the caves in this mountain, but beware. There are things in this mountain that can kill you.',
+   links:[{label:'⛰ ENTER EREBOR MOUNTAIN',href:'erebor-mountain.html',local:true}]},
+  {id:'library',label:'📜 LIBRARY',x:22,y:14,w:6,h:5,color:'#f0c040',
    title:'THE LIBRARY',
    body:'I enjoy learning and sharing what I know. Inside, you\'ll find some books I enjoy, along with brief thoughts on the lessons and applications I\'ve drawn from them.',
    links:[{label:'📜 ENTER THE LIBRARY',href:'andregurule-library.html',local:true}]},
   {id:'lake-tahoe',label:'🏔 LAKE TAHOE',x:9,y:16,w:5,h:4,color:'#1565c0',isWater:true,
+   requiresItem:'blue-kayak',
    title:'LAKE TAHOE',
    body:'One of my favorite places on Earth. Crystal-clear water, towering pines, and endless adventure.',
+   lockedBody:'🚣 You need a Blue Kayak to access the water. Find one somewhere in the world...',
    links:[{label:'🏔 ENTER LAKE TAHOE',href:'lake-tahoe.html',local:true}]},
   {id:'the-lake',label:'🌊 THE LAKE',x:17,y:4,w:4,h:4,color:'#1565c0',isWater:true,
+   requiresItem:'blue-kayak',
    title:'THE CENTRAL PARK LAKE',
    body:'A quiet place in the middle of the big city to think, read, and recharge. Sometimes the best ideas come from the water\'s edge or an overachieving duck.',
+   lockedBody:'🚣 You need a Blue Kayak to paddle out here. Find one somewhere in the world...',
    links:[{label:'🌊 ENTER THE LAKE',href:'the-lake.html',local:true}]},
-  {id:'contact',label:'💌 TOWN SQUARE',x:13,y:10,w:6,h:4,color:'#e07030',
+  {id:'town-square',label:'💌 TOWN SQUARE',x:13,y:10,w:6,h:4,color:'#e07030',
    title:'TOWN SQUARE',
    body:'This is the place to obtain information and purchase needed supplies. Be sure to talk to the locals.',
    links:[
@@ -765,7 +847,17 @@ const ITEMS=[
 
   {id:'first-edition',icon:'📖', label:'First Edition',        category:'collectible',
    points:20, page:'Scroll Library',
-   riddle:false, hint:null, worldTile:null},
+   riddle:false, hint:null, worldTile:null,
+   content:{
+     title:'First Edition',
+     subtitle:'A rare volume found in the Scroll Library',
+     pages:[
+       {heading:'Foreword',body:'You have found something few ever discover — a first edition copy, tucked away behind the ordinary volumes. Its pages carry the weight of original thought.'},
+       {heading:'Chapter I — Origins',body:'Every great journey begins with a single step into the unknown. This volume chronicles the moments that shaped a path unlike any other.'},
+       {heading:'Chapter II — The Work',body:'Here lie the blueprints of projects built from scratch — each one a solution to a real problem, crafted with care and curiosity.'},
+       {heading:'Chapter III — What Remains',body:'The most enduring things are not the finished products, but the lessons learned along the way. Keep exploring, adventurer.'},
+     ]
+   }},
 
   {id:'fishing-rod',  icon:'🎣', label:'Fishing Rod',          category:'collectible',
    points:15, page:'Lake Tahoe',
@@ -1775,15 +1867,15 @@ function drawGreekLibrary(wx,wy,zone){
 
 function drawBuilding(wx,wy,zone){
   // Hall of Records gets the special NYPL treatment
-  if(zone.id==='projects'){drawNYPLBuilding(wx,wy,zone);return;}
+  if(zone.id==='hall-of-records'){drawNYPLBuilding(wx,wy,zone);return;}
   // Castle Anthrax gets the castle treatment
-  if(zone.id==='story'){drawCastleBuilding(wx,wy,zone);return;}
+  if(zone.id==='castle-anthrax'){drawCastleBuilding(wx,wy,zone);return;}
   // Erebor Mountain gets the mountain treatment
-  if(zone.id==='hobbies'){drawMountainBuilding(wx,wy,zone);return;}
+  if(zone.id==='erebor-mountain'){drawMountainBuilding(wx,wy,zone);return;}
   // Town Square gets the market treatment
-  if(zone.id==='contact'){drawTownSquare(wx,wy,zone);return;}
+  if(zone.id==='town-square'){drawTownSquare(wx,wy,zone);return;}
   // Library gets the Greek temple treatment
-  if(zone.id==='blog'){drawGreekLibrary(wx,wy,zone);return;}
+  if(zone.id==='library'){drawGreekLibrary(wx,wy,zone);return;}
 
   const bx=zone.x*TILE-wx,by=zone.y*TILE-wy,bw=zone.w*TILE,bh=zone.h*TILE;
   ctx.fillStyle='rgba(0,0,0,0.22)';ctx.fillRect(bx+6,by+bh-6,bw,12);
@@ -1928,6 +2020,7 @@ function hideZoneLabel(){document.getElementById('zone-label').style.opacity='0'
 // ── A button: SELECT / ENTER ──
 function handleA(){
   if(menuOpen){menuSelectCurrent();return;}
+  if(itemDetailOpen){closeItemDetail();return;}
   if(inventoryOpen){closeInventory();return;}
   if(riddleOpen){submitRiddle();return;}
   if(dialogOpen){
@@ -1950,6 +2043,7 @@ function handleA(){
 // ── B button: CLOSE / BACK ──
 function handleB(){
   if(menuOpen){closeMenu();return;}
+  if(itemDetailOpen){closeItemDetail();return;}
   if(inventoryOpen){closeInventory();return;}
   if(dialogOpen){
     if(riddleOpen){riddleOpen=false;}
@@ -1960,18 +2054,21 @@ function handleB(){
 
 function openDialog(zone){
   dialogOpen=true;
-  GameState.visitZone(zone.id);  // track visit + award points
+  const locked=zone.requiresItem&&!GameState.hasItem(zone.requiresItem);
+  if(!locked)GameState.visitZone(zone.id);  // track visit + award points only when accessible
   document.getElementById('dialog-title').textContent=zone.title;
-  document.getElementById('dialog-body').textContent=zone.body;
+  document.getElementById('dialog-body').textContent=locked?(zone.lockedBody||'You need a special item to enter here.'):zone.body;
   const linksEl=document.getElementById('dialog-links');
   linksEl.innerHTML='';
-  zone.links.forEach(l=>{
-    const a=document.createElement('a');
-    a.className='dialog-link';a.textContent=l.label;
-    a.href=l.local ? GameState.withState(l.href) : l.href;
-    if(!l.local)a.target='_blank';
-    linksEl.appendChild(a);
-  });
+  if(!locked){
+    zone.links.forEach(l=>{
+      const a=document.createElement('a');
+      a.className='dialog-link';a.textContent=l.label;
+      a.href=l.local ? GameState.withState(l.href) : l.href;
+      if(!l.local)a.target='_blank';
+      linksEl.appendChild(a);
+    });
+  }
   document.getElementById('dialog-box').style.display='block';
   document.getElementById('zone-label').style.opacity='0';
 }
@@ -1987,11 +2084,23 @@ function closeDialog(){
 function toggleMenu(){
   menuOpen?closeMenu():openMenu();
 }
+function _renderWaterMenuItem(id,icon,label,href){
+  const hasKayak=GameState.hasItem('blue-kayak');
+  const el=document.getElementById(id);
+  if(!el)return;
+  if(hasKayak){
+    el.outerHTML=`<a id="${id}" class="menu-item" href="${GameState.withState(href)}"><span class="menu-item-icon">${icon}</span> ${label}</a>`;
+  } else {
+    el.outerHTML=`<span id="${id}" class="menu-item" style="opacity:0.4;cursor:default;pointer-events:none;"><span class="menu-item-icon">${icon}</span> ${label} <span class="menu-kayak-lock">[🚣 need kayak]</span></span>`;
+  }
+}
 function openMenu(){
   if(dialogOpen)closeDialog();
   menuOpen=true;
+  _renderWaterMenuItem('menu-lake-tahoe','🏔','LAKE TAHOE','lake-tahoe.html');
+  _renderWaterMenuItem('menu-the-lake','🌊','THE LAKE','the-lake.html');
   document.getElementById('menu-overlay').style.display='flex';
-  menuItems=Array.from(document.querySelectorAll('.menu-item'));
+  menuItems=Array.from(document.querySelectorAll('#menu-box .menu-item[href]'));
   menuIdx=0;
   updateMenuCursor();
   document.getElementById('menu-btn').classList.add('pressed');
@@ -2040,6 +2149,7 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Escape'||e.key==='b'||e.key==='B'){handleB();}
   if(e.key==='m'||e.key==='M'){toggleMenu();}
   if(e.key==='i'||e.key==='I'){toggleInventory();}
+  if(e.key==='h'||e.key==='H'){toggleHud();}
   if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key))e.preventDefault();
 });
 document.addEventListener('keyup',e=>{
@@ -2300,8 +2410,24 @@ function tryPickupItem(item){
   showPickupFlash(item);
 }
 
+// ── HUD TOGGLE (START button) ──
+// Show HUD only when arriving fresh (no #spawn= hash = came from index.html).
+// Hide it when returning from a sub-page (spawn hash was present).
+let hudVisible=!_spawnHash;
+(function(){
+  const hud=document.getElementById('hud');
+  if(hud)hud.style.opacity=hudVisible?'1':'0';
+})();
+function toggleHud(){
+  hudVisible=!hudVisible;
+  const hud=document.getElementById('hud');
+  hud.style.opacity=hudVisible?'1':'0';
+  hud.style.pointerEvents='none';
+}
+
 // ── INVENTORY OVERLAY ──
 let inventoryOpen=false;
+let itemDetailOpen=false;
 
 function toggleInventory(){
   inventoryOpen?closeInventory():openInventory();
@@ -2357,10 +2483,40 @@ function renderInventory(){
       badge.textContent=obtained?'✓':'🔒';
       card.appendChild(icon);card.appendChild(name);
       card.appendChild(loc);card.appendChild(pts);card.appendChild(badge);
+      if(obtained && item.content){
+        card.classList.add('has-content');
+        card.addEventListener('click',()=>openItemDetail(item));
+      }
       grid.appendChild(card);
     });
     list.appendChild(grid);
   });
+}
+
+function openItemDetail(item){
+  itemDetailOpen=true;
+  const c=item.content;
+  document.getElementById('item-detail-icon').textContent=item.icon;
+  document.getElementById('item-detail-title').textContent=c.title;
+  document.getElementById('item-detail-subtitle').textContent=c.subtitle;
+  const body=document.getElementById('item-detail-body');
+  body.innerHTML='';
+  c.pages.forEach(pg=>{
+    const pageDiv=document.createElement('div');
+    pageDiv.className='detail-page';
+    const h=document.createElement('div');
+    h.className='detail-page-heading';h.textContent=pg.heading;
+    const p=document.createElement('div');
+    p.className='detail-page-body';p.textContent=pg.body;
+    pageDiv.appendChild(h);pageDiv.appendChild(p);
+    body.appendChild(pageDiv);
+  });
+  document.getElementById('item-detail').style.display='flex';
+}
+
+function closeItemDetail(){
+  itemDetailOpen=false;
+  document.getElementById('item-detail').style.display='none';
 }
 
 function gameLoop(){
@@ -2370,6 +2526,10 @@ function gameLoop(){
   const ppx=playerX-camX,ppy=playerY-camY;
   const pe=document.getElementById('player');
   pe.style.left=ppx+'px';pe.style.top=ppy+'px';
+  // Keep HUD centered above player
+  const hud=document.getElementById('hud');
+  hud.style.left=ppx+'px';
+  hud.style.top=Math.max(8, ppy-hud.offsetHeight-25)+'px';
   drawMinimap();
   requestAnimationFrame(gameLoop);
 }
