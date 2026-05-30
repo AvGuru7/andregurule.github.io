@@ -145,6 +145,7 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
   padding:1px 5px;border-radius:2px;font-size:inherit;
 }
 #menu-cursor{color:var(--gold);font-size:10px;margin-right:4px;}
+.menu-kayak-lock{font-size:clamp(4px,0.65vw,5px);color:#886644;margin-left:6px;vertical-align:middle;}
 
 /* ── CURSOR (desktop) ── */
 @media(pointer:fine){
@@ -583,12 +584,12 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
       <span class="menu-item-icon">📜</span> LIBRARY
     </a>
     <div id="menu-divider"></div>
-    <a class="menu-item" href="https://www.andregurule.com/hobbies" target="_blank">
-      <span class="menu-item-icon">🏔</span> LAKE TAHOE
-    </a>
-    <a class="menu-item" href="https://www.andregurule.com/blog" target="_blank">
-      <span class="menu-item-icon">🌊</span> THE LAKE
-    </a>
+    <span id="menu-lake-tahoe" class="menu-item" style="opacity:0.4;cursor:default;pointer-events:none;">
+      <span class="menu-item-icon">🏔</span> LAKE TAHOE <span class="menu-kayak-lock">[🚣 need kayak]</span>
+    </span>
+    <span id="menu-the-lake" class="menu-item" style="opacity:0.4;cursor:default;pointer-events:none;">
+      <span class="menu-item-icon">🌊</span> THE LAKE <span class="menu-kayak-lock">[🚣 need kayak]</span>
+    </span>
     <a class="menu-item" href="https://linkedin.com/in/andregurule" target="_blank">
       <span class="menu-item-icon">💼</span> LINKEDIN
     </a>
@@ -789,12 +790,16 @@ const ZONES=[
    body:'I enjoy learning and sharing what I know. Inside, you\'ll find some books I enjoy, along with brief thoughts on the lessons and applications I\'ve drawn from them.',
    links:[{label:'📜 ENTER THE LIBRARY',href:'andregurule-library.html',local:true}]},
   {id:'lake-tahoe',label:'🏔 LAKE TAHOE',x:9,y:16,w:5,h:4,color:'#1565c0',isWater:true,
+   requiresItem:'blue-kayak',
    title:'LAKE TAHOE',
    body:'One of my favorite places on Earth. Crystal-clear water, towering pines, and endless adventure.',
+   lockedBody:'🚣 You need a Blue Kayak to access the water. Find one somewhere in the world...',
    links:[{label:'🏔 ENTER LAKE TAHOE',href:'lake-tahoe.html',local:true}]},
   {id:'the-lake',label:'🌊 THE LAKE',x:17,y:4,w:4,h:4,color:'#1565c0',isWater:true,
+   requiresItem:'blue-kayak',
    title:'THE CENTRAL PARK LAKE',
    body:'A quiet place in the middle of the big city to think, read, and recharge. Sometimes the best ideas come from the water\'s edge or an overachieving duck.',
+   lockedBody:'🚣 You need a Blue Kayak to paddle out here. Find one somewhere in the world...',
    links:[{label:'🌊 ENTER THE LAKE',href:'the-lake.html',local:true}]},
   {id:'town-square',label:'💌 TOWN SQUARE',x:13,y:10,w:6,h:4,color:'#e07030',
    title:'TOWN SQUARE',
@@ -2044,18 +2049,21 @@ function handleB(){
 
 function openDialog(zone){
   dialogOpen=true;
-  GameState.visitZone(zone.id);  // track visit + award points
+  const locked=zone.requiresItem&&!GameState.hasItem(zone.requiresItem);
+  if(!locked)GameState.visitZone(zone.id);  // track visit + award points only when accessible
   document.getElementById('dialog-title').textContent=zone.title;
-  document.getElementById('dialog-body').textContent=zone.body;
+  document.getElementById('dialog-body').textContent=locked?(zone.lockedBody||'You need a special item to enter here.'):zone.body;
   const linksEl=document.getElementById('dialog-links');
   linksEl.innerHTML='';
-  zone.links.forEach(l=>{
-    const a=document.createElement('a');
-    a.className='dialog-link';a.textContent=l.label;
-    a.href=l.local ? GameState.withState(l.href) : l.href;
-    if(!l.local)a.target='_blank';
-    linksEl.appendChild(a);
-  });
+  if(!locked){
+    zone.links.forEach(l=>{
+      const a=document.createElement('a');
+      a.className='dialog-link';a.textContent=l.label;
+      a.href=l.local ? GameState.withState(l.href) : l.href;
+      if(!l.local)a.target='_blank';
+      linksEl.appendChild(a);
+    });
+  }
   document.getElementById('dialog-box').style.display='block';
   document.getElementById('zone-label').style.opacity='0';
 }
@@ -2071,11 +2079,23 @@ function closeDialog(){
 function toggleMenu(){
   menuOpen?closeMenu():openMenu();
 }
+function _renderWaterMenuItem(id,icon,label,href){
+  const hasKayak=GameState.hasItem('blue-kayak');
+  const el=document.getElementById(id);
+  if(!el)return;
+  if(hasKayak){
+    el.outerHTML=`<a id="${id}" class="menu-item" href="${GameState.withState(href)}"><span class="menu-item-icon">${icon}</span> ${label}</a>`;
+  } else {
+    el.outerHTML=`<span id="${id}" class="menu-item" style="opacity:0.4;cursor:default;pointer-events:none;"><span class="menu-item-icon">${icon}</span> ${label} <span class="menu-kayak-lock">[🚣 need kayak]</span></span>`;
+  }
+}
 function openMenu(){
   if(dialogOpen)closeDialog();
   menuOpen=true;
+  _renderWaterMenuItem('menu-lake-tahoe','🏔','LAKE TAHOE','lake-tahoe.html');
+  _renderWaterMenuItem('menu-the-lake','🌊','THE LAKE','the-lake.html');
   document.getElementById('menu-overlay').style.display='flex';
-  menuItems=Array.from(document.querySelectorAll('.menu-item'));
+  menuItems=Array.from(document.querySelectorAll('#menu-box .menu-item[href]'));
   menuIdx=0;
   updateMenuCursor();
   document.getElementById('menu-btn').classList.add('pressed');
