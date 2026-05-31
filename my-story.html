@@ -1039,11 +1039,15 @@ var GameState = (function() {
            toParams: toParams, withState: withState, hasItem: hasItem, collectItem: collectItem };
 })();
 
-// Rewrite all local links with state
+// Rewrite all local links dynamically on click so state is always current
+// (collecting items after page load would be lost if we bake hrefs in at load time)
 document.querySelectorAll('a[href]').forEach(function(a) {
-  var h = a.getAttribute('href');
-  if (!h || h.startsWith('http') || h.startsWith('mailto') || h.startsWith('#')) return;
-  a.href = GameState.withState(h);
+  var baseHref = a.getAttribute('href');
+  if (!baseHref || baseHref.startsWith('http') || baseHref.startsWith('mailto') || baseHref.startsWith('#')) return;
+  a.addEventListener('click', function(e) {
+    e.preventDefault();
+    window.location.href = GameState.withState(baseHref);
+  });
 });
 
 // Show cipher banner if player has First Edition

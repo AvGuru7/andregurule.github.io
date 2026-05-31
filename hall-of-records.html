@@ -1347,15 +1347,25 @@ var GameState = (function() {
     return href.split('#')[0] + sep + toParams() + hash;
   }
   function hasItem(id) { return items.indexOf(id) !== -1; }
+  function collectItem(id, pts) {
+    if (hasItem(id)) return false;
+    items.push(id);
+    points += (pts || 0);
+    return true;
+  }
   return { get points(){ return points; }, visited:visited, items:items, unlocked:unlocked,
-           toParams:toParams, withState:withState, hasItem:hasItem };
+           toParams:toParams, withState:withState, hasItem:hasItem, collectItem:collectItem };
 })();
 
-// Rewrite local nav links with state
+// Rewrite local nav links dynamically on click so state is always current
+// (collecting items after page load would be lost if we bake hrefs in at load time)
 document.querySelectorAll('a[href]').forEach(function(a) {
-  var h = a.getAttribute('href');
-  if (!h || h.startsWith('http') || h.startsWith('mailto') || h.startsWith('#')) return;
-  a.href = GameState.withState(h);
+  var baseHref = a.getAttribute('href');
+  if (!baseHref || baseHref.startsWith('http') || baseHref.startsWith('mailto') || baseHref.startsWith('#')) return;
+  a.addEventListener('click', function(e) {
+    e.preventDefault();
+    window.location.href = GameState.withState(baseHref);
+  });
 });
 
 // Restore secretUnlocked from state — if cert-badge already collected, book is unlocked
