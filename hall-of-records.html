@@ -1010,6 +1010,11 @@ function selectBook(proj) {
     if (!clueGiven) { openLibrarian('no_clue'); return; }
     openSecretPrompt(); return;
   }
+  // G-14 Classified navigates to My Story page
+  if (proj.secret && secretUnlocked) {
+    window.location.href = GameState.withState('my-story.html');
+    return;
+  }
   // Training Portfolio opens directly — no dialog
   if (proj.id === 'proj1' && proj.link && proj.link !== '#') {
     window.location.href = proj.link;
@@ -1080,11 +1085,11 @@ function revealSecret() {
     el.style.animation='none';
     el.style.boxShadow='0 0 30px rgba(255,30,70,0.7), 3px 0 0 rgba(0,0,0,0.35)';
   });
-  const proj = PROJECTS.find(p=>p.id==='secret');
-  proj.title='G-14 CLASSIFIED'; proj.subtitle='Secret Project  ·  Ask Andre';
-  proj.desc='Congratulations, Agent. Clearance granted.\n\nThis is where Andre\'s most ambitious passion project lives — a blend of technology, creativity, and adventure. The full details are available upon direct inquiry.\n\nYou\'ve proven yourself worthy of a real conversation. Reach out via LinkedIn or email.';
-  proj.tags=['TOP SECRET','Passion Project','Ask Andre'];
-  setTimeout(()=>showBookPanel(proj),450);
+  // Navigate to My Story page — the cipher lives there
+  setTimeout(()=>{
+    closeSecret();
+    window.location.href = GameState.withState('my-story.html');
+  }, 600);
 }
 
 function closeSecret() {

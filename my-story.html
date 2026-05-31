@@ -1,0 +1,1263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>My Story — Andre Gurule</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&family=VT323&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --cream:       #f7f2e8;
+  --cream2:      #ede6d6;
+  --warm-white:  #faf8f3;
+  --wood-mid:    #a06c30;
+  --wood-dark:   #7a4e1e;
+  --gold:        #c89828;
+  --gold-lt:     #f0c040;
+  --text-dark:   #1e140a;
+  --text-mid:    #4a3520;
+  --text-light:  #8a6840;
+  --rule:        rgba(160, 108, 48, 0.18);
+  --blue-accent: #2a5ed0;
+  --blue-dark:   #14317a;
+  --cipher-red:  #8b1a1a;
+  --cipher-bg:   #1e0a0a;
+  --ctrl-h: 0px;
+}
+
+html { scroll-behavior: smooth; }
+body {
+  background: var(--cream);
+  color: var(--text-dark);
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh;
+  padding-bottom: calc(var(--ctrl-h) + 60px);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ── CURSOR ── */
+@media (pointer: fine) {
+  body { cursor: none; }
+  #cursor {
+    position: fixed; width: 12px; height: 12px;
+    border: 2px solid var(--wood-dark); border-radius: 50%;
+    pointer-events: none; z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: transform 0.1s, border-color 0.15s;
+  }
+  #cursor.hover { transform: translate(-50%,-50%) scale(1.8); border-color: var(--gold); }
+}
+@media (pointer: coarse) { #cursor { display: none; } }
+
+/* ── BACK BANNER ── */
+#back-banner {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  background: rgba(247,242,232,0.92);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--rule);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 clamp(16px,5vw,56px);
+  height: 52px;
+}
+#back-link {
+  display: flex; align-items: center; gap: 8px;
+  font-family: 'Playfair Display', serif;
+  font-style: italic; font-size: clamp(12px,1.6vw,15px);
+  color: var(--text-mid); text-decoration: none;
+  transition: color 0.15s;
+}
+#back-link:hover { color: var(--wood-dark); }
+#back-link .arrow { font-style: normal; color: var(--gold); font-size: 1.2em; }
+#banner-title {
+  font-family: 'DM Sans', sans-serif;
+  font-size: clamp(9px,1.2vw,11px); font-weight: 600;
+  letter-spacing: 0.15em; text-transform: uppercase;
+  color: var(--text-light);
+}
+#contact-link {
+  font-family: 'DM Sans', sans-serif;
+  font-size: clamp(11px,1.4vw,13px); font-weight: 500;
+  color: var(--blue-accent); text-decoration: none;
+  border: 1.5px solid currentColor;
+  padding: 5px 14px; border-radius: 3px;
+  transition: background 0.15s, color 0.15s;
+}
+#contact-link:hover { background: var(--blue-accent); color: #fff; }
+
+/* ── CIPHER BANNER ── */
+#cipher-banner {
+  display: none;
+  position: sticky; top: 52px; z-index: 150;
+  background: var(--cipher-bg);
+  border-bottom: 2px solid var(--cipher-red);
+  padding: 10px clamp(16px,5vw,56px);
+  display: none;
+  align-items: center; justify-content: space-between;
+  gap: 12px; flex-wrap: wrap;
+}
+#cipher-banner .cb-text {
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(6px,1vw,8px);
+  color: #e08080;
+  line-height: 1.6;
+}
+#cipher-banner .cb-text span {
+  color: var(--gold-lt);
+}
+#cb-decode-btn {
+  flex-shrink: 0;
+  background: transparent;
+  border: 1.5px solid var(--cipher-red);
+  color: #e08080;
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(6px,1vw,8px);
+  padding: 8px 14px;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+#cb-decode-btn:hover { background: var(--cipher-red); color: #fff; }
+
+/* ── MAIN ── */
+main {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 96px clamp(20px,6vw,56px) 0;
+}
+
+/* ── HERO ── */
+#hero {
+  padding-bottom: clamp(40px,6vh,64px);
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: clamp(40px,6vh,64px);
+}
+.eyebrow {
+  font-family: 'DM Sans', sans-serif;
+  font-size: clamp(9px,1.1vw,11px); font-weight: 600;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--gold); margin-bottom: 16px;
+  display: flex; align-items: center; gap: 12px;
+}
+.eyebrow::after {
+  content: ''; flex: 1; max-width: 60px; height: 1px;
+  background: var(--gold); opacity: 0.5;
+}
+#hero h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(28px,5.5vw,52px); font-weight: 700;
+  line-height: 1.1; color: var(--text-dark); margin-bottom: 20px;
+}
+#hero .lead {
+  font-size: clamp(15px,1.8vw,18px); font-weight: 300;
+  line-height: 1.75; color: var(--text-mid); max-width: 680px;
+}
+#hero .lead a {
+  color: var(--blue-accent); text-decoration: none; font-weight: 500;
+}
+#hero .lead a:hover { text-decoration: underline; }
+
+/* ── PHOTO PLACEHOLDER ── */
+.photo-placeholder {
+  width: 100%; max-width: 480px;
+  aspect-ratio: 4/3;
+  background: var(--cream2);
+  border: 1.5px dashed var(--wood-mid);
+  border-radius: 4px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 8px;
+  color: var(--text-light);
+  font-size: 11px; letter-spacing: 0.1em;
+  text-transform: uppercase; font-weight: 600;
+  margin: clamp(24px,4vh,36px) 0;
+}
+.photo-placeholder .ph-icon { font-size: 32px; opacity: 0.35; }
+
+/* ── SECTIONS ── */
+section { margin-bottom: clamp(48px,8vh,80px); }
+
+.section-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(18px,2.6vw,26px); font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: clamp(20px,3vh,30px);
+  padding-bottom: 12px;
+  border-bottom: 1.5px solid var(--rule);
+}
+
+.prose p {
+  font-size: clamp(14px,1.65vw,16.5px);
+  line-height: 1.8; color: var(--text-mid);
+  margin-bottom: 1.25em;
+}
+.prose p:last-child { margin-bottom: 0; }
+
+/* ── LESSONS / CALLOUT BOX ── */
+.lessons-box {
+  background: var(--warm-white);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--gold);
+  border-radius: 0 4px 4px 0;
+  padding: clamp(16px,2.5vh,24px) clamp(18px,3vw,28px);
+  margin: clamp(24px,4vh,36px) 0;
+}
+.lessons-box .lessons-label {
+  font-family: 'DM Sans', sans-serif;
+  font-size: clamp(9px,1.1vw,11px); font-weight: 600;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--gold); margin-bottom: 12px;
+}
+.lessons-box ul {
+  list-style: none; display: flex; flex-direction: column; gap: 8px;
+}
+.lessons-box ul li {
+  padding-left: 20px; position: relative;
+  font-size: clamp(13px,1.5vw,15px); line-height: 1.65; color: var(--text-mid);
+  font-style: italic;
+}
+.lessons-box ul li::before {
+  content: '—'; position: absolute; left: 0;
+  color: var(--gold); font-weight: 700; font-style: normal;
+}
+
+/* ── SKILLS TAGS ── */
+.skills-wrap {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  margin-top: clamp(16px,2.5vh,24px);
+}
+.skill-tag {
+  background: var(--warm-white);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 6px 14px;
+  font-size: clamp(12px,1.3vw,13.5px);
+  color: var(--text-mid); font-weight: 500;
+}
+
+/* ── JOBS LIST ── */
+.jobs-list {
+  display: flex; flex-direction: column; gap: 0;
+  border: 1px solid var(--rule); border-radius: 4px;
+  overflow: hidden; margin-top: clamp(16px,2.5vh,24px);
+}
+.jobs-list .job-item {
+  padding: 12px 18px;
+  font-size: clamp(13px,1.5vw,15px);
+  color: var(--text-mid); line-height: 1.5;
+  border-bottom: 1px solid var(--rule);
+  display: flex; align-items: center; gap: 10px;
+}
+.jobs-list .job-item:last-child { border-bottom: none; }
+.jobs-list .job-item::before {
+  content: '▸'; color: var(--gold); flex-shrink: 0;
+}
+
+/* ── ACCOMPLISHMENTS ── */
+.accomplishments-list {
+  display: flex; flex-direction: column; gap: 8px;
+  margin-top: clamp(16px,2.5vh,24px);
+}
+.acc-item {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 12px 16px;
+  background: var(--warm-white);
+  border: 1px solid var(--rule); border-radius: 4px;
+}
+.acc-item .acc-icon { font-size: 16px; flex-shrink: 0; padding-top: 2px; }
+.acc-item .acc-text {
+  font-size: clamp(13px,1.5vw,14.5px); color: var(--text-mid); line-height: 1.55;
+}
+
+/* ── FOOTER CTA ── */
+#footer-cta {
+  background: var(--warm-white);
+  border: 1px solid var(--rule);
+  border-top: 3px solid var(--gold);
+  border-radius: 0 0 4px 4px;
+  padding: clamp(28px,4vh,44px) clamp(24px,4vw,44px);
+  text-align: center;
+  margin-bottom: clamp(32px,5vh,56px);
+}
+#footer-cta h3 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(17px,2.4vw,24px); font-weight: 700;
+  color: var(--text-dark); margin-bottom: 10px;
+}
+#footer-cta p {
+  font-size: clamp(13px,1.5vw,15px); color: var(--text-mid);
+  line-height: 1.65; max-width: 500px; margin: 0 auto 24px;
+}
+.cta-links { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+.cta-btn {
+  display: inline-block; padding: 10px 22px;
+  font-size: clamp(12px,1.4vw,14px); font-weight: 600;
+  border-radius: 3px; text-decoration: none;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.cta-btn.primary { background: var(--blue-accent); color: #fff; border: 1.5px solid var(--blue-accent); }
+.cta-btn.primary:hover { background: var(--blue-dark); border-color: var(--blue-dark); }
+.cta-btn.secondary { background: transparent; color: var(--text-mid); border: 1.5px solid var(--rule); }
+.cta-btn.secondary:hover { border-color: var(--wood-mid); color: var(--text-dark); }
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--cream2); }
+::-webkit-scrollbar-thumb { background: var(--wood-mid); border-radius: 3px; }
+
+/* ── NES CONTROLLER ── */
+#nes-controller {
+  position: fixed; bottom: clamp(10px,2.5vh,20px); left: 50%;
+  transform: translateX(-50%);
+  z-index: 300; display: none;
+  flex-direction: column; align-items: center; gap: 8px;
+}
+@media (pointer: coarse) { #nes-controller { display: flex; } }
+@media (max-width: 600px) { #nes-controller { display: flex; } }
+
+#ctrl-body {
+  position: relative;
+  width: clamp(240px,60vw,340px); height: clamp(80px,20vw,112px);
+  background: linear-gradient(175deg,#3e3e46 0%,#2e2e34 50%,#1e1e24 100%);
+  border-radius: clamp(22px,5.5vw,34px) clamp(22px,5.5vw,34px) clamp(30px,7.5vw,46px) clamp(30px,7.5vw,46px);
+  border: 2.5px solid #555;
+  box-shadow: 0 clamp(5px,1.2vh,9px) clamp(18px,4.5vw,30px) rgba(0,0,0,0.75),
+    inset 0 1px 0 rgba(255,255,255,0.08),inset 0 -2px 0 rgba(0,0,0,0.45);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 clamp(14px,3.5vw,22px);
+}
+#ctrl-body::before, #ctrl-body::after {
+  content:''; position:absolute; bottom:-4px;
+  width:clamp(28px,7vw,40px); height:clamp(12px,3.2vw,18px);
+  background:#222; border-radius:0 0 10px 10px; border:2px solid #444;
+}
+#ctrl-body::before { left:clamp(16px,4vw,26px); }
+#ctrl-body::after  { right:clamp(16px,4vw,26px); }
+
+#ctrl-dpad { position:relative; width:clamp(72px,18vw,102px); height:clamp(72px,18vw,102px); flex-shrink:0; }
+.dh,.dv { position:absolute; background:linear-gradient(180deg,#4c4c56,#38383f); border:2.5px solid #1a1a20; border-radius:3px; }
+.dh { left:0;right:0;top:33.3%;bottom:33.3%; }
+.dv { top:0;bottom:0;left:33.3%;right:33.3%; }
+.dc { position:absolute;left:33.3%;right:33.3%;top:33.3%;bottom:33.3%;background:#3c3c44;border-radius:2px;z-index:2; }
+.db { position:absolute;z-index:3;display:flex;align-items:center;justify-content:center;cursor:pointer;user-select:none;touch-action:none;-webkit-tap-highlight-color:transparent; }
+#dbu{top:0;left:33.3%;right:33.3%;height:33.3%;}#dbu::after{content:'▲';}
+#dbd{bottom:0;left:33.3%;right:33.3%;height:33.3%;}#dbd::after{content:'▼';}
+#dbl{left:0;top:33.3%;bottom:33.3%;width:33.3%;}#dbl::after{content:'◀';}
+#dbr{right:0;top:33.3%;bottom:33.3%;width:33.3%;}#dbr::after{content:'▶';}
+.db::after{font-family:'Press Start 2P',monospace;font-size:clamp(7px,1.7vw,10px);color:rgba(255,255,255,0.3);}
+
+#ctrl-center {
+  display:flex;flex-direction:column;align-items:center;gap:clamp(6px,1.5vw,10px);flex-shrink:0;
+}
+#menu-btn-wrap{display:flex;flex-direction:column;align-items:center;}
+#menu-btn {
+  width:clamp(34px,8.5vw,48px);height:clamp(34px,8.5vw,48px);border-radius:50%;
+  background:radial-gradient(circle at 42% 38%,#4a4a54,#26262e);
+  border:2.5px solid #1a1a20;
+  box-shadow:0 3px 0 rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.1),0 0 0 3px rgba(200,152,42,0.15);
+  cursor:pointer;touch-action:manipulation;
+  display:flex;align-items:center;justify-content:center;
+  transition:transform 0.06s,box-shadow 0.06s;
+}
+#menu-btn:active{transform:translateY(2px);}
+#menu-icon{font-family:'Press Start 2P',monospace;font-size:clamp(4px,1vw,6px);color:rgba(200,152,42,0.85);}
+#menu-lbl{font-family:'Press Start 2P',monospace;font-size:clamp(3px,0.75vw,5px);color:#a06c30;margin-top:3px;}
+
+#ss-row{display:flex;gap:clamp(6px,1.8vw,12px);align-items:center;}
+.ss-btn{
+  width:clamp(28px,7vw,40px);height:clamp(10px,2.4vw,14px);
+  background:linear-gradient(180deg,#3a3a42,#28282e);border:1.5px solid #1a1a20;border-radius:clamp(5px,1.2vw,7px);
+  box-shadow:0 2px 0 rgba(0,0,0,0.5);cursor:pointer;touch-action:manipulation;
+}
+.ss-lbl{font-family:'Press Start 2P',monospace;font-size:clamp(3px,0.75vw,4.5px);color:#666;margin-top:2px;text-align:center;}
+
+#ab-col{display:flex;flex-direction:column;align-items:center;flex-shrink:0;}
+#ab-pair{display:flex;gap:clamp(7px,1.8vw,11px);align-items:center;transform:rotate(-18deg);}
+.ab-btn{
+  width:clamp(28px,7vw,38px);height:clamp(28px,7vw,38px);border-radius:50%;
+  background:radial-gradient(circle at 40% 35%,#cc4466,#aa2244);
+  color:rgba(255,255,255,0.85);
+  border:2.5px solid #1a1a20;
+  box-shadow:0 3px 0 rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.15);
+  cursor:pointer;touch-action:manipulation;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Press Start 2P',monospace;font-size:clamp(5px,1.2vw,8px);
+  transition:transform 0.06s,box-shadow 0.06s;
+}
+.ab-btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,0.55);}
+.ab-lbl-row{display:flex;gap:clamp(7px,1.8vw,11px);margin-top:4px;}
+.ab-lbl{font-family:'Press Start 2P',monospace;font-size:clamp(3px,0.75vw,4.5px);color:#666;width:clamp(28px,7vw,38px);text-align:center;}
+
+/* ── MENU OVERLAY ── */
+#menu-overlay {
+  display:none; position:fixed; inset:0; z-index:600;
+  background:rgba(20,14,6,0.72); backdrop-filter:blur(6px);
+  align-items:center; justify-content:center;
+}
+#menu-overlay.open { display:flex; }
+#menu-box {
+  background:var(--warm-white); border:1px solid var(--rule);
+  border-top:3px solid var(--gold);
+  border-radius:0 0 4px 4px;
+  padding:clamp(16px,3vh,28px) 0;
+  min-width:clamp(220px,50vw,300px);
+  box-shadow:0 20px 60px rgba(0,0,0,0.3);
+}
+#menu-box-title {
+  font-family:'DM Sans',sans-serif; font-size:clamp(8px,1vw,10px);
+  font-weight:600; letter-spacing:0.2em; text-transform:uppercase;
+  color:var(--text-light); padding:0 clamp(18px,3vw,28px);
+  margin-bottom:12px;
+}
+.menu-item {
+  display:flex; width:100%;
+  font-family:'Press Start 2P',monospace; font-size:clamp(7px,1.2vw,9px);
+  color:var(--text-mid); background:transparent; border:none;
+  padding:clamp(10px,1.8vh,14px) clamp(18px,3vw,28px);
+  text-align:left; cursor:pointer; text-decoration:none;
+  align-items:center; gap:10px;
+  transition:background 0.12s,color 0.12s;
+  border-left:3px solid transparent;
+}
+.menu-item:hover,.menu-item.selected {
+  color:var(--gold); background:rgba(200,152,42,0.06);
+  border-left-color:var(--gold);
+}
+.mi-icon { font-size:11px; width:18px; text-align:center; flex-shrink:0; }
+#menu-divider { height:1px; background:var(--rule); margin:8px 0; }
+#menu-hint {
+  padding:clamp(8px,1.5vh,12px) clamp(18px,3vw,28px) 0;
+  font-family:'Press Start 2P',monospace; font-size:clamp(5px,0.8vw,7px);
+  color:var(--text-light); text-align:center;
+}
+.m-badge {
+  display:inline-block; background:var(--cream2);
+  border:1px solid var(--rule); border-radius:2px;
+  padding:1px 5px; font-size:0.9em;
+}
+
+/* ── CIPHER OVERLAY ── */
+#cipher-overlay {
+  display: none; position: fixed; inset: 0; z-index: 700;
+  background: rgba(10,4,4,0.96); backdrop-filter: blur(8px);
+  align-items: flex-start; justify-content: center;
+  overflow-y: auto; padding: clamp(20px,4vh,48px) clamp(16px,4vw,32px);
+}
+#cipher-overlay.open { display: flex; }
+
+#cipher-box {
+  background: #1a0808;
+  border: 2px solid var(--cipher-red);
+  border-radius: 6px;
+  padding: clamp(20px,3vh,36px) clamp(20px,3vw,36px);
+  max-width: 680px;
+  width: 100%;
+  box-shadow: 0 0 40px rgba(139,26,26,0.4);
+}
+
+#cipher-box h2 {
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(9px,1.5vw,12px);
+  color: var(--gold-lt);
+  letter-spacing: 2px;
+  margin-bottom: 8px;
+}
+
+.cipher-subtitle {
+  font-family: 'VT323', monospace;
+  font-size: clamp(16px,2.5vw,20px);
+  color: #e08080;
+  margin-bottom: clamp(16px,3vh,24px);
+  line-height: 1.5;
+}
+
+/* How-to section */
+.cipher-howto {
+  background: rgba(139,26,26,0.15);
+  border: 1px solid rgba(139,26,26,0.4);
+  border-radius: 4px;
+  padding: clamp(12px,2vh,18px) clamp(14px,2vw,20px);
+  margin-bottom: clamp(16px,3vh,24px);
+}
+.cipher-howto h3 {
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(7px,1.1vw,9px);
+  color: var(--gold-lt);
+  margin-bottom: 10px;
+  letter-spacing: 1px;
+}
+.cipher-howto p {
+  font-family: 'VT323', monospace;
+  font-size: clamp(15px,2.3vw,19px);
+  color: #c09090;
+  line-height: 1.6;
+}
+.cipher-howto .example {
+  margin-top: 10px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(7px,1vw,9px);
+  color: var(--gold-lt);
+  letter-spacing: 1px;
+}
+
+/* Encoded message display */
+.encoded-msg {
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(8px,1.3vw,11px);
+  color: #e08080;
+  letter-spacing: 3px;
+  text-align: center;
+  padding: clamp(12px,2vh,18px);
+  background: rgba(0,0,0,0.4);
+  border: 1px solid rgba(139,26,26,0.3);
+  border-radius: 4px;
+  margin-bottom: clamp(16px,3vh,24px);
+  word-break: break-all;
+}
+
+/* Decode inputs */
+.decode-label {
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(7px,1vw,9px);
+  color: var(--gold-lt);
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+}
+
+.decode-words {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: center;
+  margin-bottom: clamp(16px,3vh,24px);
+}
+
+.decode-word {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.decode-word-label {
+  font-family: 'VT323', monospace;
+  font-size: clamp(13px,2vw,16px);
+  color: #805050;
+  letter-spacing: 2px;
+}
+
+.decode-chars {
+  display: flex;
+  gap: 4px;
+}
+
+.decode-input {
+  width: clamp(26px,4vw,34px);
+  height: clamp(30px,5vw,38px);
+  background: rgba(0,0,0,0.5);
+  border: 1.5px solid rgba(139,26,26,0.5);
+  border-radius: 3px;
+  color: var(--gold-lt);
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(8px,1.2vw,11px);
+  text-align: center;
+  text-transform: uppercase;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  caret-color: var(--gold-lt);
+}
+.decode-input:focus {
+  border-color: var(--cipher-red);
+  box-shadow: 0 0 8px rgba(139,26,26,0.4);
+}
+.decode-input.correct {
+  border-color: #2a8040;
+  color: #60e090;
+  box-shadow: 0 0 8px rgba(42,128,64,0.3);
+}
+.decode-input.wrong {
+  border-color: var(--cipher-red);
+  animation: shake 0.3s ease;
+}
+@keyframes shake {
+  0%,100%{transform:translateX(0);}
+  25%{transform:translateX(-4px);}
+  75%{transform:translateX(4px);}
+}
+
+/* Action row */
+.cipher-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+}
+#cipher-check-btn {
+  background: var(--cipher-red);
+  border: 1.5px solid var(--cipher-red);
+  color: #fff;
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(7px,1.1vw,9px);
+  padding: 10px 20px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background 0.15s;
+  letter-spacing: 1px;
+}
+#cipher-check-btn:hover { background: #aa2222; }
+#cipher-close-btn {
+  background: transparent;
+  border: 1.5px solid rgba(139,26,26,0.4);
+  color: #805050;
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(6px,1vw,8px);
+  padding: 10px 16px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+#cipher-close-btn:hover { border-color: var(--cipher-red); color: #e08080; }
+#cipher-feedback {
+  width: 100%;
+  font-family: 'VT323', monospace;
+  font-size: clamp(16px,2.5vw,20px);
+  margin-top: 10px;
+  min-height: 24px;
+  text-align: center;
+}
+#cipher-feedback.success { color: #60e090; }
+#cipher-feedback.error   { color: #e06060; }
+
+/* Badge award */
+#badge-award {
+  display: none;
+  margin-top: clamp(16px,3vh,24px);
+  padding: clamp(14px,2.5vh,22px);
+  background: rgba(42,128,64,0.12);
+  border: 1.5px solid #2a8040;
+  border-radius: 4px;
+  text-align: center;
+}
+#badge-award .ba-icon { font-size: 36px; margin-bottom: 8px; }
+#badge-award h3 {
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(8px,1.2vw,10px);
+  color: #60e090; letter-spacing: 1px; margin-bottom: 8px;
+}
+#badge-award p {
+  font-family: 'VT323', monospace;
+  font-size: clamp(16px,2.3vw,20px);
+  color: #a0d0b0; line-height: 1.5;
+}
+</style>
+</head>
+<body>
+
+<div id="cursor"></div>
+
+<!-- Back banner -->
+<div id="back-banner">
+  <a id="back-link" href="hall-of-records.html">
+    <span class="arrow">←</span> Hall of Records
+  </a>
+  <div id="banner-title">Andre Gurule</div>
+  <a id="contact-link" href="mailto:andregurule@gmail.com">Contact</a>
+</div>
+
+<!-- Cipher banner (shown if player has First Edition) -->
+<div id="cipher-banner">
+  <div class="cb-text">
+    🔍 <span>FIRST EDITION DETECTED</span> — The contents of this page contain a hidden cipher message.
+  </div>
+  <button id="cb-decode-btn" onclick="openCipher()">▶ DECODE MESSAGE</button>
+</div>
+
+<!-- Main content -->
+<main>
+
+  <div id="hero">
+    <div class="eyebrow">Personal Story</div>
+    <h1>My Story</h1>
+    <p class="lead">
+      This page focuses not so much on my skills, but rather on the things in life that have shaped who I am and how I work.<br><br>
+      For more information about my professional skills, please navigate to my <a href="training-portfolio.html">Training Portfolio</a> page.
+    </p>
+    <div class="photo-placeholder">
+      <span class="ph-icon">📷</span>
+      Photo / Image Placeholder
+    </div>
+  </div>
+
+  <!-- Learning to Work -->
+  <section>
+    <h2 class="section-title">Learning to Work</h2>
+    <div class="prose">
+      <p>At a young age, I was taught and expected to work hard. My mother was a bit of a perfectionist, and in her opinion, "I'm bored" was a 4-letter word that meant you needed more work to do. I was rarely bored.</p>
+      <p>My first paid job was for my mom's boss, an older man whom she took care of. He had a long gravel driveway. Much of the gravel had been pushed to the top of the driveway by plows as they cleared the snow.</p>
+      <p>He asked if I would be willing to spread the gravel on the driveway and how much I would charge him. Being about 10 years old and not really knowing much about money, I told him I would do it for $20. He accepted my bid.</p>
+      <p>It took me several hours working with just a couple of buckets, a rake, and a shovel. It was literally the hardest $20 I have ever made. However, I got the job done, and he was satisfied with my work.</p>
+      <p>Though I didn't make much, I was proud of myself for completing the job. That same pride and effort are what I have put into every job since.</p>
+      <p>My mom's boss had his quirks, but he was a good man. A few years later, my mother and I were about to be homeless, but he stepped in and bought us a house.</p>
+    </div>
+
+    <div class="lessons-box">
+      <div class="lessons-label">Lessons</div>
+      <ul>
+        <li>Charge what you are worth.</li>
+        <li>Take pride in every job you do.</li>
+        <li>Don't stop when you get tired. You are capable of more than you think.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- Work History -->
+  <section>
+    <h2 class="section-title">Work History</h2>
+    <div class="prose">
+      <p>I started working in construction with my father at the age of 13 during my summer school break.</p>
+      <p>At the age of 17, I started delivering 5-gallon water bottles for my stepfather's company. By the age of 18, I was driving his truck with a goose-neck trailer hauling about 1,000 gallons of water from his well in the mountains.</p>
+      <p>During this time, I got my GED at the local vocational school and started taking classes in computer programming and auto mechanics. Knowing how to work on my own car has been a big help over the years, and the little bit of computer programming I learned would later provide a foundation for work I would do years later.</p>
+    </div>
+    <div class="skills-wrap">
+      <span class="skill-tag">General Construction</span>
+      <span class="skill-tag">Towing</span>
+      <span class="skill-tag">Delivery</span>
+      <span class="skill-tag">Customer Service</span>
+      <span class="skill-tag">Intermediate Computer Skills</span>
+      <span class="skill-tag">Basic Auto Mechanics</span>
+    </div>
+  </section>
+
+  <!-- Watchtower -->
+  <section>
+    <h2 class="section-title">Learning Customer Service — Brooklyn, NY</h2>
+    <div class="prose">
+      <p>Just before I turned 20, I moved to Brooklyn, NY, to volunteer for Watchtower. During my 9 years there, I had the opportunity to work in a variety of roles and learn from many amazing leaders.</p>
+      <p>It was not unusual to see groups from large corporations coming through on tour to see how we operated. The organization, training, and work atmosphere were on an entirely different level.</p>
+      <p>It was in this environment that I learned teamwork. I worked with people from all over the country and with a few from other countries. It was one of the single best experiences of my life.</p>
+      <p>When I became the material handling manager, I began attending inter-department meetings. Meeting with department heads who had way more experience than I did was a great learning experience.</p>
+      <p>During my fifth year, I was asked to help with a project in our department's office. I went from working with my buddies out on the floor to wearing dress clothes and working with a much older group of people.</p>
+      <p>The project involved helping our department adopt new software being developed for all of Watchtower's branches worldwide. I began working in a kind of business analyst capacity, and it was then that the little bit of computer programming I had learned started to pay off. It allowed me to bridge the gap between my team and the programmers.</p>
+      <p>After completing my month in the office, I was pulled into a meeting with two of my department heads. They asked me how I was liking working in the office. I was honest with them. I said, "I don't really like it. I miss working out on the floor with the other guys. But I will do whatever you ask me to."</p>
+      <p>They laughed at my response and thanked me for my willingness to do whatever was needed. They then informed me that I would be staying in the office. Little did I know that this change would enable me to grow in ways I never could have imagined.</p>
+    </div>
+
+    <h3 style="font-family:'Playfair Display',serif;font-size:clamp(14px,1.8vw,17px);color:var(--text-dark);margin:clamp(20px,3vh,28px) 0 10px;font-weight:600;">Jobs at Watchtower (In Order)</h3>
+    <div class="jobs-list">
+      <div class="job-item">Gathering and Packing</div>
+      <div class="job-item">Inventory Management</div>
+      <div class="job-item">Material Handling</div>
+      <div class="job-item">Shipment Coordination (domestic)</div>
+      <div class="job-item">Shipment Coordination (export)</div>
+    </div>
+
+    <div class="prose" style="margin-top:clamp(20px,3vh,28px);">
+      <p>Because of my experience with the new program, they decided to have me move from domestic to export shipment coordination to help that team transition over to the new software.</p>
+      <p>It was in this final role that I felt I could make the biggest impact. I had the opportunity to learn how to create macros for Excel, which saved 4–6 hours of work on some of our shipments. During this time, I was also involved in planning for our new facilities in upstate New York.</p>
+      <p>When I finally decided that it was time to move on to my next adventure, the thing I missed most was the people that I worked with. It was an amazing group and an amazing experience.</p>
+    </div>
+
+    <div class="skills-wrap" style="margin-top:clamp(16px,2.5vh,24px);">
+      <span class="skill-tag">Teamwork</span>
+      <span class="skill-tag">Leadership</span>
+      <span class="skill-tag">Public Speaking</span>
+      <span class="skill-tag">Excel Macros</span>
+      <span class="skill-tag">Microsoft Access</span>
+      <span class="skill-tag">Business Analyst</span>
+      <span class="skill-tag">Inventory Management</span>
+      <span class="skill-tag">Forklift Operation</span>
+    </div>
+  </section>
+
+  <!-- Montana -->
+  <section>
+    <h2 class="section-title">Getting Humbled — Moving to Montana</h2>
+    <div class="prose">
+      <p>After New York, I moved to Montana in December of 2007. Never move to Montana in December. Finding work was difficult, and initially, I started working at UPS loading containers at night just to pay the bills.</p>
+      <p>To my dismay, I found that all of the experience I had gained over the previous nine years didn't mean much in an area where I was an outsider, from New York, no less. I am not by nature a salesman, and as a result, I failed to sell myself to many of the companies I applied to.</p>
+      <p>This was a humbling experience and a lesson on the importance of networking and learning to sell your skills. I have learned that it is less about what you know and more about who you know.</p>
+      <p>By February, work at UPS had slowed, so I decided to find another job. I started washing windows with a friend until spring.</p>
+    </div>
+
+    <div class="lessons-box">
+      <div class="lessons-label">Lessons</div>
+      <ul>
+        <li>It's not what you know, it's who you know.</li>
+        <li>The importance of professional networking.</li>
+        <li>Being able to sell your skills to others is extremely important.</li>
+      </ul>
+    </div>
+
+    <div class="prose">
+      <p>Once spring came, I was able to get a job with Nitro-Green of Helena, a lawn care company. A month after starting with Nitro-Green, I also got married — which was the reason I had moved from New York to Montana.</p>
+      <p>I worked with the company for two seasons. The owners were very nice to work with, and I still consider them friends down to this day. However, I did not find the work itself challenging enough to keep me from getting bored.</p>
+    </div>
+    <div class="skills-wrap">
+      <span class="skill-tag">Customer Service</span>
+      <span class="skill-tag">Lawn Maintenance</span>
+    </div>
+
+    <div class="prose" style="margin-top:clamp(20px,3vh,28px);">
+      <p>After finishing the second season with Nitro-Green, I met a contractor who needed help finishing a vacation home, and I started working for him. The experience I gained working with my father paid off, and I quickly made a good impression on both the contractor and the homeowner. As the job was coming to a close, I was offered the position of property caretaker.</p>
+      <p>As the property manager, I handled all yard work, general maintenance, cleaning, and the setup of household electronics. I coordinated major projects with various local contractors. For the most part, managing the property was only a part-time job, so I started doing part-time volunteer work again.</p>
+    </div>
+
+    <div class="photo-placeholder" style="max-width:100%;margin:clamp(20px,3vh,28px) 0;">
+      <span class="ph-icon">📷</span>
+      Photo / Image Placeholder
+    </div>
+
+    <div class="skills-wrap">
+      <span class="skill-tag">Project Management</span>
+      <span class="skill-tag">Customer Service</span>
+      <span class="skill-tag">General Property Maintenance</span>
+    </div>
+  </section>
+
+  <!-- What Doesn't Break You -->
+  <section>
+    <h2 class="section-title">What Doesn't Break You Makes You Stronger</h2>
+    <div class="prose">
+      <p>In 2013, my wife got very sick. At the same time, I found myself dealing with unresolved issues from my childhood. During that time, I had to stop volunteering and focus on making a little more to help cover doctor bills.</p>
+      <p>The owner of the property I managed was friends with a doctor in a town 90 miles from where we lived. He spoke with the doctor on our behalf, and the doctor was able to get my wife an appointment with a specialist. We later found out that without that intervention, my wife would never have been able to get an appointment. Again, the value of networking and building friendships is priceless.</p>
+      <p>Unfortunately, the stress of our situation took its toll on our marriage. My wife and I separated in 2015.</p>
+    </div>
+    <div class="lessons-box">
+      <div class="lessons-label">Lessons</div>
+      <ul>
+        <li>Ask for help when it is needed.</li>
+        <li>Accept help when it is offered.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- Starting Over -->
+  <section>
+    <h2 class="section-title">Starting Over — Reno, NV</h2>
+    <div class="prose">
+      <p>I never really took to Montana. It is a beautiful state, but I always felt like an outsider. So when my wife and I separated, I decided to move out of the state.</p>
+      <p>I notified the owner of the vacation home that I would be leaving, and he invited me to move to Reno to take care of some commercial properties for him.</p>
+      <p>The move to Reno was difficult. Emotionally, I was drained. Additionally, I had injured my back just before leaving Montana.</p>
+      <p>I started working in Reno in August of 2015. Initially, things went well, and I got to work right away, assisting with and coordinating projects on the properties. The man I was working for ran a foundation with his wife. Shortly after moving to Reno, their secretary took another job. Because of my previous job experience, I was asked to fill in until they could find a replacement.</p>
+      <p>Unfortunately, this caused some friction, and six months later, we decided to part ways. It was sad because previously, my relationship with this individual had been very positive.</p>
+      <p>I learned that when you are dealing with high levels of anxiety, it is important to take a breath. Recognize that others likely won't understand what you are going through. You can't expect others to make allowances for your bad days. You have to put in the effort to manage your emotions productively.</p>
+      <p>While looking for another job, I took a temporary job helping at a nursing home, assigned to patients considered a suicide risk. This was by far one of the worst jobs I have ever done. It is very sad to see people wasting away. I think that it is sad how poorly we value those who take care of the elderly.</p>
+    </div>
+    <div class="lessons-box">
+      <div class="lessons-label">Lessons</div>
+      <ul>
+        <li>The importance of empathy for the elderly and their caretakers.</li>
+      </ul>
+    </div>
+
+    <div class="prose">
+      <p>Thankfully, someone told me about a company that was looking for a full-time manager. The opportunity ended up being with Fast Company, a small company that provides digital merchandising services for car dealerships.</p>
+      <p>During the interview, the company's owner asked me whether I felt I could handle angry dealership managers. I told him that as long as they didn't try to hit me or randomly start peeing on walls, I should be okay.</p>
+      <p>I started working with Fast Company in April of 2016. Being a car guy, I really enjoyed my work. After the first year, I started doing more work with the office and training, and I had the opportunity to travel to different states to set up our service and train new employees.</p>
+      <p>It was during one of those trips that my back finally had enough. I was scheduled for surgery two months later, and I had back surgery in October of 2017. A week after the surgery, I was able to start working from home, and the following week I returned to the office.</p>
+      <p>Sadly, due to the chip shortage and reduced inventory, I was laid off at the end of January 2022. Overall, I enjoyed my time with Fast Company. I was given many opportunities to use the skills I had learned in New York, and I learned a lot about photography, videography, and video editing.</p>
+    </div>
+
+    <h3 style="font-family:'Playfair Display',serif;font-size:clamp(14px,1.8vw,17px);color:var(--text-dark);margin:clamp(20px,3vh,28px) 0 10px;font-weight:600;">Fast Company Accomplishments</h3>
+    <div class="accomplishments-list">
+      <div class="acc-item"><span class="acc-icon">🌐</span><span class="acc-text">Built the company website</span></div>
+      <div class="acc-item"><span class="acc-icon">📊</span><span class="acc-text">Created Excel macros to increase reporting capabilities</span></div>
+      <div class="acc-item"><span class="acc-icon">🎓</span><span class="acc-text">Created training programs</span></div>
+      <div class="acc-item"><span class="acc-icon">🚁</span><span class="acc-text">Became a Certified Commercial Drone Pilot</span></div>
+      <div class="acc-item"><span class="acc-icon">📸</span><span class="acc-text">Acquired Photo / Video skills</span></div>
+    </div>
+  </section>
+
+  <!-- Redwood Materials -->
+  <section>
+    <h2 class="section-title">Battery Recycling — Redwood Materials</h2>
+    <div class="prose">
+      <p>A few months later, in May of 2022, I took a job as a Training Specialist at Redwood Materials. It's interesting how the skills I learned throughout my career have all been put to use in this role. In this role, I have had the opportunity to work with some amazing people and learn many new skills.</p>
+      <p>It will be interesting to see where my story leads next.</p>
+    </div>
+  </section>
+
+  <!-- Footer CTA -->
+  <div id="footer-cta">
+    <h3>Want to know more?</h3>
+    <p>Check out my Training Portfolio for a full look at my professional skills, certifications, and work samples.</p>
+    <div class="cta-links">
+      <a href="training-portfolio.html" class="cta-btn primary">📚 Training Portfolio</a>
+      <a href="hall-of-records.html" class="cta-btn secondary">⚔ Hall of Records</a>
+    </div>
+  </div>
+
+</main>
+
+<!-- NES Controller -->
+<div id="nes-controller">
+  <div id="ctrl-body">
+    <div id="ctrl-dpad">
+      <div class="dh"></div><div class="dv"></div><div class="dc"></div>
+      <div class="db" id="dbu" data-dir="up"></div>
+      <div class="db" id="dbd" data-dir="down"></div>
+      <div class="db" id="dbl" data-dir="left"></div>
+      <div class="db" id="dbr" data-dir="right"></div>
+    </div>
+    <div id="ctrl-center">
+      <div id="menu-btn-wrap">
+        <div id="menu-btn" onclick="toggleMenu()">
+          <div id="menu-icon">MENU</div>
+        </div>
+        <div id="menu-lbl">MENU</div>
+      </div>
+      <div id="ss-row">
+        <div style="display:flex;flex-direction:column;align-items:center;">
+          <div class="ss-btn"></div>
+          <div class="ss-lbl">SELECT</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;">
+          <div class="ss-btn"></div>
+          <div class="ss-lbl">START</div>
+        </div>
+      </div>
+    </div>
+    <div id="ab-col">
+      <div id="ab-pair">
+        <div class="ab-btn" onclick="history.back()">B</div>
+        <div class="ab-btn" onclick="toggleMenu()">A</div>
+      </div>
+      <div class="ab-lbl-row">
+        <div class="ab-lbl">BACK</div>
+        <div class="ab-lbl">MENU</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Menu Overlay -->
+<div id="menu-overlay" onclick="handleOverlayClick(event)">
+  <div id="menu-box">
+    <div id="menu-box-title">Navigation</div>
+    <a class="menu-item" href="world.html#spawn=projects">
+      <span class="mi-icon">🗺</span> WORLD MAP
+    </a>
+    <a class="menu-item" href="hall-of-records.html">
+      <span class="mi-icon">⚔</span> HALL OF RECORDS
+    </a>
+    <a class="menu-item selected" href="my-story.html">
+      <span class="mi-icon">📖</span> MY STORY
+    </a>
+    <a class="menu-item" href="training-portfolio.html">
+      <span class="mi-icon">🎓</span> TRAINING PORTFOLIO
+    </a>
+    <a class="menu-item" href="castle-anthrax.html">
+      <span class="mi-icon">🏰</span> CASTLE ANTHRAX
+    </a>
+    <div id="menu-divider"></div>
+    <a class="menu-item" href="https://linkedin.com/in/andregurule" target="_blank">
+      <span class="mi-icon">💼</span> LINKEDIN
+    </a>
+    <a class="menu-item" href="mailto:andregurule@gmail.com">
+      <span class="mi-icon">💌</span> EMAIL
+    </a>
+    <div id="menu-hint">
+      <span class="m-badge">B</span> or <span class="m-badge">ESC</span> to close
+    </div>
+  </div>
+</div>
+
+<!-- Cipher Overlay -->
+<div id="cipher-overlay">
+  <div id="cipher-box">
+    <h2>⚠ ENCODED MESSAGE DETECTED</h2>
+    <div class="cipher-subtitle">
+      Your First Edition contains a cipher key. A hidden message has been embedded in this page.<br>
+      Decode it to prove your qualifications.
+    </div>
+
+    <div class="cipher-howto">
+      <h3>HOW TO DECODE: CAESAR CIPHER (SHIFT 3)</h3>
+      <p>Each letter in the encoded message has been shifted <strong>3 positions forward</strong> in the alphabet. Shift each letter <strong>back by 3</strong> to reveal the original message.</p>
+      <div class="example">
+        EXAMPLE: &nbsp; D → A &nbsp;|&nbsp; H → E &nbsp;|&nbsp; W → T
+      </div>
+    </div>
+
+    <div class="encoded-msg">VHHN &nbsp; WKH &nbsp; PRXQWDLQ &nbsp; IRUJH</div>
+
+    <div class="decode-label">▶ ENTER YOUR DECODED MESSAGE:</div>
+
+    <div class="decode-words" id="decode-words">
+      <!-- built by JS -->
+    </div>
+
+    <div class="cipher-actions">
+      <button id="cipher-check-btn" onclick="checkCipher()">✓ SUBMIT ANSWER</button>
+      <button id="cipher-close-btn" onclick="closeCipher()">✕ CLOSE</button>
+    </div>
+    <div id="cipher-feedback"></div>
+
+    <div id="badge-award">
+      <div class="ba-icon">📜</div>
+      <h3>CERTIFICATION BADGE AWARDED</h3>
+      <p>You have decoded the message: <strong style="color:#60e090;">SEEK THE MOUNTAIN FORGE</strong><br><br>
+      The swordsmith awaits in Erebor Mountain. Prove your qualifications and claim your sword.<br><br>
+      ★ Certification Badge added to your inventory!</p>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── GAMESTATE ─────────────────────────────────────────────────────────────────
+var GameState = (function() {
+  var params   = new URLSearchParams(window.location.search);
+  var parse    = function(k) { return (params.get(k)||'').split(',').filter(Boolean); };
+  var points   = parseInt(params.get('points')||'0', 10);
+  var visited  = parse('visited');
+  var items    = parse('items');
+  var unlocked = parse('unlocked');
+
+  function toParams() {
+    var p = new URLSearchParams();
+    p.set('points',   points);
+    p.set('visited',  visited.join(','));
+    p.set('items',    items.join(','));
+    p.set('unlocked', unlocked.join(','));
+    return p.toString();
+  }
+  function withState(href) {
+    var sep  = href.includes('?') ? '&' : '?';
+    var hash = href.includes('#') ? '#' + href.split('#')[1] : '';
+    return href.split('#')[0] + sep + toParams() + hash;
+  }
+  function hasItem(id) { return items.indexOf(id) !== -1; }
+  function collectItem(id, pts) {
+    if (hasItem(id)) return false;
+    items.push(id);
+    points += (pts || 0);
+    return true;
+  }
+  return { get points(){ return points; }, visited: visited, items: items, unlocked: unlocked,
+           toParams: toParams, withState: withState, hasItem: hasItem, collectItem: collectItem };
+})();
+
+// Rewrite all local links with state
+document.querySelectorAll('a[href]').forEach(function(a) {
+  var h = a.getAttribute('href');
+  if (!h || h.startsWith('http') || h.startsWith('mailto') || h.startsWith('#')) return;
+  a.href = GameState.withState(h);
+});
+
+// Show cipher banner if player has First Edition
+if (GameState.hasItem('first-edition')) {
+  var banner = document.getElementById('cipher-banner');
+  banner.style.display = 'flex';
+  // Shift main down to account for banner
+  document.querySelector('main').style.paddingTop = 'calc(96px + 48px)';
+}
+
+// ── CURSOR ────────────────────────────────────────────────────────────────────
+document.addEventListener('mousemove', function(e) {
+  var c = document.getElementById('cursor');
+  if (c) { c.style.left = e.clientX+'px'; c.style.top = e.clientY+'px'; }
+});
+
+// ── MENU ──────────────────────────────────────────────────────────────────────
+var menuOpen = false;
+function toggleMenu() { menuOpen ? closeMenu() : openMenu(); }
+function openMenu()  { menuOpen = true;  document.getElementById('menu-overlay').classList.add('open'); }
+function closeMenu() { menuOpen = false; document.getElementById('menu-overlay').classList.remove('open'); }
+function handleOverlayClick(e) {
+  if (e.target === document.getElementById('menu-overlay')) closeMenu();
+}
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') { closeMenu(); closeCipher(); }
+  if (e.key === 'm' || e.key === 'M') toggleMenu();
+});
+
+// ── CIPHER ────────────────────────────────────────────────────────────────────
+// Answer: SEEK THE MOUNTAIN FORGE
+// Words with letter counts
+var CIPHER_WORDS = [
+  { encoded: 'VHHN', answer: 'SEEK' },
+  { encoded: 'WKH',  answer: 'THE'  },
+  { encoded: 'PRXQWDLQ', answer: 'MOUNTAIN' },
+  { encoded: 'IRUJH',    answer: 'FORGE'    }
+];
+
+var cipherSolved = GameState.hasItem('cert-badge');
+
+function buildCipherInputs() {
+  var container = document.getElementById('decode-words');
+  container.innerHTML = '';
+  CIPHER_WORDS.forEach(function(word, wi) {
+    var wordDiv = document.createElement('div');
+    wordDiv.className = 'decode-word';
+
+    var lbl = document.createElement('div');
+    lbl.className = 'decode-word-label';
+    lbl.textContent = word.encoded;
+    wordDiv.appendChild(lbl);
+
+    var chars = document.createElement('div');
+    chars.className = 'decode-chars';
+
+    for (var li = 0; li < word.answer.length; li++) {
+      var input = document.createElement('input');
+      input.type = 'text';
+      input.maxLength = 1;
+      input.className = 'decode-input';
+      input.dataset.word = wi;
+      input.dataset.letter = li;
+      input.setAttribute('autocomplete', 'off');
+      input.setAttribute('autocorrect', 'off');
+      input.setAttribute('autocapitalize', 'characters');
+
+      // Pre-fill if already solved
+      if (cipherSolved) {
+        input.value = word.answer[li];
+        input.classList.add('correct');
+        input.disabled = true;
+      }
+
+      // Auto-advance on input
+      input.addEventListener('input', function(e) {
+        var val = e.target.value.replace(/[^a-zA-Z]/g, '').toUpperCase();
+        e.target.value = val.slice(-1);
+        e.target.classList.remove('wrong');
+        if (val) {
+          // Move to next input
+          var allInputs = document.querySelectorAll('.decode-input');
+          var idx = Array.prototype.indexOf.call(allInputs, e.target);
+          if (idx < allInputs.length - 1) allInputs[idx + 1].focus();
+        }
+      });
+      // Backspace moves back
+      input.addEventListener('keydown', function(e) {
+        if (e.key === 'Backspace' && !e.target.value) {
+          var allInputs = document.querySelectorAll('.decode-input');
+          var idx = Array.prototype.indexOf.call(allInputs, e.target);
+          if (idx > 0) { allInputs[idx-1].focus(); allInputs[idx-1].value = ''; }
+        }
+        if (e.key === 'Enter') checkCipher();
+      });
+      chars.appendChild(input);
+    }
+    wordDiv.appendChild(chars);
+    container.appendChild(wordDiv);
+  });
+}
+
+function openCipher() {
+  buildCipherInputs();
+  document.getElementById('cipher-overlay').classList.add('open');
+  if (cipherSolved) {
+    document.getElementById('badge-award').style.display = 'block';
+    document.getElementById('cipher-feedback').textContent = '';
+    document.getElementById('cipher-check-btn').style.display = 'none';
+  } else {
+    document.getElementById('badge-award').style.display = 'none';
+    document.getElementById('cipher-feedback').textContent = '';
+    document.getElementById('cipher-check-btn').style.display = '';
+    // Focus first input
+    setTimeout(function() {
+      var first = document.querySelector('.decode-input');
+      if (first) first.focus();
+    }, 100);
+  }
+}
+
+function closeCipher() {
+  document.getElementById('cipher-overlay').classList.remove('open');
+}
+
+function checkCipher() {
+  if (cipherSolved) return;
+  var fb = document.getElementById('cipher-feedback');
+  var allInputs = document.querySelectorAll('.decode-input');
+  var correct = true;
+  var full = true;
+
+  // Collect entered value
+  var entered = [];
+  allInputs.forEach(function(inp) {
+    if (!inp.value) full = false;
+    entered.push((inp.value || '').toUpperCase());
+  });
+
+  if (!full) {
+    fb.className = 'error';
+    fb.textContent = 'Fill in all letters before submitting.';
+    return;
+  }
+
+  // Check each word
+  var pos = 0;
+  CIPHER_WORDS.forEach(function(word, wi) {
+    for (var li = 0; li < word.answer.length; li++) {
+      var inp = allInputs[pos];
+      if (entered[pos] !== word.answer[li]) {
+        correct = false;
+        inp.classList.add('wrong');
+        setTimeout(function(i) { return function() { allInputs[i].classList.remove('wrong'); }; }(pos), 600);
+      }
+      pos++;
+    }
+  });
+
+  if (correct) {
+    // Mark all correct
+    allInputs.forEach(function(inp) {
+      inp.classList.add('correct');
+      inp.disabled = true;
+    });
+    cipherSolved = true;
+    GameState.collectItem('cert-badge', 20);
+
+    fb.className = 'success';
+    fb.textContent = '✓ CORRECT! Message decoded.';
+    document.getElementById('cipher-check-btn').style.display = 'none';
+    setTimeout(function() {
+      document.getElementById('badge-award').style.display = 'block';
+    }, 600);
+  } else {
+    fb.className = 'error';
+    fb.textContent = '✗ Incorrect. Check your work and try again.';
+  }
+}
+
+// ── D-PAD SCROLLING ───────────────────────────────────────────────────────────
+var dpadInterval = null;
+var dirs = { up: false, down: false };
+document.querySelectorAll('.db').forEach(function(btn) {
+  var dir = btn.dataset.dir;
+  var on  = function(e) { e.preventDefault(); dirs[dir] = true;  startScroll(); btn.classList.add('pressing'); };
+  var off = function(e) { e.preventDefault(); dirs[dir] = false; btn.classList.remove('pressing'); };
+  btn.addEventListener('touchstart', on,  { passive: false });
+  btn.addEventListener('touchend',   off, { passive: false });
+  btn.addEventListener('touchcancel',off, { passive: false });
+  btn.addEventListener('mousedown',  on);
+  btn.addEventListener('mouseup',    off);
+  btn.addEventListener('mouseleave', off);
+});
+document.addEventListener('mouseup', function() {
+  Object.keys(dirs).forEach(function(k) { dirs[k] = false; });
+});
+function startScroll() {
+  if (dpadInterval) return;
+  dpadInterval = setInterval(function() {
+    if (dirs.up)   window.scrollBy(0, -8);
+    if (dirs.down) window.scrollBy(0,  8);
+    if (!dirs.up && !dirs.down) { clearInterval(dpadInterval); dpadInterval = null; }
+  }, 16);
+}
+
+// ── CTRL HEIGHT ───────────────────────────────────────────────────────────────
+function setCtrlHeight() {
+  var ctrl = document.getElementById('nes-controller');
+  if (!ctrl) return;
+  document.documentElement.style.setProperty('--ctrl-h', (ctrl.offsetHeight + 20) + 'px');
+}
+window.addEventListener('resize', setCtrlHeight);
+setCtrlHeight();
+</script>
+</body>
+</html>
