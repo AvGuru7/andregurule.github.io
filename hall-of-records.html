@@ -1325,6 +1325,42 @@ window.addEventListener('resize', positionExitSign);
 </div>
 
 <script>
+// ── GAMESTATE ─────────────────────────────────────────────────────────────────
+var GameState = (function() {
+  var params  = new URLSearchParams(window.location.search);
+  var parse   = function(k){ return (params.get(k)||'').split(',').filter(Boolean); };
+  var points  = parseInt(params.get('points')||'0', 10);
+  var visited = parse('visited');
+  var items   = parse('items');
+  var unlocked= parse('unlocked');
+  function toParams() {
+    var p = new URLSearchParams();
+    p.set('points',   points);
+    p.set('visited',  visited.join(','));
+    p.set('items',    items.join(','));
+    p.set('unlocked', unlocked.join(','));
+    return p.toString();
+  }
+  function withState(href) {
+    var sep  = href.indexOf('?') !== -1 ? '&' : '?';
+    var hash = href.indexOf('#') !== -1 ? '#' + href.split('#')[1] : '';
+    return href.split('#')[0] + sep + toParams() + hash;
+  }
+  function hasItem(id) { return items.indexOf(id) !== -1; }
+  return { get points(){ return points; }, visited:visited, items:items, unlocked:unlocked,
+           toParams:toParams, withState:withState, hasItem:hasItem };
+})();
+
+// Rewrite local nav links with state
+document.querySelectorAll('a[href]').forEach(function(a) {
+  var h = a.getAttribute('href');
+  if (!h || h.startsWith('http') || h.startsWith('mailto') || h.startsWith('#')) return;
+  a.href = GameState.withState(h);
+});
+
+// Restore secretUnlocked from state — if cert-badge already collected, book is unlocked
+secretUnlocked = GameState.hasItem('cert-badge') || GameState.unlocked.indexOf('g14') !== -1;
+
 // ── LIBRARY CONTROLLER LOGIC ──
 let libMenuOpen = false;
 let libMenuItems = [];
