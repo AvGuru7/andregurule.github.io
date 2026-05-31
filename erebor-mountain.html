@@ -75,8 +75,7 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
 #ctrl-hint{font-family:'VT323',monospace;font-size:clamp(10px,1.8vw,13px);color:var(--gold);text-align:center;opacity:0.75;}
 
 /* ── INVENTORY OVERLAY ── */
-#inventory-overlay{position:fixed;inset:0;background:rgba(10,8,24,0.96);backdrop-filter:blur(4px);z-index:500;display:none;flex-direction:column;align-items:center;justify-content:flex-start;padding:clamp(10px,1.8vh,20px) clamp(8px,2vw,16px);}
-#inventory-overlay.open{display:flex;}
+#inventory-overlay{position:fixed;top:0;left:0;right:0;background:rgba(10,8,24,0.96);backdrop-filter:blur(4px);z-index:500;display:none;flex-direction:column;align-items:center;justify-content:flex-start;padding:clamp(10px,1.8vh,20px) clamp(8px,2vw,16px);}
 #inv-header{width:min(900px,96vw);display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid rgba(240,192,64,0.30);padding-bottom:clamp(8px,1.4vh,14px);margin-bottom:clamp(8px,1.4vh,14px);flex-shrink:0;}
 #inv-title{font-size:clamp(8px,1.4vw,11px);color:var(--gold);letter-spacing:2px;}
 #inv-points-banner{font-family:'VT323',monospace;font-size:clamp(14px,2.5vw,19px);color:var(--gold);}
@@ -1185,14 +1184,17 @@ function openInventory(){
   inventoryOpen=true;
   selectedItemId=null;
   document.getElementById('btn-select').classList.add('pressed');
+  const overlay=document.getElementById('inventory-overlay');
+  overlay.style.bottom=ctrlH()+'px';
+  overlay.style.display='flex';
   renderItemList();
   renderItemDetail(null);
-  document.getElementById('inventory-overlay').classList.add('open');
 }
 function closeInventory(){
   inventoryOpen=false;
   selectedItemId=null;
-  document.getElementById('inventory-overlay').classList.remove('open');
+  const overlay=document.getElementById('inventory-overlay');
+  overlay.style.display='none';
   document.getElementById('btn-select').classList.remove('pressed');
 }
 function renderItemList(){
