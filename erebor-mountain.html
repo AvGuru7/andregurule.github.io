@@ -77,13 +77,12 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
 /* ── INVENTORY OVERLAY ── */
 #inventory-overlay{position:fixed;inset:0;background:rgba(10,8,24,0.95);backdrop-filter:blur(4px);z-index:500;display:none;align-items:flex-start;justify-content:center;padding:clamp(12px,2vh,24px) clamp(8px,2vw,16px);overflow-y:auto;}
 #inventory-overlay.open{display:flex;}
-#inventory-box{background:var(--ui-bg);border:4px solid var(--gold);padding:clamp(16px,3vw,28px) clamp(18px,3.5vw,32px);width:min(700px,96vw);position:relative;}
+#inventory-box{background:var(--ui-bg);border:4px solid var(--gold);padding:clamp(16px,3vw,28px) clamp(18px,3.5vw,32px);width:min(720px,96vw);position:relative;}
 #inventory-box::before{content:'';position:absolute;inset:3px;border:1px solid rgba(240,192,64,0.22);pointer-events:none;}
-#inventory-title{font-size:clamp(9px,1.6vw,13px);color:var(--gold);text-align:center;margin-bottom:clamp(6px,1.2vh,12px);letter-spacing:2px;}
-#inventory-subtitle{font-family:'VT323',monospace;font-size:clamp(14px,2.5vw,18px);color:var(--ui-dim);text-align:center;margin-bottom:clamp(12px,2vh,20px);border-bottom:1px solid rgba(240,192,64,0.18);padding-bottom:clamp(8px,1.5vh,14px);}
-#inventory-points-banner{font-family:'VT323',monospace;font-size:clamp(16px,3vw,22px);color:var(--gold);text-align:center;margin-bottom:clamp(10px,1.8vh,18px);}
+#inventory-title{font-size:clamp(9px,1.6vw,13px);color:var(--gold);text-align:center;margin-bottom:clamp(4px,0.8vh,8px);letter-spacing:2px;}
+#inventory-points-banner{font-family:'VT323',monospace;font-size:clamp(15px,2.8vw,20px);color:var(--gold);text-align:center;margin-bottom:clamp(10px,1.8vh,18px);border-bottom:1px solid rgba(240,192,64,0.18);padding-bottom:clamp(8px,1.5vh,14px);}
 .inv-category{font-size:clamp(6px,1vw,8px);color:var(--ui-dim);letter-spacing:2px;margin:clamp(10px,1.8vh,16px) 0 clamp(6px,1vh,10px);border-bottom:1px solid rgba(240,192,64,0.12);padding-bottom:4px;}
-.inv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(clamp(140px,22vw,200px),1fr));gap:clamp(6px,1.2vw,12px);margin-bottom:clamp(8px,1.5vh,14px);}
+.inv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(clamp(140px,22vw,190px),1fr));gap:clamp(6px,1.2vw,10px);margin-bottom:clamp(8px,1.5vh,14px);}
 .inv-item{border:2px solid rgba(240,192,64,0.18);padding:clamp(8px,1.4vw,12px);display:flex;flex-direction:column;gap:4px;position:relative;}
 .inv-item.obtained{border-color:rgba(240,192,64,0.6);}
 .inv-item.locked{opacity:0.45;}
@@ -178,7 +177,6 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
 <div id="inventory-overlay">
   <div id="inventory-box">
     <div id="inventory-title">★ INVENTORY ★</div>
-    <div id="inventory-subtitle">Items collected on your journey</div>
     <div id="inventory-points-banner"></div>
     <div id="inventory-list"></div>
     <div id="inventory-close-hint">
@@ -720,7 +718,7 @@ const JIMMY={id:'jimmy',label:'🔨 JIMMY THE SWORDSMITH',title:'JIMMY THE SWORD
   dialogs:[
     {body:"*clang clang* Huh?! Don't sneak up on a man at his anvil! Name's Jimmy. Best swordsmith this mountain ever had."},
     {body:"Most folks can't even find the forge. Takes a good head on your shoulders to navigate these tunnels. I respect that."},
-    {body:"Got a fine sword here — the Outward Blade. I don't hand it to just anyone. Answer me this riddle and it's yours."},
+    {body:"Got a fine sword here — the Outward Blade. I don't hand it to just anyone. You'll need to show me you've done the work AND answer my riddle before I hand it over."},
     {body:"A warrior fights for glory. A merchant fights for gold. But the mightiest blade is wielded by one who sees not himself in the mirror of battle, but the faces of those he fights for. I am the shift that turns a closed fist into an open hand. What am I?",isRiddle:true},
   ],dialogIdx:0};
 
@@ -930,6 +928,11 @@ function handleA(){
 }
 function handleJimmyRiddle(){
   if(swordCollected){showInlineDialog('JIMMY THE SWORDSMITH','You already have the Outward Blade. Use it well.','[B] Close');return;}
+  // Require Certification Badge before the riddle is even offered
+  if(!GameState.hasItem('cert-badge')){
+    showInlineDialog('JIMMY THE SWORDSMITH',"Hold on. Before I test you, I need to know you're serious. Bring me proof you've done the work — a Certification Badge from the Hall of Records. Then we'll talk.",'[B] Close');
+    return;
+  }
   dialogOpen=true;
   document.getElementById('dialog-title').textContent='JIMMY THE SWORDSMITH — RIDDLE';
   document.getElementById('dialog-body').textContent='A warrior fights for glory. A merchant fights for gold. But the mightiest blade is wielded by one who sees not himself in the mirror of battle, but the faces of those he fights for. I am the shift that turns a closed fist into an open hand. What am I?';
@@ -1021,6 +1024,8 @@ function menuSelectCurrent(){if(menuItems[menuIdx])menuItems[menuIdx].click();}
 
 // ─── INPUT ────────────────────────────────────────────────────────────────────
 document.addEventListener('keydown',e=>{
+  // Never steal keys from a focused text input
+  if(document.activeElement&&document.activeElement.tagName==='INPUT')return;
   if(menuOpen){
     if(e.key==='ArrowUp'||e.key==='w'){menuIdx=Math.max(0,menuIdx-1);updateMenuCursor();e.preventDefault();return;}
     if(e.key==='ArrowDown'||e.key==='s'){menuIdx=Math.min(menuItems.length-1,menuIdx+1);updateMenuCursor();e.preventDefault();return;}
