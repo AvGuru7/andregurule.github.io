@@ -75,25 +75,46 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
 #ctrl-hint{font-family:'VT323',monospace;font-size:clamp(10px,1.8vw,13px);color:var(--gold);text-align:center;opacity:0.75;}
 
 /* ── INVENTORY OVERLAY ── */
-#inventory-overlay{position:fixed;inset:0;background:rgba(10,8,24,0.95);backdrop-filter:blur(4px);z-index:500;display:none;align-items:flex-start;justify-content:center;padding:clamp(12px,2vh,24px) clamp(8px,2vw,16px);overflow-y:auto;}
+#inventory-overlay{position:fixed;inset:0;background:rgba(10,8,24,0.96);backdrop-filter:blur(4px);z-index:500;display:none;flex-direction:column;align-items:center;justify-content:flex-start;padding:clamp(10px,1.8vh,20px) clamp(8px,2vw,16px);}
 #inventory-overlay.open{display:flex;}
-#inventory-box{background:var(--ui-bg);border:4px solid var(--gold);padding:clamp(16px,3vw,28px) clamp(18px,3.5vw,32px);width:min(720px,96vw);position:relative;}
-#inventory-box::before{content:'';position:absolute;inset:3px;border:1px solid rgba(240,192,64,0.22);pointer-events:none;}
-#inventory-title{font-size:clamp(9px,1.6vw,13px);color:var(--gold);text-align:center;margin-bottom:clamp(4px,0.8vh,8px);letter-spacing:2px;}
-#inventory-points-banner{font-family:'VT323',monospace;font-size:clamp(15px,2.8vw,20px);color:var(--gold);text-align:center;margin-bottom:clamp(10px,1.8vh,18px);border-bottom:1px solid rgba(240,192,64,0.18);padding-bottom:clamp(8px,1.5vh,14px);}
-.inv-category{font-size:clamp(6px,1vw,8px);color:var(--ui-dim);letter-spacing:2px;margin:clamp(10px,1.8vh,16px) 0 clamp(6px,1vh,10px);border-bottom:1px solid rgba(240,192,64,0.12);padding-bottom:4px;}
-.inv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(clamp(140px,22vw,190px),1fr));gap:clamp(6px,1.2vw,10px);margin-bottom:clamp(8px,1.5vh,14px);}
-.inv-item{border:2px solid rgba(240,192,64,0.18);padding:clamp(8px,1.4vw,12px);display:flex;flex-direction:column;gap:4px;position:relative;}
-.inv-item.obtained{border-color:rgba(240,192,64,0.6);}
-.inv-item.locked{opacity:0.45;}
-.inv-icon{font-size:clamp(18px,3.5vw,26px);line-height:1;}
-.inv-name{font-size:clamp(5px,0.9vw,7px);color:var(--ui-text);line-height:1.4;}
-.inv-name.locked-name{color:var(--ui-dim);}
-.inv-location{font-family:'VT323',monospace;font-size:clamp(11px,2vw,14px);color:var(--ui-dim);}
-.inv-pts{font-size:clamp(5px,0.85vw,7px);color:var(--gold);margin-top:2px;}
-.inv-check{position:absolute;top:6px;right:8px;font-size:clamp(10px,1.8vw,14px);color:#40c060;}
-.inv-lock{position:absolute;top:6px;right:8px;font-size:clamp(9px,1.6vw,12px);color:#554433;}
-#inventory-close-hint{text-align:center;margin-top:clamp(12px,2vh,20px);font-size:clamp(5px,0.8vw,7px);color:var(--ui-dim);}
+#inv-header{width:min(900px,96vw);display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid rgba(240,192,64,0.30);padding-bottom:clamp(8px,1.4vh,14px);margin-bottom:clamp(8px,1.4vh,14px);flex-shrink:0;}
+#inv-title{font-size:clamp(8px,1.4vw,11px);color:var(--gold);letter-spacing:2px;}
+#inv-points-banner{font-family:'VT323',monospace;font-size:clamp(14px,2.5vw,19px);color:var(--gold);}
+#inv-close-hint{font-size:clamp(5px,0.8vw,7px);color:var(--ui-dim);}
+#inv-body{width:min(900px,96vw);flex:1;display:flex;gap:clamp(10px,2vw,20px);min-height:0;overflow:hidden;}
+#inv-items-list{width:clamp(180px,30%,260px);flex-shrink:0;overflow-y:auto;display:flex;flex-direction:column;gap:4px;padding-right:4px;}
+#inv-items-list::-webkit-scrollbar{width:4px;}
+#inv-items-list::-webkit-scrollbar-track{background:rgba(240,192,64,0.06);}
+#inv-items-list::-webkit-scrollbar-thumb{background:rgba(240,192,64,0.30);}
+.inv-cat-label{font-size:clamp(5px,0.85vw,7px);color:var(--ui-dim);letter-spacing:2px;padding:clamp(8px,1.4vh,12px) 0 4px;border-bottom:1px solid rgba(240,192,64,0.12);margin-bottom:2px;}
+.inv-item{display:flex;align-items:center;gap:8px;padding:clamp(6px,1.1vh,10px) clamp(8px,1.4vw,12px);border:2px solid transparent;cursor:default;position:relative;transition:border-color 0.1s,background 0.1s;}
+.inv-item.obtained{border-color:rgba(240,192,64,0.22);}
+.inv-item.obtained.has-content{cursor:pointer;}
+.inv-item.obtained.has-content:hover,.inv-item.obtained.has-content.selected{border-color:var(--gold);background:rgba(240,192,64,0.08);}
+.inv-item.locked{opacity:0.38;}
+.inv-item-icon{font-size:clamp(14px,2.5vw,20px);line-height:1;flex-shrink:0;}
+.inv-item-info{display:flex;flex-direction:column;gap:2px;min-width:0;}
+.inv-item-name{font-size:clamp(5px,0.85vw,7px);color:var(--ui-text);line-height:1.3;}
+.inv-item-name.locked-name{color:var(--ui-dim);}
+.inv-item-pts{font-size:clamp(4px,0.7vw,6px);color:var(--gold);}
+.inv-item-check{position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:clamp(8px,1.4vw,11px);color:#40c060;}
+.inv-item-lock{position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:clamp(7px,1.2vw,10px);color:#443322;}
+#inv-detail{flex:1;border:2px solid rgba(240,192,64,0.22);padding:clamp(14px,2.5vw,24px);overflow-y:auto;display:flex;flex-direction:column;gap:clamp(12px,2vh,20px);}
+#inv-detail::-webkit-scrollbar{width:4px;}
+#inv-detail::-webkit-scrollbar-thumb{background:rgba(240,192,64,0.30);}
+#inv-detail-empty{font-family:'VT323',monospace;font-size:clamp(14px,2.5vw,18px);color:var(--ui-dim);text-align:center;margin:auto;}
+#inv-detail-content{display:flex;flex-direction:column;gap:clamp(12px,2vh,20px);}
+#item-detail-icon{font-size:clamp(24px,5vw,38px);line-height:1;}
+#item-detail-title{font-size:clamp(8px,1.4vw,11px);color:var(--gold);letter-spacing:1px;}
+#item-detail-subtitle{font-family:'VT323',monospace;font-size:clamp(13px,2.2vw,17px);color:var(--ui-dim);margin-top:4px;}
+#item-detail-body{flex:1;display:flex;flex-direction:column;gap:clamp(14px,2.5vh,24px);}
+.detail-page{border-left:3px solid rgba(240,192,64,0.35);padding-left:clamp(10px,1.8vw,18px);}
+.detail-page-heading{font-size:clamp(6px,1vw,8px);color:var(--gold);margin-bottom:clamp(6px,1vh,10px);letter-spacing:1px;}
+.detail-page-body{font-family:'VT323',monospace;font-size:clamp(15px,2.6vw,20px);color:var(--ui-text);line-height:1.55;}
+.detail-map-placeholder{border:2px dashed rgba(240,192,64,0.35);padding:clamp(20px,4vh,40px) clamp(16px,3vw,28px);text-align:center;display:flex;flex-direction:column;gap:8px;}
+.detail-map-placeholder .map-icon{font-size:clamp(24px,4vw,36px);}
+.detail-map-placeholder .map-label{font-size:clamp(5px,0.9vw,7px);color:var(--ui-dim);letter-spacing:1px;}
+.detail-map-placeholder .map-sub{font-family:'VT323',monospace;font-size:clamp(12px,2vw,16px);color:var(--ui-dim);}
 .ss-btn.pressed{transform:translateY(1px);box-shadow:none;}
 </style>
 </head>
@@ -175,12 +196,16 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
 
 <!-- Inventory Overlay -->
 <div id="inventory-overlay">
-  <div id="inventory-box">
-    <div id="inventory-title">★ INVENTORY ★</div>
-    <div id="inventory-points-banner"></div>
-    <div id="inventory-list"></div>
-    <div id="inventory-close-hint">
-      <span class="hint-badge-sm">SELECT</span> or <span class="hint-badge-sm">B</span> to close
+  <div id="inv-header">
+    <div id="inv-title">★ INVENTORY ★</div>
+    <div id="inv-points-banner"></div>
+    <div id="inv-close-hint"><span class="hint-badge-sm">SELECT</span> or <span class="hint-badge-sm">B</span> to close</div>
+  </div>
+  <div id="inv-body">
+    <div id="inv-items-list"></div>
+    <div id="inv-detail">
+      <div id="inv-detail-empty">Select an item to view details</div>
+      <div id="inv-detail-content" style="display:none;"></div>
     </div>
   </div>
 </div>
@@ -1066,7 +1091,7 @@ const ITEMS=[
   {id:'holy-grail',    icon:'🏆', label:'Holy Grail',         category:'quest',       points:50, page:'Castle Anthrax'},
   {id:'skeleton-key',  icon:'🔑', label:'Skeleton Key',        category:'key',         points:30, page:'World Map'},
   {id:'sword',         icon:'⚔️', label:'Sword',               category:'quest',       points:25, page:'Erebor Mountain'},
-  {id:'cert-badge',    icon:'📜', label:'Certification Badge', category:'collectible', points:20, page:'My Story'},
+  {id:'cert-badge',    icon:'📜', label:'Certification Badge', category:'collectible', points:20, page:'Hall of Records'},
   {id:'first-edition', icon:'📖', label:'First Edition',       category:'collectible', points:20, page:'Scroll Library'},
   {id:'fishing-rod',   icon:'🎣', label:'Fishing Rod',         category:'collectible', points:15, page:'Lake Tahoe'},
   {id:'tahoe-fish',    icon:'🐟', label:'Tahoe Trout',         category:'collectible', points:25, page:'Lake Tahoe'},
@@ -1077,41 +1102,158 @@ const ITEMS=[
   {id:'sapphire',      icon:'💎', label:'Sapphire',            category:'key',         points:75, page:'World Map'},
   {id:'ruby',          icon:'🔴', label:'Ruby',                category:'key',         points:75, page:'World Map'},
 ];
+
+const CAT_ORDER=['quest','key','collectible'];
+const CAT_LABELS={quest:'QUEST ITEMS',key:'KEY ITEMS',collectible:'COLLECTIBLES'};
+
+const ITEM_DETAILS={
+  'holy-grail':{
+    pages:[
+      {heading:'QUEST ITEM',body:'The legendary Holy Grail — retrieved from the depths of Castle Anthrax. Those who seek it must answer a riddle worthy of King Arthur himself.'},
+    ]
+  },
+  'skeleton-key':{
+    pages:[
+      {heading:'KEY ITEM',body:'A master key found in the wild lands of the World Map. It is said to open doors that knowledge and wisdom cannot.'},
+    ]
+  },
+  'sword':{
+    pages:[
+      {heading:'QUEST ITEM — THE OUTWARD BLADE',body:'Forged by Jimmy the Swordsmith in the heart of Erebor Mountain. Only those who have proven their qualifications and passed the riddle may wield it.'},
+    ]
+  },
+  'cert-badge':{
+    pages:[
+      {heading:'COLLECTIBLE',body:'A certification badge collected from the Hall of Records. Proof that you have done the work — and that Jimmy will take you seriously.'},
+    ]
+  },
+  'first-edition':{
+    pages:[
+      {heading:'THE QUEST',body:'To complete this quest, you must be qualified to wield a knight\'s sword. The swordsmith in the mountain will only give swords to those who can prove their qualifications. However, the means of gaining those skills is classified.'},
+      {heading:'MAP — EREBOR MOUNTAIN',body:'__MAP__'},
+    ]
+  },
+  'fishing-rod':{
+    pages:[
+      {heading:'COLLECTIBLE',body:'A sturdy fishing rod found at the shores of Lake Tahoe. Useful for catching Tahoe Trout — and maybe something more.'},
+    ]
+  },
+  'tahoe-fish':{
+    pages:[
+      {heading:'COLLECTIBLE',body:'A fine Tahoe Trout pulled from the crystal waters of Lake Tahoe. Fresh catch of the day.'},
+    ]
+  },
+  'blue-kayak':{
+    pages:[
+      {heading:'QUEST ITEM',body:'A beautiful blue kayak, traded to King Lyn of Castle Anthrax in exchange for passage. Something beautiful for something useful.'},
+    ]
+  },
+  'artwork':{
+    pages:[
+      {heading:'COLLECTIBLE',body:'A piece of artwork recovered from Town Square. King Lyn of Castle Anthrax has expressed interest in fine art. Perhaps it is worth something to her.'},
+    ]
+  },
+  'bread':{
+    pages:[
+      {heading:'COLLECTIBLE',body:'A fresh loaf of bread from Town Square. Sustenance for the long journey ahead.'},
+    ]
+  },
+  'old-compass':{
+    pages:[
+      {heading:'KEY ITEM',body:'An old compass recovered from The Lake. Its needle points unerringly toward the east wall of the Treasury in Castle Anthrax — where something is hidden.'},
+    ]
+  },
+  'sapphire':{
+    pages:[
+      {heading:'KEY ITEM',body:'A brilliant sapphire found on the eastern edge of the World Map, near the Hall of Records. Its purpose is unclear — for now.'},
+    ]
+  },
+  'ruby':{
+    pages:[
+      {heading:'KEY ITEM',body:'A deep red ruby found south of Erebor Mountain. Its purpose is unclear — for now.'},
+    ]
+  },
+};
+
 let inventoryOpen=false;
+let selectedItemId=null;
+
 function toggleInventory(){inventoryOpen?closeInventory():openInventory();}
 function openInventory(){
   if(dialogOpen)closeDialog();
   if(menuOpen)closeMenu();
   inventoryOpen=true;
+  selectedItemId=null;
   document.getElementById('btn-select').classList.add('pressed');
-  renderInventory();
+  renderItemList();
+  renderItemDetail(null);
   document.getElementById('inventory-overlay').classList.add('open');
 }
 function closeInventory(){
   inventoryOpen=false;
+  selectedItemId=null;
   document.getElementById('inventory-overlay').classList.remove('open');
   document.getElementById('btn-select').classList.remove('pressed');
 }
-function renderInventory(){
+function renderItemList(){
   const total=ITEMS.reduce((s,i)=>s+i.points,0);
-  document.getElementById('inventory-points-banner').textContent='Points: '+GameState.points+' / '+total;
-  const list=document.getElementById('inventory-list');list.innerHTML='';
-  [{key:'quest',label:'QUEST ITEMS'},{key:'key',label:'KEY ITEMS'},{key:'collectible',label:'COLLECTIBLES'}].forEach(cat=>{
-    const catItems=ITEMS.filter(i=>i.category===cat.key);if(!catItems.length)return;
-    const h=document.createElement('div');h.className='inv-category';h.textContent=cat.label;list.appendChild(h);
-    const grid=document.createElement('div');grid.className='inv-grid';
+  document.getElementById('inv-points-banner').textContent='Points: '+GameState.points+' / '+total;
+  const list=document.getElementById('inv-items-list');list.innerHTML='';
+  CAT_ORDER.forEach(cat=>{
+    const catItems=ITEMS.filter(i=>i.category===cat);if(!catItems.length)return;
+    const lbl=document.createElement('div');lbl.className='inv-cat-label';lbl.textContent=CAT_LABELS[cat];list.appendChild(lbl);
     catItems.forEach(item=>{
       const got=GameState.hasItem(item.id);
-      const card=document.createElement('div');card.className='inv-item '+(got?'obtained':'locked');
-      const icon=document.createElement('div');icon.className='inv-icon';icon.textContent=got?item.icon:'❓';
-      const name=document.createElement('div');name.className='inv-name'+(got?'':' locked-name');name.textContent=got?item.label:'???';
-      const loc=document.createElement('div');loc.className='inv-location';loc.textContent=item.page;
-      const pts=document.createElement('div');pts.className='inv-pts';pts.textContent=item.points+' pts';
-      const badge=document.createElement('div');badge.className=got?'inv-check':'inv-lock';badge.textContent=got?'✓':'🔒';
-      card.append(icon,name,loc,pts,badge);grid.appendChild(card);
+      const hasContent=got&&ITEM_DETAILS[item.id];
+      const row=document.createElement('div');
+      row.className='inv-item'+(got?' obtained':'  locked')+(hasContent?' has-content':'');
+      if(item.id===selectedItemId)row.classList.add('selected');
+      const icon=document.createElement('div');icon.className='inv-item-icon';icon.textContent=got?item.icon:'❓';
+      const info=document.createElement('div');info.className='inv-item-info';
+      const name=document.createElement('div');name.className='inv-item-name'+(got?'':' locked-name');name.textContent=got?item.label:'???';
+      const pts=document.createElement('div');pts.className='inv-item-pts';pts.textContent=item.points+' pts';
+      info.append(name,pts);
+      const badge=document.createElement('div');badge.className=got?'inv-item-check':'inv-item-lock';badge.textContent=got?'✓':'🔒';
+      row.append(icon,info,badge);
+      if(hasContent){row.addEventListener('click',()=>selectItem(item.id));}
+      list.appendChild(row);
     });
-    list.appendChild(grid);
   });
+}
+function selectItem(id){
+  selectedItemId=id;
+  renderItemList();
+  renderItemDetail(id);
+}
+function renderItemDetail(id){
+  const empty=document.getElementById('inv-detail-empty');
+  const content=document.getElementById('inv-detail-content');
+  if(!id||!ITEM_DETAILS[id]){
+    empty.style.display='';content.style.display='none';content.innerHTML='';return;
+  }
+  empty.style.display='none';content.style.display='flex';
+  const item=ITEMS.find(i=>i.id===id);
+  const detail=ITEM_DETAILS[id];
+  content.innerHTML='';
+  const iconEl=document.createElement('div');iconEl.id='item-detail-icon';iconEl.textContent=item.icon;
+  const titleEl=document.createElement('div');titleEl.id='item-detail-title';titleEl.textContent=item.label;
+  const subEl=document.createElement('div');subEl.id='item-detail-subtitle';subEl.textContent=item.page+' · '+item.points+' pts';
+  const bodyEl=document.createElement('div');bodyEl.id='item-detail-body';
+  detail.pages.forEach(pg=>{
+    const pageEl=document.createElement('div');pageEl.className='detail-page';
+    const hEl=document.createElement('div');hEl.className='detail-page-heading';hEl.textContent=pg.heading;
+    pageEl.appendChild(hEl);
+    if(pg.body==='__MAP__'){
+      const mapEl=document.createElement('div');mapEl.className='detail-map-placeholder';
+      mapEl.innerHTML='<div class="map-icon">🗺</div><div class="map-label">EREBOR MOUNTAIN — TUNNEL MAP</div><div class="map-sub">Map image coming soon</div>';
+      pageEl.appendChild(mapEl);
+    } else {
+      const bEl=document.createElement('div');bEl.className='detail-page-body';bEl.textContent=pg.body;
+      pageEl.appendChild(bEl);
+    }
+    bodyEl.appendChild(pageEl);
+  });
+  content.append(iconEl,titleEl,subEl,bodyEl);
 }
 
 // ─── GAME LOOP ────────────────────────────────────────────────────────────────
