@@ -123,7 +123,7 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
   </div>
 </div>
 
-<div id="inventory-overlay" style="position:fixed;inset:0;background:rgba(10,8,24,0.95);backdrop-filter:blur(4px);z-index:500;display:none;flex-direction:column;">
+<div id="inventory-overlay" style="position:fixed;top:0;left:0;right:0;background:rgba(10,8,24,0.95);backdrop-filter:blur(4px);z-index:500;display:none;flex-direction:column;">
   <div style="flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:10px 18px 8px;border-bottom:1px solid rgba(240,192,64,0.25);">
     <div style="font-size:clamp(9px,1.8vw,13px);color:var(--gold);letter-spacing:2px;">★ INVENTORY ★</div>
     <div id="inv-points-banner" style="font-family:'VT323',monospace;font-size:clamp(14px,2.5vw,18px);color:#a0d8ff;"></div>
@@ -147,6 +147,11 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
     <button id="book-next" style="background:var(--ui-bg);border:1px solid var(--gold);color:var(--gold);font-family:'Press Start 2P',monospace;font-size:8px;padding:8px 14px;cursor:pointer;">NEXT &#9654;</button>
     <button id="book-close" style="background:var(--ui-bg);border:1px solid rgba(240,192,64,0.4);color:var(--ui-dim);font-family:'Press Start 2P',monospace;font-size:8px;padding:8px 14px;cursor:pointer;">&#10005; CLOSE</button>
   </div>
+</div>
+
+<div id="vault-dial-overlay" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(6,4,14,0.97);z-index:700;align-items:center;justify-content:center;flex-direction:column;gap:0;">
+  <canvas id="vault-dial-canvas" style="image-rendering:pixelated;"></canvas>
+  <div id="vault-dial-hint" style="font-family:'VT323',monospace;font-size:clamp(14px,2.5vw,18px);color:var(--ui-dim);text-align:center;margin-top:8px;line-height:1.7;"></div>
 </div>
 
 <div id="nes-controller">
@@ -314,6 +319,19 @@ const KAYAK_PICKUP={
 };
 
 let kayakCollected=false; // set from GameState after initialisation
+
+// ── VAULT DIAL STATE ──────────────────────────────────────────────────────────
+// The vault is on the east wall of the Treasury at tx:37, ty:6
+// Combination: 5 (right) → 12 (left) → 26 (right)
+const VAULT_COMBO=[{n:5,dir:'right'},{n:12,dir:'left'},{n:26,dir:'right'}];
+const VAULT_DOOR={id:'vault_door', label:'🔐 VAULT DOOR', tx:37, ty:6};
+let vaultDialOpen=false;
+let vaultDialNum=0;        // current dial number 0-39
+let vaultDialStep=0;       // which combo step we're on (0,1,2)
+let vaultStrikes=0;        // permanent for session
+let vaultUnlocked=false;   // once combo solved
+let vaultFlashTimer=0;     // frames of red flash remaining
+let vaultShakeTimer=0;     // frames of screen shake remaining
 
 function collectKayak(){
   if(kayakCollected) return;
@@ -576,7 +594,62 @@ function drawTreasury(wx,wy){
     ctx.fillStyle=c;ctx.beginPath();ctx.moveTo(gx,gy-9);ctx.lineTo(gx+7,gy);ctx.lineTo(gx,gy+7);ctx.lineTo(gx-7,gy);ctx.closePath();ctx.fill();
     ctx.fillStyle='rgba(255,255,255,0.38)';ctx.beginPath();ctx.moveTo(gx,gy-9);ctx.lineTo(gx+7,gy);ctx.lineTo(gx,gy-2);ctx.closePath();ctx.fill();
   });
-}
+
+  // ── VAULT DOOR (east wall, tx:37 → screen-right edge of treasury) ─────────
+  {
+    const vx=r.x*TILE+r.w*TILE-TILE-wx; // right-interior column
+    const vy=r.y*TILE+TILE*1.5-wy;
+    const vw=TILE*0.85, vh=TILE*1.6;
+    // Door frame
+    ctx.fillStyle='#3a3a3a';ctx.fillRect(vx-4,vy-4,vw+8,vh+8);
+    // Door body
+    if(vaultUnlocked){
+      // Open vault — dark interior glow
+      ctx.fillStyle='#0a0808';ctx.fillRect(vx,vy,vw,vh);
+      const og=ctx.createRadialGradient(vx+vw/2,vy+vh/2,4,vx+vw/2,vy+vh/2,vw);
+      og.addColorStop(0,'rgba(240,192,64,0.25)');og.addColorStop(1,'rgba(240,192,64,0)');
+      ctx.fillStyle=og;ctx.fillRect(vx,vy,vw,vh);
+      ctx.fillStyle='rgba(240,192,64,0.9)';ctx.font='6px "Press Start 2P"';ctx.textAlign='center';
+      ctx.fillText('OPEN',vx+vw/2,vy+vh/2+3);ctx.textAlign='left';
+    } else {
+      // Steel door panels
+      const strikeColors=['#1a3a1a','#6b2020','#cc2020'];
+      ctx.fillStyle='#3a3a44';ctx.fillRect(vx,vy,vw,vh);
+      ctx.fillStyle='#4a4a56';ctx.fillRect(vx+3,vy+3,vw-6,vh-6);
+      // Rivets
+      ctx.fillStyle='#666';
+      [[vx+8,vy+8],[vx+vw-8,vy+8],[vx+8,vy+vh-8],[vx+vw-8,vy+vh-8]].forEach(([rx2,ry2])=>{
+        ctx.beginPath();ctx.arc(rx2,ry2,3,0,Math.PI*2);ctx.fill();
+      });
+      // Combination dial face
+      const dcx=vx+vw/2, dcy=vy+vh*0.38, dr=vw*0.28;
+      ctx.fillStyle='#2a2a34';ctx.beginPath();ctx.arc(dcx,dcy,dr+3,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#888';ctx.beginPath();ctx.arc(dcx,dcy,dr,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#aaa';ctx.beginPath();ctx.arc(dcx,dcy,dr*0.7,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#555';ctx.beginPath();ctx.arc(dcx,dcy,4,0,Math.PI*2);ctx.fill();
+      // Strike indicators
+      const siY=vy+vh*0.78;
+      for(let si=0;si<3;si++){
+        const ssx=vx+vw*0.22+si*(vw*0.28);
+        ctx.fillStyle=si<vaultStrikes?strikeColors[Math.min(si,2)]:'#1a1a2a';
+        ctx.beginPath();ctx.arc(ssx,siY,4,0,Math.PI*2);ctx.fill();
+        ctx.strokeStyle=si<vaultStrikes?'#ff6060':'#444';ctx.lineWidth=1;
+        ctx.beginPath();ctx.arc(ssx,siY,4,0,Math.PI*2);ctx.stroke();
+      }
+      // Proximity prompt
+      const pdx=Math.abs(playerX-(vx+vw/2)),pdy=Math.abs(playerY-(vy+vh/2));
+      if(pdx<TILE*3&&pdy<TILE*3&&treasuryOpen&&vaultStrikes<3){
+        const pulse=0.5+0.4*Math.sin(Date.now()/380);
+        ctx.fillStyle=`rgba(240,192,64,${pulse})`;ctx.font='6px "Press Start 2P"';ctx.textAlign='center';
+        ctx.fillText('[A] OPEN VAULT',vx+vw/2,vy-10);ctx.textAlign='left';
+      }
+      if(vaultStrikes>=3){
+        ctx.fillStyle='rgba(200,20,20,0.85)';ctx.font='6px "Press Start 2P"';ctx.textAlign='center';
+        ctx.fillText('LOCKED',vx+vw/2,vy-10);ctx.textAlign='left';
+      }
+    }
+  }
+} // end drawTreasury
 
 function drawArmory(wx,wy){
   const r=ROOMS[3];
@@ -982,6 +1055,12 @@ function drawWorld(){
   // Player shadow
   const ppx=playerX-wx,ppy=playerY-wy;
   ctx.fillStyle='rgba(0,0,0,0.3)';ctx.beginPath();ctx.ellipse(ppx,ppy+7,11,4,0,0,Math.PI*2);ctx.fill();
+
+  // ── VAULT FLASH OVERLAY ───────────────────────────────────────────────────
+  if(vaultFlashTimer>0){
+    const alpha=Math.min(0.55,vaultFlashTimer/12*0.55);
+    ctx.fillStyle=`rgba(180,10,10,${alpha})`;ctx.fillRect(0,0,canvas.width,canvas.height);
+  }
 }
 
 // ── PLAYER ────────────────────────────────────────────────────────────────────
@@ -1032,13 +1111,18 @@ function getNearestInteractable(){
     const kd=distToTile(KAYAK_PICKUP.tx,KAYAK_PICKUP.ty);
     if(kd<bestD){bestD=kd;best={type:'kayak_locked',obj:KAYAK_PICKUP};}
   }
+  // Vault door — only interactable when treasury is open and vault not yet unlocked
+  if(treasuryOpen&&!vaultUnlocked&&vaultStrikes<3){
+    const vd=distToTile(VAULT_DOOR.tx,VAULT_DOOR.ty);
+    if(vd<bestD){bestD=vd;best={type:'vault_door',obj:VAULT_DOOR};}
+  }
   return best;
 }
 function getRoomAt2(tx,ty){return ROOMS.find(r=>tx>=r.x&&tx<r.x+r.w&&ty>=r.y&&ty<r.y+r.h)||null;}
 
 // ── PLAYER UPDATE ─────────────────────────────────────────────────────────────
 function updatePlayer(){
-  if(dialogOpen||menuOpen||inventoryOpen) return;
+  if(dialogOpen||menuOpen||inventoryOpen||vaultDialOpen) return;
   const SPEED=3;let dx=0,dy=0;
   if(keys.up){dy=-SPEED;facing='up';}if(keys.down){dy=SPEED;facing='down';}
   if(keys.left){dx=-SPEED;facing='left';}if(keys.right){dx=SPEED;facing='right';}
@@ -1088,6 +1172,7 @@ function handleA(){
   }
   if(activeInteractable){
     if(activeInteractable.type==='treasury_door'){tryOpenTreasury();return;}
+    if(activeInteractable.type==='vault_door'){openVaultDial();return;}
     if(activeInteractable.type==='kayak_pickup'){collectKayak();return;}
     if(activeInteractable.type==='kayak_locked'){
       showInlineDialog('🚣 BLUE KAYAK',"You must talk to the king before you can take his kayak. He will likely want something of value to trade.",'[B] Close');
@@ -1096,7 +1181,7 @@ function handleA(){
     openDialog(activeInteractable);
   }
 }
-function handleB(){if(menuOpen){closeMenu();return;}if(inventoryOpen){closeInventory();return;}if(dialogOpen){closeDialog();return;}if(compassActive){compassActive=false;return;}}
+function handleB(){if(menuOpen){closeMenu();return;}if(inventoryOpen){closeInventory();return;}if(vaultDialOpen){closeVaultDial();return;}if(dialogOpen){closeDialog();return;}if(compassActive){compassActive=false;return;}}
 
 function openDialog(interactable){
   dialogOpen=true;
@@ -1362,6 +1447,13 @@ function menuSelectCurrent(){if(menuItems[menuIdx])menuItems[menuIdx].click();}
 
 // ── INPUT ─────────────────────────────────────────────────────────────────────
 document.addEventListener('keydown',e=>{
+  if(vaultDialOpen){
+    if(e.key==='ArrowLeft'||e.key==='a'||e.key==='A'){dialSpin(-1);e.preventDefault();return;}
+    if(e.key==='ArrowRight'||e.key==='d'||e.key==='D'){dialSpin(1);e.preventDefault();return;}
+    if(e.key==='Enter'||e.key===' '){dialConfirm();e.preventDefault();return;}
+    if(e.key==='Escape'||e.key==='b'||e.key==='B'){closeVaultDial();e.preventDefault();return;}
+    e.preventDefault();return;
+  }
   if(menuOpen){
     if(e.key==='ArrowUp'||e.key==='w'){menuIdx=Math.max(0,menuIdx-1);updateMenuCursor();e.preventDefault();return;}
     if(e.key==='ArrowDown'||e.key==='s'){menuIdx=Math.min(menuItems.length-1,menuIdx+1);updateMenuCursor();e.preventDefault();return;}
@@ -1397,11 +1489,210 @@ setupDpad();
 canvas.addEventListener('click',()=>handleA());
 document.addEventListener('mousemove',e=>{const c=document.getElementById('cursor');if(c){c.style.left=e.clientX+'px';c.style.top=e.clientY+'px';}});
 
+// ── VAULT DIAL FUNCTIONS ──────────────────────────────────────────────────────
+function openVaultDial(){
+  if(vaultStrikes>=3){
+    showInlineDialog('🔐 VAULT DOOR','The lock mechanism is jammed. The vault cannot be opened.','[B] Close');
+    return;
+  }
+  vaultDialOpen=true;
+  vaultDialNum=0;
+  vaultDialStep=0;
+  dialogOpen=false;
+  document.getElementById('dialog-box').style.display='none';
+  const overlay=document.getElementById('vault-dial-overlay');
+  overlay.style.display='flex';
+  overlay.style.bottom=ctrlHeight()+'px';
+  // Make overlay not cover controller
+  overlay.style.top='0';
+  overlay.style.bottom=ctrlHeight()+'px';
+  renderVaultDial();
+}
+
+function closeVaultDial(){
+  vaultDialOpen=false;
+  vaultDialNum=0;
+  vaultDialStep=0;
+  document.getElementById('vault-dial-overlay').style.display='none';
+}
+
+function dialSpin(dir){
+  // dir: +1 = clockwise (right), -1 = counter-clockwise (left)
+  vaultDialNum=(vaultDialNum+dir+40)%40;
+  renderVaultDial();
+}
+
+function dialConfirm(){
+  const expected=VAULT_COMBO[vaultDialStep];
+  if(vaultDialNum===expected.n){
+    vaultDialStep++;
+    if(vaultDialStep===3){
+      // SUCCESS
+      vaultUnlocked=true;
+      closeVaultDial();
+      // Navigate to vault page with state
+      setTimeout(()=>{
+        window.location.href=GameState.withState('vault.html');
+      },600);
+    } else {
+      vaultDialNum=0;
+      renderVaultDial();
+    }
+  } else {
+    // WRONG — increment strikes
+    vaultStrikes++;
+    vaultDialStep=0;
+    vaultDialNum=0;
+    closeVaultDial();
+    if(vaultStrikes>=3){
+      // Three strikes — dramatic final sequence then redirect
+      vaultFlashTimer=60;
+      vaultShakeTimer=60;
+      showInlineDialog('💀 TRAP SPRUNG','The vault recognizes no further attempts. The gas fills the room...','');
+      setTimeout(()=>{window.location.href='index.html';},2800);
+    } else {
+      vaultFlashTimer=20;
+      vaultShakeTimer=14;
+      const msgs=[
+        '🔒 WRONG COMBINATION','The lock resists. Something shifts in the walls...',
+        '⚠ SECOND WARNING','The mechanism grinds. A hissing sound echoes from the walls...',
+      ];
+      const mi=(vaultStrikes-1)*2;
+      showInlineDialog(msgs[mi],msgs[mi+1],'[B] Try again');
+    }
+  }
+}
+
+function renderVaultDial(){
+  const canvas2=document.getElementById('vault-dial-canvas');
+  const W=Math.min(window.innerWidth*0.92,420);
+  const H=Math.min(window.innerHeight*0.75,500);
+  canvas2.width=W;canvas2.height=H;
+  const c=canvas2.getContext('2d');
+  c.imageSmoothingEnabled=false;
+
+  // Background panel
+  const bg=c.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#1a1520');bg.addColorStop(1,'#0d0a18');
+  c.fillStyle=bg;c.fillRect(0,0,W,H);
+  c.strokeStyle='rgba(240,192,64,0.5)';c.lineWidth=2;c.strokeRect(4,4,W-8,H-8);
+  c.strokeStyle='rgba(240,192,64,0.15)';c.lineWidth=1;c.strokeRect(8,8,W-16,H-16);
+
+  // Title
+  c.fillStyle='#f0c040';c.font='bold 9px "Press Start 2P"';c.textAlign='center';
+  c.fillText('VAULT COMBINATION LOCK',W/2,34);
+
+  // Step indicator
+  const stepLabels=['TURN RIGHT','TURN LEFT','TURN RIGHT'];
+  const stepColors=['#40c080','#4080ff','#f0c040'];
+  c.font='7px "Press Start 2P"';
+  c.fillStyle=vaultDialStep<3?stepColors[vaultDialStep]:'#f0c040';
+  c.fillText('STEP '+(vaultDialStep+1)+' OF 3  ·  '+stepLabels[Math.min(vaultDialStep,2)],W/2,54);
+
+  // Dial
+  const cx=W/2, cy=H*0.46, dr=Math.min(W,H)*0.28;
+
+  // Outer ring (dark steel)
+  const ringGrad=c.createRadialGradient(cx-dr*0.3,cy-dr*0.3,dr*0.1,cx,cy,dr+14);
+  ringGrad.addColorStop(0,'#6a6a78');ringGrad.addColorStop(1,'#2a2a34');
+  c.fillStyle=ringGrad;c.beginPath();c.arc(cx,cy,dr+14,0,Math.PI*2);c.fill();
+
+  // Tick marks around dial
+  for(let i=0;i<40;i++){
+    const angle=(i/40)*Math.PI*2-Math.PI/2;
+    const isMajor=i%5===0;
+    const r0=dr+2, r1=isMajor?dr+11:dr+7;
+    c.strokeStyle=isMajor?'rgba(240,192,64,0.8)':'rgba(200,180,100,0.4)';
+    c.lineWidth=isMajor?2:1;
+    c.beginPath();
+    c.moveTo(cx+Math.cos(angle)*r0,cy+Math.sin(angle)*r0);
+    c.lineTo(cx+Math.cos(angle)*r1,cy+Math.sin(angle)*r1);
+    c.stroke();
+    if(isMajor){
+      c.fillStyle='rgba(240,192,64,0.7)';c.font='6px "Press Start 2P"';c.textAlign='center';c.textBaseline='middle';
+      c.fillText(i,cx+Math.cos(angle)*(r1+9),cy+Math.sin(angle)*(r1+9));
+    }
+  }
+
+  // Dial face
+  const dialGrad=c.createRadialGradient(cx-dr*0.2,cy-dr*0.2,4,cx,cy,dr);
+  dialGrad.addColorStop(0,'#888890');dialGrad.addColorStop(0.6,'#666670');dialGrad.addColorStop(1,'#444450');
+  c.fillStyle=dialGrad;c.beginPath();c.arc(cx,cy,dr,0,Math.PI*2);c.fill();
+
+  // Knurl lines on dial face
+  c.save();c.beginPath();c.arc(cx,cy,dr,0,Math.PI*2);c.clip();
+  for(let k=0;k<20;k++){
+    const ka=(k/20)*Math.PI*2;
+    c.strokeStyle='rgba(0,0,0,0.15)';c.lineWidth=1;
+    c.beginPath();c.moveTo(cx,cy);c.lineTo(cx+Math.cos(ka)*dr,cy+Math.sin(ka)*dr);c.stroke();
+  }
+  c.restore();
+
+  // Indicator triangle at top (12 o'clock)
+  c.fillStyle='#f0c040';
+  c.beginPath();c.moveTo(cx,cy-dr-16);c.lineTo(cx-7,cy-dr-4);c.lineTo(cx+7,cy-dr-4);c.closePath();c.fill();
+
+  // Needle — points to current number
+  const needleAngle=(vaultDialNum/40)*Math.PI*2-Math.PI/2;
+  c.save();c.translate(cx,cy);c.rotate(needleAngle+Math.PI/2);
+  c.fillStyle='#cc2020';
+  c.beginPath();c.moveTo(0,-dr*0.75);c.lineTo(-5,0);c.lineTo(5,0);c.closePath();c.fill();
+  c.fillStyle='rgba(255,255,255,0.3)';
+  c.beginPath();c.moveTo(0,-dr*0.75);c.lineTo(-2,0);c.lineTo(0,-dr*0.5);c.closePath();c.fill();
+  c.restore();
+
+  // Center cap
+  c.fillStyle='#2a2a34';c.beginPath();c.arc(cx,cy,12,0,Math.PI*2);c.fill();
+  c.fillStyle='#444';c.beginPath();c.arc(cx,cy,8,0,Math.PI*2);c.fill();
+  c.fillStyle='rgba(255,255,255,0.15)';c.beginPath();c.arc(cx-3,cy-3,3,0,Math.PI*2);c.fill();
+
+  // Current number readout
+  c.fillStyle='rgba(13,10,24,0.9)';c.fillRect(cx-32,cy+dr+18,64,28);
+  c.strokeStyle='rgba(240,192,64,0.4)';c.lineWidth=1;c.strokeRect(cx-32,cy+dr+18,64,28);
+  c.fillStyle='#f0c040';c.font='bold 14px "Press Start 2P"';c.textAlign='center';c.textBaseline='middle';
+  c.fillText(String(vaultDialNum).padStart(2,'0'),cx,cy+dr+32);
+  c.textBaseline='alphabetic';
+
+  // Strike indicators
+  const siY=H-36;
+  c.fillStyle='rgba(240,192,64,0.6)';c.font='6px "Press Start 2P"';c.textAlign='center';
+  c.fillText('ATTEMPTS REMAINING',W/2,siY-14);
+  for(let i=0;i<3;i++){
+    const ssx=W/2-24+i*24;
+    c.fillStyle=i<(3-vaultStrikes)?'#20aa40':'#cc2020';
+    c.beginPath();c.arc(ssx,siY,7,0,Math.PI*2);c.fill();
+    c.strokeStyle=i<(3-vaultStrikes)?'#40ff80':'#ff4040';c.lineWidth=1.5;
+    c.beginPath();c.arc(ssx,siY,7,0,Math.PI*2);c.stroke();
+  }
+
+  // Step progress dots
+  const dotY=H-10;
+  for(let i=0;i<3;i++){
+    c.fillStyle=i<vaultDialStep?'#f0c040':i===vaultDialStep?'rgba(240,192,64,0.5)':'rgba(240,192,64,0.15)';
+    c.beginPath();c.arc(W/2-16+i*16,dotY,4,0,Math.PI*2);c.fill();
+  }
+
+  // Update hint text below canvas
+  document.getElementById('vault-dial-hint').innerHTML=
+    '<span style="color:rgba(240,192,64,0.6)">◀ ▶</span> or <span style="color:rgba(240,192,64,0.6)">D-PAD LEFT/RIGHT</span> to spin &nbsp;·&nbsp; '
+    +'<span style="color:rgba(240,192,64,0.6)">A / ENTER</span> to lock in number &nbsp;·&nbsp; '
+    +'<span style="color:rgba(240,192,64,0.6)">B</span> to cancel';
+}
+
 // ── GAME LOOP ─────────────────────────────────────────────────────────────────
 function gameLoop(){
   updatePlayer();updateCamera();
+  // Tick effect timers
+  if(vaultFlashTimer>0)vaultFlashTimer--;
+  if(vaultShakeTimer>0)vaultShakeTimer--;
+  // Screen shake
+  let sx=0,sy=0;
+  if(vaultShakeTimer>0){sx=(Math.random()-0.5)*10;sy=(Math.random()-0.5)*10;}
+  ctx.save();if(vaultShakeTimer>0)ctx.translate(sx,sy);
   ctx.clearRect(0,0,canvas.width,canvas.height);
-  drawWorld();drawPlayer();
+  drawWorld();
+  ctx.restore();
+  drawPlayer();
   drawCompassOverlay();
   const pe=document.getElementById('player');
   pe.style.left=(playerX-camX)+'px';pe.style.top=(playerY-camY)+'px';
