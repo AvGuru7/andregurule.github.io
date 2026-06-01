@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>The Vault — Andre Gurule</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --gold:#f0c040;--gold2:#c8982a;
+  --ui-bg:#0d0a18;--ui-text:#f0e8c0;--ui-dim:#a09070;
+  --btn-red:#aa2244;--btn-red-hi:#cc4466;
+  --vault-floor:#1a1a28;--vault-wall:#0e0e18;--vault-accent:#2a2a40;
+}
+body{background:#080810;font-family:'Press Start 2P',monospace;overflow:hidden;width:100vw;height:100vh;-webkit-tap-highlight-color:transparent;}
+canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;touch-action:none;}
+#player{position:absolute;image-rendering:pixelated;z-index:10;transform:translate(-50%,-50%);pointer-events:none;}
+#player canvas{display:block;image-rendering:pixelated;}
+#hud{position:fixed;top:10px;left:10px;z-index:100;background:var(--ui-bg);border:3px solid var(--gold);padding:8px 13px;}
+#hud::before{content:'';position:absolute;inset:2px;border:1px solid rgba(240,192,64,0.25);pointer-events:none;}
+#hud-name{font-size:clamp(5px,1.1vw,8px);color:var(--gold);margin-bottom:4px;letter-spacing:1px;}
+#hud-title{font-family:'VT323',monospace;font-size:clamp(13px,2.4vw,17px);color:#a0d8ff;line-height:1.2;}
+#zone-label{position:fixed;bottom:clamp(155px,22vh,200px);left:50%;transform:translateX(-50%);font-size:clamp(8px,1.8vw,13px);color:var(--gold);text-shadow:0 0 16px rgba(240,192,64,0.8);z-index:50;pointer-events:none;opacity:0;transition:opacity 0.3s;text-align:center;padding:0 12px;top:auto;}
+#dialog-box{position:fixed;bottom:clamp(170px,26vh,220px);left:50%;transform:translateX(-50%);width:min(640px,92vw);background:var(--ui-bg);border:4px solid var(--gold);padding:clamp(13px,2.2vh,20px) clamp(14px,2.5vw,22px);z-index:200;display:none;}
+#dialog-box::before{content:'';position:absolute;inset:2px;border:2px solid rgba(240,192,64,0.28);pointer-events:none;}
+#dialog-title{font-size:clamp(7px,1.2vw,10px);color:var(--gold);margin-bottom:9px;display:flex;align-items:center;gap:10px;}
+#dialog-title::before{content:'▶';color:#ff6060;font-size:8px;animation:blink 0.8s step-end infinite;}
+#dialog-body{font-family:'VT323',monospace;font-size:clamp(16px,3vw,20px);color:var(--ui-text);line-height:1.5;min-height:48px;}
+#dialog-links{margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;}
+.dialog-link{font-family:'Press Start 2P',monospace;font-size:clamp(5px,0.9vw,7px);color:var(--ui-bg);background:var(--gold);border:none;padding:clamp(6px,1vh,8px) clamp(9px,1.5vw,12px);cursor:pointer;text-decoration:none;display:inline-block;touch-action:manipulation;}
+.dialog-link:hover,.dialog-link:active{background:#fff3a0;}
+#btn-hint{margin-top:10px;font-size:clamp(8px,1.4vw,11px);color:var(--ui-dim);display:flex;gap:14px;flex-wrap:wrap;}
+.hint-key{display:inline-flex;align-items:center;gap:5px;}
+.hint-badge{background:#222;border:1.5px solid var(--gold2);color:var(--gold);padding:4px 8px;border-radius:2px;font-size:inherit;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+#menu-overlay{position:fixed;inset:0;background:rgba(10,8,24,0.92);backdrop-filter:blur(4px);z-index:500;display:none;align-items:center;justify-content:center;}
+#menu-box{background:var(--ui-bg);border:4px solid var(--gold);padding:clamp(20px,4vw,36px) clamp(24px,5vw,44px);min-width:clamp(240px,50vw,400px);position:relative;}
+#menu-box::before{content:'';position:absolute;inset:3px;border:1px solid rgba(240,192,64,0.22);pointer-events:none;}
+#menu-title{font-size:clamp(8px,1.5vw,12px);color:var(--gold);text-align:center;margin-bottom:clamp(18px,3vh,28px);letter-spacing:2px;}
+#menu-title::before{content:'★ ';}#menu-title::after{content:' ★';}
+.menu-item{display:flex;width:100%;font-family:'Press Start 2P',monospace;font-size:clamp(7px,1.2vw,10px);color:var(--ui-text);background:transparent;border:none;padding:clamp(10px,1.8vh,16px) clamp(12px,2vw,20px);text-align:left;cursor:pointer;border-left:3px solid transparent;text-decoration:none;align-items:center;gap:12px;transition:color 0.1s,border-color 0.1s,background 0.1s;letter-spacing:0.5px;line-height:1.5;touch-action:manipulation;}
+.menu-item:hover,.menu-item:active,.menu-item.selected{color:var(--gold);border-left-color:var(--gold);background:rgba(240,192,64,0.06);}
+.menu-item-icon{font-size:12px;width:20px;text-align:center;flex-shrink:0;}
+#menu-divider{height:1px;background:rgba(240,192,64,0.18);margin:clamp(8px,1.5vh,14px) 0;}
+#menu-close-hint{text-align:center;margin-top:clamp(12px,2vh,20px);font-size:clamp(5px,0.8vw,7px);color:var(--ui-dim);}
+.hint-badge-sm{background:#222;border:1.5px solid #555;color:#aaa;padding:1px 5px;border-radius:2px;font-size:inherit;}
+@media(pointer:fine){body{cursor:none;}#cursor{position:fixed;width:12px;height:12px;border:2px solid var(--gold);pointer-events:none;z-index:9999;transform:translate(-50%,-50%);}}
+@media(pointer:coarse){#cursor{display:none;}}
+#nes-controller{position:fixed;bottom:0;left:0;right:0;z-index:600;display:flex;flex-direction:column;align-items:center;gap:8px;background:#0d0a18;padding:clamp(8px,1.5vh,16px) 0 clamp(8px,1.5vh,14px);border-top:2px solid #2a2040;}
+#controller-body{position:relative;width:clamp(388.8px,60.75vw,518.4px);height:clamp(90px,14vw,120px);background:linear-gradient(180deg,#3a3a40 0%,#2e2e34 60%,#252528 100%);border-radius:6px 6px 10px 10px;border:2px solid #555;box-shadow:0 4px 18px rgba(0,0,0,0.7),0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.08),inset 0 -2px 0 rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:space-between;padding:0 clamp(18px,4vw,28px);}
+#controller-body::before{content:'';position:absolute;top:10px;left:12px;right:12px;height:2px;background:rgba(255,255,255,0.05);border-radius:1px;}
+#controller-body::after{content:'';position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:clamp(60px,12vw,90px);height:6px;background:rgba(255,255,255,0.04);border-radius:3px;}
+#dpad{position:relative;width:clamp(70px,13vw,96px);height:clamp(70px,13vw,96px);flex-shrink:0;}
+.dpad-h,.dpad-v{position:absolute;background:linear-gradient(180deg,#4c4c56,#38383f);border:2.5px solid #1a1a20;border-radius:3px;}
+.dpad-h{left:0;right:0;top:33.3%;bottom:33.3%;box-shadow:inset 0 2px 0 rgba(255,255,255,0.09),inset 0 -2px 0 rgba(0,0,0,0.4);}
+.dpad-v{top:0;bottom:0;left:33.3%;right:33.3%;box-shadow:inset 2px 0 0 rgba(255,255,255,0.09),inset -2px 0 0 rgba(0,0,0,0.4);}
+.dpad-center{position:absolute;left:33.3%;right:33.3%;top:33.3%;bottom:33.3%;background:#3c3c44;border-radius:2px;z-index:2;}
+.dpad-btn{position:absolute;z-index:3;display:flex;align-items:center;justify-content:center;cursor:pointer;user-select:none;touch-action:none;-webkit-tap-highlight-color:transparent;}
+#btn-up{top:0;left:33.3%;right:33.3%;height:33.3%;}#btn-down{bottom:0;left:33.3%;right:33.3%;height:33.3%;}
+#btn-left{left:0;top:33.3%;bottom:33.3%;width:33.3%;}#btn-right{right:0;top:33.3%;bottom:33.3%;width:33.3%;}
+#btn-up::after{content:'▲';}#btn-down::after{content:'▼';}#btn-left::after{content:'◀';}#btn-right::after{content:'▶';}
+.dpad-btn::after{font-size:clamp(8px,1.6vw,12px);color:rgba(255,255,255,0.3);}
+.dpad-btn.pressing::after{color:var(--gold);text-shadow:0 0 7px var(--gold);}
+#center-section{display:flex;flex-direction:column;align-items:center;gap:clamp(6px,1.2vw,10px);flex-shrink:0;margin-left:clamp(8px,2vw,16px);margin-right:clamp(0px,1vw,8px);}
+#select-start-row{display:flex;gap:clamp(8px,1.8vw,14px);align-items:center;}
+.ss-btn{width:clamp(32px,6vw,46px);height:clamp(10px,2vw,14px);background:linear-gradient(180deg,#3a3a42,#28282e);border:1.5px solid #1a1a20;border-radius:clamp(5px,1vw,7px);box-shadow:0 2px 0 rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.07);cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:transform 0.06s,box-shadow 0.06s;}
+.ss-btn:active{transform:translateY(1px);box-shadow:none;}
+.ss-label{font-family:'Press Start 2P',monospace;font-size:clamp(4px,0.8vw,6px);color:#666;letter-spacing:0.5px;margin-top:clamp(2px,0.5vh,4px);text-align:center;}
+#menu-btn-wrap{display:flex;flex-direction:column;align-items:center;}
+#menu-btn{width:clamp(36px,6.5vw,50px);height:clamp(36px,6.5vw,50px);border-radius:50%;background:radial-gradient(circle at 42% 38%,#4a4a54,#26262e);border:2.5px solid #1a1a20;box-shadow:0 3px 0 rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.1),0 0 0 3px rgba(240,192,64,0.15);cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;display:flex;align-items:center;justify-content:center;transition:transform 0.06s,box-shadow 0.06s;}
+#menu-btn:hover{box-shadow:0 3px 0 rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.1),0 0 0 4px rgba(240,192,64,0.35);}
+#menu-btn:active,#menu-btn.pressed{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,0.55);}
+#menu-btn-icon{font-family:'Press Start 2P',monospace;font-size:clamp(5px,0.9vw,7px);color:rgba(240,192,64,0.85);letter-spacing:0.5px;line-height:1.3;text-align:center;}
+#menu-btn-label{font-family:'Press Start 2P',monospace;font-size:clamp(4px,0.7vw,5px);color:var(--gold2);margin-top:4px;letter-spacing:0.5px;}
+#ab-buttons{display:flex;gap:clamp(8px,1.8vw,14px);align-items:center;flex-shrink:0;transform:rotate(-18deg);}
+.ab-btn{width:clamp(36px,6.5vw,50px);height:clamp(36px,6.5vw,50px);border-radius:50%;border:2.5px solid #1a1a20;display:flex;align-items:center;justify-content:center;font-family:'Press Start 2P',monospace;font-size:clamp(9px,1.6vw,12px);cursor:pointer;touch-action:manipulation;user-select:none;box-shadow:0 4px 0 rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.15);transition:transform 0.06s,box-shadow 0.06s;-webkit-tap-highlight-color:transparent;}
+.ab-btn:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,0.55);}
+#btn-b{background:radial-gradient(circle at 40% 35%,var(--btn-red-hi),var(--btn-red));color:rgba(255,255,255,0.85);}
+#btn-a{background:radial-gradient(circle at 40% 35%,var(--btn-red-hi),var(--btn-red));color:rgba(255,255,255,0.85);}
+.ab-label-row{display:flex;gap:clamp(8px,1.8vw,14px);transform:rotate(-18deg);margin-top:clamp(2px,0.5vh,4px);}
+.ab-label{font-family:'Press Start 2P',monospace;font-size:clamp(4px,0.7vw,5px);color:#555;width:clamp(36px,6.5vw,50px);text-align:center;}
+#ab-col{display:flex;flex-direction:column;align-items:center;flex-shrink:0;}
+#ctrl-hint{font-family:'VT323',monospace;font-size:clamp(10px,1.8vw,13px);color:var(--gold);text-align:center;opacity:0.75;}
+</style>
+</head>
+<body>
+<div id="cursor"></div>
+<canvas id="world-canvas"></canvas>
+<div id="player"><canvas id="player-canvas" width="32" height="48"></canvas></div>
+
+<div id="hud">
+  <div id="hud-name">THE VAULT</div>
+  <div id="hud-title" id="hud-title">Tread carefully.</div>
+</div>
+<div id="zone-label"></div>
+
+<div id="dialog-box">
+  <div id="dialog-title">...</div>
+  <div id="dialog-body"></div>
+  <div id="dialog-links"></div>
+  <div id="btn-hint">
+    <span class="hint-key"><span class="hint-badge">A</span> interact</span>
+    <span class="hint-key"><span class="hint-badge">B</span> close</span>
+    <span class="hint-key"><span class="hint-badge">MENU</span> navigation</span>
+  </div>
+</div>
+
+<div id="menu-overlay">
+  <div id="menu-box">
+    <div id="menu-title">NAVIGATION</div>
+    <a class="menu-item" href="world.html#spawn=story"><span class="menu-item-icon">🗺</span> WORLD MAP</a>
+    <a class="menu-item" href="castle-anthrax.html"><span class="menu-item-icon">🏰</span> CASTLE ANTHRAX</a>
+    <a class="menu-item selected" href="vault.html"><span class="menu-item-icon">🏆</span><span id="menu-cursor">▶ </span>THE VAULT</a>
+    <a class="menu-item" href="hall-of-records.html"><span class="menu-item-icon">⚔</span> HALL OF RECORDS</a>
+    <div id="menu-divider"></div>
+    <a class="menu-item" href="https://linkedin.com/in/andregurule" target="_blank"><span class="menu-item-icon">💼</span> LINKEDIN</a>
+    <div id="menu-close-hint">
+      <span class="hint-badge-sm">B</span> or <span class="hint-badge-sm">MENU</span> to close &nbsp;·&nbsp;
+      <span class="hint-badge-sm">↑↓</span> navigate &nbsp;·&nbsp;
+      <span class="hint-badge-sm">A</span> select
+    </div>
+  </div>
+</div>
+
+<div id="inventory-overlay" style="position:fixed;top:0;left:0;right:0;background:rgba(10,8,24,0.95);backdrop-filter:blur(4px);z-index:500;display:none;flex-direction:column;">
+  <div style="flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:10px 18px 8px;border-bottom:1px solid rgba(240,192,64,0.25);">
+    <div style="font-size:clamp(9px,1.8vw,13px);color:var(--gold);letter-spacing:2px;">★ INVENTORY ★</div>
+    <div id="inv-points-banner" style="font-family:'VT323',monospace;font-size:clamp(14px,2.5vw,18px);color:#a0d8ff;"></div>
+    <div style="font-size:clamp(7px,1.2vw,9px);color:var(--ui-dim);"><span class="hint-badge-sm">SELECT</span> or <span class="hint-badge-sm">B</span> to close</div>
+  </div>
+  <div style="flex:1;display:flex;overflow:hidden;min-height:0;">
+    <div style="width:200px;flex-shrink:0;overflow-y:auto;border-right:1px solid rgba(240,192,64,0.15);padding:10px 8px;">
+      <div id="inv-items-list"></div>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:16px 18px;">
+      <div id="inv-detail-content" style="color:var(--ui-dim);font-family:'VT323',monospace;font-size:16px;text-align:center;margin-top:24px;">Select an item to view details</div>
+    </div>
+  </div>
+</div>
+
+<div id="nes-controller">
+  <div id="controller-body">
+    <div id="dpad">
+      <div class="dpad-h"></div><div class="dpad-v"></div><div class="dpad-center"></div>
+      <div class="dpad-btn" id="btn-up" data-dir="up"></div>
+      <div class="dpad-btn" id="btn-down" data-dir="down"></div>
+      <div class="dpad-btn" id="btn-left" data-dir="left"></div>
+      <div class="dpad-btn" id="btn-right" data-dir="right"></div>
+    </div>
+    <div id="center-section">
+      <div id="menu-btn-wrap">
+        <div id="menu-btn" onclick="toggleMenu()"><div id="menu-btn-icon">MENU</div></div>
+        <div id="menu-btn-label">MENU</div>
+      </div>
+      <div id="select-start-row">
+        <div style="display:flex;flex-direction:column;align-items:center;">
+          <div class="ss-btn" onclick="openInventory()"></div><div class="ss-label">SELECT</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;">
+          <div class="ss-btn" onclick="handleA()"></div><div class="ss-label">START</div>
+        </div>
+      </div>
+    </div>
+    <div id="ab-col">
+      <div id="ab-buttons">
+        <div class="ab-btn" id="btn-b" onclick="handleB()">B</div>
+        <div class="ab-btn" id="btn-a" onclick="handleA()">A</div>
+      </div>
+      <div class="ab-label-row">
+        <div class="ab-label">BACK</div>
+        <div class="ab-label">ACT</div>
+      </div>
+    </div>
+  </div>
+  <div id="ctrl-hint">D-PAD · WALK THE PATH · CHOOSE WISELY</div>
+</div>
+
+<script>
+// ── WORLD SIZE ────────────────────────────────────────────────────────────────
+const TILE=48, WORLD_W=28, WORLD_H=18;
+const PW=WORLD_W*TILE, PH=WORLD_H*TILE;
+
+// ── GAME STATE ────────────────────────────────────────────────────────────────
+const _p=new URLSearchParams(window.location.search);
+const GameState={
+  points:parseInt(_p.get('points')||'0',10),
+  visited:_p.get('visited')?_p.get('visited').split(',').filter(Boolean):[],
+  unlocked:_p.get('unlocked')?_p.get('unlocked').split(',').filter(Boolean):[],
+  items:_p.get('items')?_p.get('items').split(',').filter(Boolean):[],
+  hasItem(id){return this.items.includes(id);},
+  collectItem(id,pts){if(this.items.includes(id))return false;this.items.push(id);if(pts)this.points+=pts;return true;},
+  consumeItem(id){this.items=this.items.filter(i=>i!==id);},
+  unlock(key){if(!this.unlocked.includes(key))this.unlocked.push(key);},
+  toParams(){return new URLSearchParams({points:this.points,visited:this.visited.join(','),unlocked:this.unlocked.join(','),items:this.items.join(',')}).toString();},
+  withState(href){const[base,hash]=href.split('#');const sep=base.includes('?')?'&':'?';return base+sep+this.toParams()+(hash?'#'+hash:'');}
+};
+
+// ── LAYOUT ────────────────────────────────────────────────────────────────────
+// World is 28 wide x 18 tall.
+// Main corridor: y:7–10 (4 tiles tall), x:1–26
+// Five chambers, each 4 tiles wide (x: 4,9,13,17,21), separated by 1-tile walls with 2-tile doorways
+// Entry hall: x:1–3
+// Shrine alcove: x:24–26
+
+// Chamber definitions — each has a top plate and bottom plate
+// Correct sequence: Bottom, Top, Bottom, Top, Bottom  (indices 0=top, 1=bottom)
+// Encoded as correctPlate: 'top' or 'bottom'
+const CHAMBERS=[
+  {id:0, x:4,  wallX:8,  doorY:7, correctPlate:'bottom', cleared:false},
+  {id:1, x:9,  wallX:13, doorY:8, correctPlate:'top',    cleared:false},
+  {id:2, x:14, wallX:18, doorY:7, correctPlate:'bottom', cleared:false},
+  {id:3, x:19, wallX:23, doorY:8, correctPlate:'top',    cleared:false},
+  {id:4, x:24, wallX:28, doorY:7, correctPlate:'bottom', cleared:false},
+];
+
+// Pressure plates — two per chamber
+// 'top' plate is at y:7 (north half), 'bottom' at y:9 (south half)
+// Each plate is 2 tiles wide centered in chamber
+function getPlates(ch){
+  const cx=ch.x+2; // center tile of chamber
+  return {
+    top:   {tx:cx, ty:7, label:'top'},
+    bottom:{tx:cx, ty:9, label:'bottom'},
+  };
+}
+
+// Rune hint glyphs drawn on north/south walls of each chamber
+// Pattern arrows pointing DOWN (south) = bottom, UP (north) = top
+const RUNE_HINTS=['↓','↑','↓','↑','↓']; // matches correct sequence
+
+// Gate positions — one tile wall between chambers, with a 2-tile door gap at doorY
+// Gates are closed (blocking) until chamber is cleared
+// Wall columns: 8, 13, 18, 23
+const GATE_WALLS=[8,13,18,23];
+
+// ── PLATE STATE ───────────────────────────────────────────────────────────────
+let currentChamber=0;      // which chamber the player is attempting
+let grailCollected=GameState.hasItem('holy-grail');
+let grailFlashTimer=0;     // gold flash on collection
+let gasFlashTimer=0;       // red flash on wrong plate
+let gasShakeTimer=0;
+let respawning=false;
+
+// ── SPAWN ─────────────────────────────────────────────────────────────────────
+const SPAWN_X=2, SPAWN_Y=8; // west entry, middle of corridor
+let playerX=SPAWN_X*TILE+TILE/2;
+let playerY=SPAWN_Y*TILE+TILE/2;
+let camX=0, camY=0;
+let facing='right', moving=false, frame=0, frameTimer=0;
+const FRAME_RATE=8;
+let dialogOpen=false, menuOpen=false, inventoryOpen=false;
+let activeInteractable=null, zoneLabelTimer=0;
+const keys={up:false,down:false,left:false,right:false};
+let menuItems=[], menuIdx=0;
+let selectedItemId=null;
+
+const canvas=document.getElementById('world-canvas');
+const ctx=canvas.getContext('2d');
+ctx.imageSmoothingEnabled=false;
+const playerCanvas=document.getElementById('player-canvas');
+const pCtx=playerCanvas.getContext('2d');
+pCtx.imageSmoothingEnabled=false;
+
+function ctrlH(){const c=document.getElementById('nes-controller');return c?c.offsetHeight+16:0;}
+function resize(){canvas.width=window.innerWidth;canvas.height=window.innerHeight-ctrlH();ctx.imageSmoothingEnabled=false;}
+resize();
+window.addEventListener('resize',resize);
+
+// ── WALKABILITY ───────────────────────────────────────────────────────────────
+// Returns true if tile (tx,ty) is walkable
+function isWalkable(tx,ty){
+  if(tx<0||ty<0||tx>=WORLD_W||ty>=WORLD_H) return false;
+  // Main corridor band y:7–10
+  if(ty>=7&&ty<=10){
+    // West boundary
+    if(tx<1) return false;
+    // East boundary (shrine room goes to tx:26)
+    if(tx>26) return false;
+    // Gate walls — blocked unless chamber before it is cleared
+    for(let i=0;i<GATE_WALLS.length;i++){
+      const wx=GATE_WALLS[i];
+      const ch=CHAMBERS[i]; // chamber to the left of this wall
+      if(tx===wx&&!ch.cleared){
+        // 2-tile doorway at doorY and doorY+1 is open, rest of wall is solid
+        const dY=ch.doorY;
+        if(ty===dY||ty===dY+1) return true; // doorway is open
+        return false; // wall blocked
+      }
+    }
+    return true;
+  }
+  // Entry alcove north/south walls: small side rooms at y:5–6 and y:11–12, x:1–3
+  // (decorative, not walkable — just corridor band is)
+  return false;
+}
+
+// ── DRAW HELPERS ──────────────────────────────────────────────────────────────
+function torch(x,y,color){
+  const fl=Math.sin(Date.now()/120+x*0.05)*1.5;
+  const c1=color||'#6b4226', c2=color?'rgba(180,100,0,0.18)':'rgba(255,140,0,0.18)';
+  ctx.fillStyle=c1;ctx.fillRect(x-3,y,6,8);
+  ctx.fillStyle='#ff8800';ctx.fillRect(x-2,y-6+fl,4,6);
+  ctx.fillStyle='#ffee00';ctx.fillRect(x-1,y-7+fl,2,3);
+  ctx.save();
+  const g=ctx.createRadialGradient(x,y,2,x,y,32);
+  g.addColorStop(0,c2);g.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=g;ctx.fillRect(x-32,y-32,64,64);
+  ctx.restore();
+}
+
+function drawStoneTile(sx,sy,tx,ty,dark){
+  const base=dark?((tx+ty)%2===0?'#0c0c14':'#0e0e1a'):((tx+ty)%2===0?'#181828':'#1c1c2e');
+  ctx.fillStyle=base;ctx.fillRect(sx,sy,TILE,TILE);
+  ctx.fillStyle='rgba(0,0,0,0.3)';ctx.fillRect(sx,sy,TILE,2);ctx.fillRect(sx,sy,2,TILE);
+  // Stone block lines
+  const offX=(ty%2)*Math.floor(TILE/2);
+  ctx.fillStyle='rgba(0,0,0,0.2)';
+  ctx.fillRect(sx+(offX%TILE),sy,1,TILE);
+  ctx.fillRect(sx,sy+Math.floor(TILE/2),TILE,1);
+}
+
+// ── PRESSURE PLATES ───────────────────────────────────────────────────────────
+function plateScreenPos(tx,ty){
+  return {sx:tx*TILE-camX, sy:ty*TILE-camY};
+}
+
+function drawPlates(wx,wy){
+  CHAMBERS.forEach((ch,ci)=>{
+    if(ci<currentChamber) return; // already cleared, no plate drawn
+    const plates=getPlates(ch);
+    ['top','bottom'].forEach(side=>{
+      const pl=plates[side];
+      const sx=pl.tx*TILE-wx, sy=pl.ty*TILE-wy;
+      const isCorrect=side===ch.correctPlate;
+      const t=Date.now();
+
+      // Plate base — inset stone slab
+      ctx.fillStyle='#141420';ctx.fillRect(sx+4,sy+4,TILE*2-8,TILE-8);
+      ctx.fillStyle='#1e1e2e';ctx.fillRect(sx+6,sy+6,TILE*2-12,TILE-12);
+
+      // Rune glyph in plate center
+      const pulse=0.4+0.3*Math.sin(t/600+ci*0.7);
+      ctx.fillStyle=ch.cleared?'rgba(40,200,80,0.6)':`rgba(160,120,200,${pulse})`;
+      ctx.font=`bold ${TILE*0.45}px "Press Start 2P",monospace`;
+      ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText(RUNE_HINTS[ci],sx+TILE,sy+TILE/2);
+      ctx.textAlign='left';ctx.textBaseline='alphabetic';
+
+      // Edge glow
+      ctx.strokeStyle=ch.cleared?'rgba(40,200,80,0.5)':`rgba(120,80,180,${pulse*0.8})`;
+      ctx.lineWidth=2;ctx.strokeRect(sx+4,sy+4,TILE*2-8,TILE-8);
+
+      // Proximity [A] prompt
+      const pdx=Math.abs(playerX-(sx+TILE)), pdy=Math.abs(playerY-(sy+TILE/2));
+      if(pdx<TILE*1.5&&pdy<TILE&&ci===currentChamber&&!ch.cleared){
+        ctx.fillStyle='rgba(240,192,64,0.9)';ctx.font='6px "Press Start 2P"';
+        ctx.textAlign='center';
+        ctx.fillText('[A] STEP',sx+TILE,sy-8);
+        ctx.textAlign='left';
+      }
+    });
+  });
+}
+
+// ── GATE WALLS ────────────────────────────────────────────────────────────────
+function drawGates(wx,wy){
+  CHAMBERS.forEach((ch,ci)=>{
+    const wallTx=GATE_WALLS[ci];
+    if(wallTx===undefined) return;
+    const dY=ch.doorY;
+    // Draw wall tiles y:7–10 except doorway
+    for(let ty=7;ty<=10;ty++){
+      const sx=wallTx*TILE-wx, sy=ty*TILE-wy;
+      const isDoor=(ty===dY||ty===dY+1);
+      if(!ch.cleared&&!isDoor){
+        // Solid iron gate bar
+        ctx.fillStyle='#1a1a22';ctx.fillRect(sx,sy,TILE,TILE);
+        ctx.fillStyle='#2a2a36';ctx.fillRect(sx+4,sy,TILE-8,TILE);
+        // Vertical bars
+        for(let b=0;b<3;b++){
+          const bx=sx+8+b*12;
+          ctx.fillStyle='#3a3a4a';ctx.fillRect(bx,sy,4,TILE);
+          ctx.fillStyle='rgba(255,255,255,0.05)';ctx.fillRect(bx,sy,2,TILE);
+        }
+        // Horizontal brace
+        ctx.fillStyle='#444454';ctx.fillRect(sx+4,sy+TILE/2-2,TILE-8,4);
+      } else if(!ch.cleared&&isDoor){
+        // Open doorway arch shadow
+        ctx.fillStyle='rgba(0,0,0,0.4)';ctx.fillRect(sx,sy,TILE,TILE);
+        // Door jamb edges
+        ctx.fillStyle='#2a2a36';ctx.fillRect(sx,sy,4,TILE);ctx.fillRect(sx+TILE-4,sy,4,TILE);
+      } else {
+        // Cleared — gate is open, draw recessed wall alcove
+        ctx.fillStyle='#0e0e18';ctx.fillRect(sx,sy,TILE,TILE);
+        ctx.fillStyle='rgba(40,200,80,0.08)';ctx.fillRect(sx,sy,TILE,TILE);
+      }
+    }
+  });
+}
+
+// ── VAULT WORLD DRAW ──────────────────────────────────────────────────────────
+function drawWorld(){
+  const W=canvas.width, H=canvas.height;
+  const wx=camX, wy=camY;
+
+  // Dark void background
+  ctx.fillStyle='#04040c';ctx.fillRect(0,0,W,H);
+
+  const stX=Math.max(0,Math.floor(wx/TILE));
+  const stY=Math.max(0,Math.floor(wy/TILE));
+  const enX=Math.min(WORLD_W-1,Math.ceil((wx+W)/TILE));
+  const enY=Math.min(WORLD_H-1,Math.ceil((wy+H)/TILE));
+
+  // Floor tiles in corridor band
+  for(let ty=stY;ty<=enY;ty++){
+    for(let tx=stX;tx<=enX;tx++){
+      const sx=tx*TILE-wx, sy=ty*TILE-wy;
+      if(isWalkable(tx,ty)){
+        drawStoneTile(sx,sy,tx,ty,false);
+      } else {
+        // Void / wall
+        drawStoneTile(sx,sy,tx,ty,true);
+      }
+    }
+  }
+
+  // ── NORTH & SOUTH WALLS ───────────────────────────────────────────────────
+  // Decorative wall face at y:6 (north) and y:11 (south)
+  for(let tx=1;tx<=26;tx++){
+    const nsx=tx*TILE-wx, nsy=6*TILE-wy;
+    const ssx=tx*TILE-wx, ssy=11*TILE-wy;
+    // North wall face
+    ctx.fillStyle='#111120';ctx.fillRect(nsx,nsy,TILE,TILE);
+    ctx.fillStyle='rgba(255,255,255,0.03)';ctx.fillRect(nsx,nsy+TILE-6,TILE,6);
+    // South wall face
+    ctx.fillStyle='#111120';ctx.fillRect(ssx,ssy,TILE,TILE);
+    ctx.fillStyle='rgba(0,0,0,0.4)';ctx.fillRect(ssx,ssy,TILE,6);
+  }
+
+  // ── CHAMBER WALL RUNE HINTS ───────────────────────────────────────────────
+  CHAMBERS.forEach((ch,ci)=>{
+    if(ci>currentChamber) return; // don't reveal hints beyond current chamber
+    const cx=(ch.x+2)*TILE-wx; // center of chamber
+    const northY=6*TILE-wy+TILE/2;
+    const southY=11*TILE-wy+TILE/2;
+    const hintColor=ch.cleared?'rgba(40,200,80,0.7)':'rgba(180,140,255,0.6)';
+    ctx.fillStyle=hintColor;
+    ctx.font='bold 10px "Press Start 2P",monospace';
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(RUNE_HINTS[ci],cx,northY);
+    ctx.fillText(RUNE_HINTS[ci],cx,southY);
+    ctx.textBaseline='alphabetic';ctx.textAlign='left';
+  });
+
+  // ── TORCHES ───────────────────────────────────────────────────────────────
+  // Entry torches
+  torch(2*TILE-wx+TILE/2, 6*TILE-wy+8);
+  torch(2*TILE-wx+TILE/2, 11*TILE-wy-8);
+  // Chamber torches — every other chamber
+  CHAMBERS.forEach((ch,ci)=>{
+    if(ci%2===0){
+      const cx=(ch.x+2)*TILE-wx+TILE/2;
+      torch(cx, 6*TILE-wy+8);
+      torch(cx, 11*TILE-wy-8);
+    }
+  });
+
+  // ── ENTRY INSCRIPTION ─────────────────────────────────────────────────────
+  {
+    const ex=1*TILE-wx, ey=7*TILE-wy;
+    ctx.fillStyle='rgba(240,192,64,0.15)';
+    ctx.fillRect(ex,ey,2*TILE,4*TILE);
+    ctx.strokeStyle='rgba(240,192,64,0.3)';ctx.lineWidth=1;
+    ctx.strokeRect(ex+3,ey+3,2*TILE-6,4*TILE-6);
+    // Text
+    ctx.save();
+    ctx.fillStyle='rgba(240,192,64,0.6)';
+    ctx.font='5px "Press Start 2P",monospace';
+    ctx.textAlign='center';
+    ['FOLLOW','THE','RUNES'].forEach((word,i)=>{
+      ctx.fillText(word,(ex+TILE),ey+TILE+i*20);
+    });
+    ctx.restore();
+  }
+
+  // ── GATE WALLS & PLATES ───────────────────────────────────────────────────
+  drawGates(wx,wy);
+  drawPlates(wx,wy);
+
+  // ── SHRINE ALCOVE (east end) ───────────────────────────────────────────────
+  drawShrine(wx,wy);
+
+  // ── PLAYER SHADOW ─────────────────────────────────────────────────────────
+  const ppx=playerX-wx, ppy=playerY-wy;
+  ctx.fillStyle='rgba(0,0,0,0.35)';
+  ctx.beginPath();ctx.ellipse(ppx,ppy+7,11,4,0,0,Math.PI*2);ctx.fill();
+
+  // ── EFFECTS ───────────────────────────────────────────────────────────────
+  if(gasFlashTimer>0){
+    const alpha=Math.min(0.6,gasFlashTimer/16*0.6);
+    ctx.fillStyle=`rgba(160,10,10,${alpha})`;ctx.fillRect(0,0,W,H);
+  }
+  if(grailFlashTimer>0){
+    const alpha=Math.min(0.5,grailFlashTimer/30*0.5);
+    ctx.fillStyle=`rgba(240,192,64,${alpha})`;ctx.fillRect(0,0,W,H);
+  }
+}
+
+// ── SHRINE ────────────────────────────────────────────────────────────────────
+function drawShrine(wx,wy){
+  const allCleared=CHAMBERS.every(ch=>ch.cleared);
+  const shrineX=24*TILE-wx, shrineY=7*TILE-wy;
+  const shrineW=3*TILE, shrineH=4*TILE;
+
+  // Shrine floor — golden stone
+  for(let tx=24;tx<=26;tx++){
+    for(let ty=7;ty<=10;ty++){
+      const sx=tx*TILE-wx, sy=ty*TILE-wy;
+      ctx.fillStyle=(tx+ty)%2===0?'#201a08':'#241e0c';
+      ctx.fillRect(sx,sy,TILE,TILE);
+      ctx.fillStyle='rgba(240,192,64,0.05)';ctx.fillRect(sx,sy,TILE,TILE);
+      ctx.fillStyle='rgba(0,0,0,0.2)';ctx.fillRect(sx,sy,TILE,1);ctx.fillRect(sx,sy,1,TILE);
+    }
+  }
+
+  // Pedestal
+  const pcx=shrineX+shrineW/2, pcy=shrineY+shrineH/2;
+  ctx.fillStyle='#2a2008';ctx.fillRect(pcx-28,pcy-8,56,36);
+  ctx.fillStyle='#3a2e10';ctx.fillRect(pcx-24,pcy-4,48,28);
+  ctx.fillStyle='#4a3e18';ctx.fillRect(pcx-28,pcy-10,56,6);
+  ctx.fillStyle='#4a3e18';ctx.fillRect(pcx-28,pcy+24,56,6);
+
+  if(!grailCollected){
+    // Grail glow pillar
+    const glow=allCleared?0.7:0.15;
+    const gp=ctx.createRadialGradient(pcx,pcy-30,4,pcx,pcy-30,60);
+    gp.addColorStop(0,`rgba(240,192,64,${glow})`);
+    gp.addColorStop(1,'rgba(240,192,64,0)');
+    ctx.fillStyle=gp;ctx.fillRect(pcx-60,pcy-90,120,120);
+
+    // Grail cup — pixel art
+    const gy=pcy-52;
+    const bob=Math.sin(Date.now()/600)*2;
+    // Cup body
+    ctx.fillStyle='#c8a000';
+    ctx.beginPath();ctx.moveTo(pcx-12,gy+bob);ctx.lineTo(pcx+12,gy+bob);
+    ctx.lineTo(pcx+16,gy+22+bob);ctx.lineTo(pcx-16,gy+22+bob);ctx.closePath();ctx.fill();
+    // Cup base
+    ctx.fillStyle='#b89000';ctx.fillRect(pcx-18,gy+22+bob,36,6);
+    ctx.fillStyle='#c8a000';ctx.fillRect(pcx-10,gy+28+bob,20,8);
+    ctx.fillStyle='#b89000';ctx.fillRect(pcx-14,gy+36+bob,28,5);
+    // Cup rim
+    ctx.fillStyle='#f0c040';ctx.fillRect(pcx-14,gy-2+bob,28,5);
+    // Handles
+    ctx.strokeStyle='#c8a000';ctx.lineWidth=4;
+    ctx.beginPath();ctx.arc(pcx-18,gy+10+bob,8,Math.PI*0.5,Math.PI*1.5);ctx.stroke();
+    ctx.beginPath();ctx.arc(pcx+18,gy+10+bob,8,Math.PI*1.5,Math.PI*0.5);ctx.stroke();
+    // Inner glow
+    ctx.fillStyle='rgba(255,240,100,0.3)';
+    ctx.beginPath();ctx.ellipse(pcx,gy+8+bob,8,4,0,0,Math.PI*2);ctx.fill();
+    // Gems on cup
+    ctx.fillStyle='#cc2244';ctx.beginPath();ctx.arc(pcx-6,gy+10+bob,3,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#2244cc';ctx.beginPath();ctx.arc(pcx+6,gy+10+bob,3,0,Math.PI*2);ctx.fill();
+
+    if(allCleared){
+      // [A] prompt
+      const pulse=0.6+0.4*Math.sin(Date.now()/350);
+      ctx.fillStyle=`rgba(240,192,64,${pulse})`;
+      ctx.font='6px "Press Start 2P"';ctx.textAlign='center';
+      ctx.fillText('[A] TAKE GRAIL',pcx,gy-14+bob);
+      ctx.textAlign='left';
+    } else {
+      // Locked dim overlay
+      ctx.fillStyle='rgba(0,0,0,0.5)';ctx.fillRect(pcx-20,gy-4,40,48);
+      ctx.fillStyle='rgba(120,80,180,0.5)';
+      ctx.font='12px serif';ctx.textAlign='center';
+      ctx.fillText('🔒',pcx,gy+20);ctx.textAlign='left';
+    }
+  } else {
+    // Grail collected — empty pedestal with gold residue glow
+    const gp2=ctx.createRadialGradient(pcx,pcy-20,2,pcx,pcy-20,40);
+    gp2.addColorStop(0,'rgba(240,192,64,0.2)');gp2.addColorStop(1,'rgba(240,192,64,0)');
+    ctx.fillStyle=gp2;ctx.fillRect(pcx-40,pcy-60,80,80);
+    ctx.fillStyle='rgba(240,192,64,0.4)';ctx.font='8px "Press Start 2P"';
+    ctx.textAlign='center';ctx.fillText('✓ CLAIMED',pcx,pcy-30);ctx.textAlign='left';
+  }
+}
+
+// ── INTERACTABLES ─────────────────────────────────────────────────────────────
+function distToTile(tx,ty){
+  return Math.hypot(playerX-(tx*TILE+TILE/2),playerY-(ty*TILE+TILE/2));
+}
+
+function getNearestInteractable(){
+  let best=null, bestD=100;
+  // Current chamber plates
+  if(currentChamber<CHAMBERS.length){
+    const ch=CHAMBERS[currentChamber];
+    const plates=getPlates(ch);
+    ['top','bottom'].forEach(side=>{
+      const pl=plates[side];
+      const d=distToTile(pl.tx,pl.ty);
+      if(d<bestD){bestD=d;best={type:'plate',side,chamber:ch};}
+    });
+  }
+  // Grail — only when all cleared and not yet collected
+  if(CHAMBERS.every(ch=>ch.cleared)&&!grailCollected){
+    const d=distToTile(25,8);
+    if(d<bestD){bestD=d;best={type:'grail'};}
+  }
+  return best;
+}
+
+// ── PLATE ACTIVATION ──────────────────────────────────────────────────────────
+function activatePlate(side,chamber){
+  if(chamber.cleared) return;
+  if(side===chamber.correctPlate){
+    // Correct!
+    chamber.cleared=true;
+    currentChamber++;
+    showZoneLabel('✓ Correct path!');
+    if(currentChamber>=CHAMBERS.length){
+      showZoneLabel('🏆 The Grail awaits...');
+    }
+  } else {
+    // Wrong — gas trap
+    gasFlashTimer=30;
+    gasShakeTimer=20;
+    // Reset all chambers and send player back to start
+    setTimeout(()=>{
+      CHAMBERS.forEach(ch=>ch.cleared=false);
+      currentChamber=0;
+      playerX=SPAWN_X*TILE+TILE/2;
+      playerY=SPAWN_Y*TILE+TILE/2;
+      showZoneLabel('⚠ Wrong path! Start again.');
+    },600);
+  }
+}
+
+// ── GRAIL COLLECT ─────────────────────────────────────────────────────────────
+function collectGrail(){
+  if(grailCollected) return;
+  grailCollected=true;
+  GameState.collectItem('holy-grail',50);
+  GameState.unlock('grail-collected');
+  grailFlashTimer=60;
+  showInlineDialog('🏆 HOLY GRAIL',
+    'You have found the Holy Grail! The legendary treasure of Castle Anthrax is yours. [+50 pts]',
+    '[A] Continue');
+}
+
+// ── PLAYER UPDATE ─────────────────────────────────────────────────────────────
+function updatePlayer(){
+  if(dialogOpen||menuOpen||inventoryOpen||respawning) return;
+  const SPEED=3;let dx=0,dy=0;
+  if(keys.up){dy=-SPEED;facing='up';}
+  if(keys.down){dy=SPEED;facing='down';}
+  if(keys.left){dx=-SPEED;facing='left';}
+  if(keys.right){dx=SPEED;facing='right';}
+  moving=dx!==0||dy!==0;
+  if(moving){
+    const nx=Math.max(TILE,Math.min(PW-TILE,playerX+dx));
+    const ny=Math.max(TILE,Math.min(PH-TILE,playerY+dy));
+    const tx=Math.floor(nx/TILE), ty=Math.floor(ny/TILE);
+    if(isWalkable(tx,ty)){playerX=nx;playerY=ny;}
+    if(++frameTimer>=FRAME_RATE){frame++;frameTimer=0;}
+  }
+  const nearest=getNearestInteractable();
+  if(nearest!==activeInteractable){
+    activeInteractable=nearest;
+    if(nearest&&nearest.type==='plate') showZoneLabel('[A] Step on plate');
+    else if(nearest&&nearest.type==='grail') showZoneLabel('🏆 THE HOLY GRAIL');
+    else hideZoneLabel();
+  }
+}
+
+// ── CAMERA ────────────────────────────────────────────────────────────────────
+function updateCamera(){
+  const W=canvas.width, H=canvas.height;
+  let tx=playerX-W/2, ty=playerY-H/2;
+  // Clamp — world may be narrower than viewport
+  const maxCX=Math.max(0,PW-W);
+  const maxCY=Math.max(0,PH-H);
+  tx=Math.max(0,Math.min(maxCX,tx));
+  ty=Math.max(0,Math.min(maxCY,ty));
+  camX+=(tx-camX)*0.1;
+  camY+=(ty-camY)*0.1;
+}
+
+// ── PLAYER DRAW ───────────────────────────────────────────────────────────────
+function drawPlayer(){
+  pCtx.clearRect(0,0,32,48);
+  const cx=16, f=Math.floor(frame%4);
+  const lo=moving?[[-4,0],[4,0],[-2,-3],[2,-3]][f]:[0,0];
+  pCtx.fillStyle='#1a3060';
+  pCtx.fillRect(cx-8,30+(moving&&f%2===0?lo[1]:-lo[1]),7,10);
+  pCtx.fillRect(cx+1,30+(moving&&f%2===1?lo[1]:-lo[1]),7,10);
+  pCtx.fillStyle='#2a1808';
+  pCtx.fillRect(cx-9,39+(moving&&f%2===0?lo[1]:-lo[1]),9,5);
+  pCtx.fillRect(cx,39+(moving&&f%2===1?lo[1]:-lo[1]),9,5);
+  pCtx.fillStyle='#4080ff';pCtx.fillRect(cx-9,18,18,14);
+  const arm=moving?Math.sin(frame*0.8)*3:0;
+  pCtx.fillStyle='#4080ff';pCtx.fillRect(cx-14,19+arm,6,10);pCtx.fillRect(cx+8,19-arm,6,10);
+  pCtx.fillStyle='#f5c5a3';pCtx.fillRect(cx-8,4,16,16);
+  pCtx.fillStyle='#3a2010';pCtx.fillRect(cx-8,4,16,6);pCtx.fillRect(cx-10,6,4,8);
+  pCtx.fillStyle='#1a1a2e';if(facing!=='up'){pCtx.fillRect(cx-5,13,3,3);pCtx.fillRect(cx+2,13,3,3);}
+  pCtx.fillStyle='#c04020';pCtx.fillRect(cx+7,18,8,12);
+  const pe=document.getElementById('player');
+  pe.style.left=(playerX-camX)+'px';
+  pe.style.top=(playerY-camY)+'px';
+}
+
+// ── DIALOG ────────────────────────────────────────────────────────────────────
+function showZoneLabel(label){
+  const el=document.getElementById('zone-label');
+  el.textContent=label;el.style.opacity='1';
+  clearTimeout(zoneLabelTimer);
+  zoneLabelTimer=setTimeout(()=>{if(!dialogOpen)el.style.opacity='0';},2800);
+}
+function hideZoneLabel(){document.getElementById('zone-label').style.opacity='0';}
+
+function showInlineDialog(title,body,hint){
+  dialogOpen=true;
+  document.getElementById('dialog-title').textContent=title;
+  document.getElementById('dialog-body').textContent=body;
+  const linksEl=document.getElementById('dialog-links');linksEl.innerHTML='';
+  if(hint){
+    const h=document.createElement('span');
+    h.style.cssText='font-family:VT323,monospace;font-size:16px;color:#a09070;display:block;margin-top:4px;';
+    h.textContent=hint;linksEl.appendChild(h);
+  }
+  document.getElementById('dialog-box').style.display='block';
+  document.getElementById('zone-label').style.opacity='0';
+}
+function closeDialog(){dialogOpen=false;document.getElementById('dialog-box').style.display='none';}
+
+// ── MENU ──────────────────────────────────────────────────────────────────────
+function toggleMenu(){menuOpen?closeMenu():openMenu();}
+function openMenu(){
+  if(dialogOpen)closeDialog();
+  menuOpen=true;
+  document.getElementById('menu-overlay').style.display='flex';
+  menuItems=Array.from(document.querySelectorAll('.menu-item'));
+  menuIdx=0;updateMenuCursor();
+  document.getElementById('menu-btn').classList.add('pressed');
+  // Rewrite local links with state
+  menuItems.forEach(a=>{
+    const h=a.getAttribute('data-href')||a.getAttribute('href');
+    if(h&&!h.startsWith('http')){
+      a.setAttribute('data-href',h);
+      a.href=GameState.withState(h);
+    }
+  });
+}
+function closeMenu(){
+  menuOpen=false;
+  document.getElementById('menu-overlay').style.display='none';
+  document.getElementById('menu-btn').classList.remove('pressed');
+}
+function updateMenuCursor(){
+  menuItems.forEach((item,i)=>{
+    item.classList.toggle('selected',i===menuIdx);
+    item.querySelectorAll('.mcs').forEach(s=>s.remove());
+    if(i===menuIdx){
+      const s=document.createElement('span');s.className='mcs';
+      s.textContent='▶ ';s.style.color='var(--gold)';
+      item.insertBefore(s,item.children[1]);
+    }
+  });
+}
+function menuSelectCurrent(){if(menuItems[menuIdx])menuItems[menuIdx].click();}
+
+// ── INVENTORY ─────────────────────────────────────────────────────────────────
+const ITEMS=[
+  {id:'holy-grail',    icon:'🏆', label:'Holy Grail',          category:'quest',       points:50, page:'Castle Anthrax'},
+  {id:'skeleton-key',  icon:'🔑', label:'Skeleton Key',         category:'key',         points:30, page:'World Map'},
+  {id:'sword',         icon:'⚔️', label:'Sword',                category:'quest',       points:25, page:'Erebor Mountain'},
+  {id:'cert-badge',    icon:'📜', label:'Certification Badge',  category:'collectible', points:20, page:'Hall of Records'},
+  {id:'first-edition', icon:'📖', label:'First Edition',        category:'collectible', points:20, page:'Scroll Library'},
+  {id:'fishing-rod',   icon:'🎣', label:'Fishing Rod',          category:'collectible', points:15, page:'Lake Tahoe'},
+  {id:'tahoe-fish',    icon:'🐟', label:'Tahoe Trout',          category:'collectible', points:25, page:'Lake Tahoe'},
+  {id:'blue-kayak',    icon:'🚣', label:'Blue Kayak',           category:'quest',       points:15, page:'Castle Anthrax'},
+  {id:'artwork',       icon:'🖼️', label:'Artwork',              category:'collectible', points:10, page:'Town Square'},
+  {id:'bread',         icon:'🍞', label:'Bread',                category:'collectible', points:10, page:'Town Square'},
+  {id:'old-compass',   icon:'🧭', label:'Old Compass',          category:'collectible', points:10, page:'The Lake'},
+  {id:'sapphire',      icon:'💎', label:'Sapphire',             category:'key',         points:75, page:'World Map'},
+  {id:'ruby',          icon:'🔴', label:'Ruby',                 category:'key',         points:75, page:'World Map'},
+];
+const ITEM_DETAILS={
+  'holy-grail':   {desc:'The Holy Grail — the ultimate prize of Castle Anthrax. You earned it.'},
+  'skeleton-key': {desc:'A master key of unknown origin. Opens locks that others cannot.'},
+  'sword':        {desc:'A sword from the Erebor Mountain swordsmith, given only to those who proved their qualifications.'},
+  'blue-kayak':   {desc:'A fine blue kayak. A gift from King Lyn, traded for a piece of artwork.'},
+  'fishing-rod':  {desc:'The Flux Capacitor — a special 1985 fishing rod from Raymond at Lake Tahoe.'},
+  'cert-badge':   {desc:'A certification badge from the Hall of Records.'},
+  'old-compass':  {desc:'An old compass. It once pointed to the Vault.'},
+  'artwork':      {desc:'A piece of artwork from Town Square.'},
+  'bread':        {desc:'Fresh bread from Town Square.'},
+  'sapphire':     {desc:'A brilliant sapphire found on the east side of the Hall of Records.'},
+  'ruby':         {desc:'A rare ruby found south of Erebor Mountain.'},
+};
+const CAT_ORDER=[{key:'quest',label:'QUEST ITEMS'},{key:'key',label:'KEY ITEMS'},{key:'collectible',label:'COLLECTIBLES'}];
+
+function openInventory(){
+  if(dialogOpen)closeDialog();
+  if(menuOpen)closeMenu();
+  inventoryOpen=true;
+  selectedItemId=null;
+  const overlay=document.getElementById('inventory-overlay');
+  overlay.style.bottom=ctrlH()+'px';
+  overlay.style.display='flex';
+  const total=ITEMS.reduce((s,i)=>s+i.points,0);
+  document.getElementById('inv-points-banner').textContent='★ '+GameState.points+' / '+total+' pts';
+  renderItemList();
+  renderItemDetail(null);
+}
+function renderItemList(){
+  const list=document.getElementById('inv-items-list');list.innerHTML='';
+  CAT_ORDER.forEach(cat=>{
+    const catItems=ITEMS.filter(i=>i.category===cat.key);
+    if(!catItems.length) return;
+    const hdr=document.createElement('div');
+    hdr.style.cssText='font-size:7px;color:var(--gold2);letter-spacing:1px;margin:10px 0 5px;padding-bottom:3px;border-bottom:1px solid rgba(240,192,64,0.15);';
+    hdr.textContent=cat.label;list.appendChild(hdr);
+    catItems.forEach(item=>{
+      const has=GameState.hasItem(item.id);
+      const isSel=item.id===selectedItemId;
+      const card=document.createElement('div');
+      card.style.cssText='display:flex;align-items:center;gap:7px;padding:6px 7px;margin-bottom:3px;'
+        +'background:'+(isSel?'rgba(240,192,64,0.15)':has?'rgba(240,192,64,0.05)':'rgba(0,0,0,0.15)')+';'
+        +'border:1px solid '+(isSel?'rgba(240,192,64,0.6)':has?'rgba(240,192,64,0.2)':'rgba(255,255,255,0.05)')+';'
+        +'cursor:'+(has?'pointer':'default')+';border-radius:2px;';
+      card.innerHTML='<span style="font-size:16px;width:20px;text-align:center;">'+(has?item.icon:'❓')+'</span>'
+        +'<div style="flex:1;min-width:0;">'
+        +'<div style="font-size:8px;color:'+(has?'var(--ui-text)':'var(--ui-dim)')+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+(has?item.label:'???')+'</div>'
+        +'<div style="font-family:\'VT323\',monospace;font-size:13px;color:var(--ui-dim);">'+item.points+'pts</div>'
+        +'</div>';
+      if(has) card.addEventListener('click',()=>selectItem(item.id));
+      list.appendChild(card);
+    });
+  });
+}
+function selectItem(id){selectedItemId=id;renderItemList();renderItemDetail(id);}
+function renderItemDetail(id){
+  const panel=document.getElementById('inv-detail-content');
+  if(!id){panel.innerHTML='<div style="color:var(--ui-dim);font-family:\'VT323\',monospace;font-size:16px;text-align:center;margin-top:30px;">Select an item to view details</div>';return;}
+  const item=ITEMS.find(i=>i.id===id);
+  const detail=ITEM_DETAILS[id];
+  const has=GameState.hasItem(id);
+  if(!item) return;
+  panel.innerHTML='<div style="font-size:28px;text-align:center;margin-bottom:10px;">'+(has?item.icon:'❓')+'</div>'
+    +'<div style="font-size:10px;color:var(--gold);letter-spacing:1px;text-align:center;margin-bottom:4px;">'+(has?item.label:'???')+'</div>'
+    +'<div style="font-family:\'VT323\',monospace;font-size:14px;color:var(--ui-dim);text-align:center;margin-bottom:12px;">'+item.page+' &middot; '+item.points+' pts</div>'
+    +'<div style="width:100%;height:1px;background:rgba(240,192,64,0.15);margin-bottom:12px;"></div>'
+    +'<div style="font-family:\'VT323\',monospace;font-size:16px;color:var(--ui-text);line-height:1.5;">'+(has&&detail?detail.desc:has?'A collected item.':'Not yet found. Keep exploring.')+'</div>';
+}
+function closeInventory(){inventoryOpen=false;document.getElementById('inventory-overlay').style.display='none';}
+
+// ── INPUT ─────────────────────────────────────────────────────────────────────
+function handleA(){
+  if(menuOpen){menuSelectCurrent();return;}
+  if(dialogOpen){
+    // After grail collection dialog, navigate to castle anthrax
+    if(grailCollected){
+      closeDialog();
+      window.location.href=GameState.withState('castle-anthrax.html');
+      return;
+    }
+    closeDialog();return;
+  }
+  if(activeInteractable){
+    if(activeInteractable.type==='plate'){
+      activatePlate(activeInteractable.side,activeInteractable.chamber);
+      return;
+    }
+    if(activeInteractable.type==='grail'){
+      collectGrail();return;
+    }
+  }
+}
+function handleB(){
+  if(menuOpen){closeMenu();return;}
+  if(inventoryOpen){closeInventory();return;}
+  if(dialogOpen){closeDialog();return;}
+}
+
+document.addEventListener('keydown',e=>{
+  if(document.activeElement&&document.activeElement.tagName==='INPUT') return;
+  if(menuOpen){
+    if(e.key==='ArrowUp'||e.key==='w'){menuIdx=Math.max(0,menuIdx-1);updateMenuCursor();e.preventDefault();return;}
+    if(e.key==='ArrowDown'||e.key==='s'){menuIdx=Math.min(menuItems.length-1,menuIdx+1);updateMenuCursor();e.preventDefault();return;}
+    if(e.key==='Enter'||e.key===' '){handleA();e.preventDefault();return;}
+    if(e.key==='Escape'||e.key==='b'||e.key==='B'){handleB();e.preventDefault();return;}
+    return;
+  }
+  if(e.key==='ArrowUp'||e.key==='w'||e.key==='W') keys.up=true;
+  if(e.key==='ArrowDown'||e.key==='s'||e.key==='S') keys.down=true;
+  if(e.key==='ArrowLeft') keys.left=true;
+  if(e.key==='ArrowRight') keys.right=true;
+  if(e.key==='Enter'||e.key===' '||e.key==='a'||e.key==='A'){handleA();e.preventDefault();}
+  if(e.key==='Escape'||e.key==='b'||e.key==='B') handleB();
+  if(e.key==='m'||e.key==='M') toggleMenu();
+  if(e.key==='i'||e.key==='I'){inventoryOpen?closeInventory():openInventory();}
+  if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) e.preventDefault();
+});
+document.addEventListener('keyup',e=>{
+  if(e.key==='ArrowUp'||e.key==='w'||e.key==='W') keys.up=false;
+  if(e.key==='ArrowDown'||e.key==='s'||e.key==='S') keys.down=false;
+  if(e.key==='ArrowLeft') keys.left=false;
+  if(e.key==='ArrowRight') keys.right=false;
+});
+
+function setupDpad(){
+  document.querySelectorAll('.dpad-btn').forEach(btn=>{
+    const dir=btn.dataset.dir;
+    btn.addEventListener('touchstart',e=>{e.preventDefault();keys[dir]=true;btn.classList.add('pressing');},{passive:false});
+    btn.addEventListener('touchend',e=>{e.preventDefault();keys[dir]=false;btn.classList.remove('pressing');},{passive:false});
+    btn.addEventListener('touchcancel',e=>{e.preventDefault();keys[dir]=false;btn.classList.remove('pressing');},{passive:false});
+    btn.addEventListener('mousedown',e=>{e.preventDefault();keys[dir]=true;btn.classList.add('pressing');});
+  });
+  document.addEventListener('mouseup',()=>{
+    document.querySelectorAll('.dpad-btn').forEach(btn=>{keys[btn.dataset.dir]=false;btn.classList.remove('pressing');});
+  });
+}
+setupDpad();
+canvas.addEventListener('click',()=>handleA());
+document.addEventListener('mousemove',e=>{const c=document.getElementById('cursor');if(c){c.style.left=e.clientX+'px';c.style.top=e.clientY+'px';}});
+
+// ── GAME LOOP ─────────────────────────────────────────────────────────────────
+function gameLoop(){
+  updatePlayer();
+  updateCamera();
+  if(gasFlashTimer>0) gasFlashTimer--;
+  if(gasShakeTimer>0) gasShakeTimer--;
+  if(grailFlashTimer>0) grailFlashTimer--;
+
+  let shx=0,shy=0;
+  if(gasShakeTimer>0){shx=(Math.random()-0.5)*10;shy=(Math.random()-0.5)*10;}
+
+  ctx.save();
+  if(gasShakeTimer>0) ctx.translate(shx,shy);
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  drawWorld();
+  ctx.restore();
+  drawPlayer();
+
+  requestAnimationFrame(gameLoop);
+}
+requestAnimationFrame(gameLoop);
+</script>
+</body>
+</html>
