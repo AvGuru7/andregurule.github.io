@@ -1255,7 +1255,7 @@ function openCompartment() {
   const collected = GameState.collectItem('first-edition', 20);
   if (collected) {
     document.getElementById('itemCollectedBadge').style.display = 'inline-flex';
-    alexSay(ALEX_LINES.length - 1); // Switch to collected line
+    alexSayTemp(ALEX_COLLECTED_LINE); // Triggered one-off — not part of paginated tips
   }
 }
 
@@ -1266,9 +1266,10 @@ const ALEX_LINES = [
   "Welcome to The Library! I'm ALEX — Automated Library EXpert. I prefer Alex. The full name makes me sound like a government form.",
   "You can sort the table by clicking the column headers. Title, Author, Category. Very intuitive. I helped design it. You're welcome.",
   "The filter chips up top narrow down by category. Perfect for when you only have the energy for one type of self-improvement today.",
-  "Click any row and a detail panel will appear with Andre's personal thoughts on the book. He thinks he's quite insightful, but I'd say he's only about average for a human.",
-  "You found the First Edition! ✨ A rare discovery. It has been added to your inventory. You'll need to reference its contents to complete your quest."
+  "Click any row and a detail panel will appear with Andre's personal thoughts on the book. He thinks he's quite insightful, but I'd say he's only about average for a human."
 ];
+
+const ALEX_COLLECTED_LINE = "You found the First Edition! ✨ A rare discovery. It has been added to your inventory. You'll need to reference its contents to complete your quest.";
 
 const ALEX_WRONG_LINES = [
   "I shouldn't say anything, but we might be here all day if I don't. Here's a hint: think about a year that changed everything — for video games, time travel, and plumbers with magic mushrooms.",
