@@ -423,6 +423,10 @@ const playerCanvas=document.getElementById('player-canvas');
 const pCtx=playerCanvas.getContext('2d');
 pCtx.imageSmoothingEnabled=false;
 
+// Preload Blue Kayak image
+const kayakImg=new Image();
+kayakImg.src='images/blue-kayak.png';
+
 function ctrlHeight(){const c=document.getElementById('nes-controller');return c?c.offsetHeight+16:0;}
 function resize(){canvas.width=window.innerWidth;canvas.height=window.innerHeight-ctrlHeight();ctx.imageSmoothingEnabled=false;}
 resize();window.addEventListener('resize',resize);
@@ -734,35 +738,31 @@ function drawStorage(wx,wy){
   // Torch
   torch(rx+rw/2,ry+TILE*0.4,false);
 
-  // Blue Kayak — always drawn in storage room centre
-  {
+  // Blue Kayak — drawn from image; hidden once collected into inventory
+  if(!kayakCollected){
     const kx=rx+TILE*2.2, ky=ry+TILE*3.8;
-    // Kayak hull
-    ctx.fillStyle='#1565c0';
-    ctx.beginPath();ctx.ellipse(kx+TILE*2,ky+14,TILE*2,14,0,0,Math.PI*2);ctx.fill();
-    // Hull highlight
-    ctx.fillStyle='#1e88e5';
-    ctx.beginPath();ctx.ellipse(kx+TILE*2,ky+10,TILE*1.4,8,0,0,Math.PI*2);ctx.fill();
-    // Cockpit rim
-    ctx.fillStyle='#0d47a1';ctx.beginPath();ctx.ellipse(kx+TILE*2,ky+12,TILE*0.55,9,0,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle='#263238';ctx.beginPath();ctx.ellipse(kx+TILE*2,ky+12,TILE*0.42,7,0,0,Math.PI*2);ctx.fill();
-    // Paddle resting across
-    ctx.fillStyle='#5a3010';ctx.fillRect(kx,ky-4,TILE*4,5);
-    ctx.fillStyle='#78909c';ctx.fillRect(kx-6,ky-6,TILE*0.4,9);ctx.fillRect(kx+TILE*3.6,ky-6,TILE*0.4,9);
+    const imgW=TILE*4, imgH=TILE*1.6;
+    const imgCx=kx+TILE*2, imgCy=ky+14;
+    if(kayakImg.complete&&kayakImg.naturalWidth>0){
+      ctx.save();
+      ctx.imageSmoothingEnabled=false;
+      ctx.drawImage(kayakImg, imgCx-imgW/2, imgCy-imgH/2, imgW, imgH);
+      ctx.restore();
+    }
     // Glow + prompt when earned but not yet collected
-    if(kayakEarned&&!kayakCollected){
+    if(kayakEarned){
       const pulse=0.3+0.25*Math.sin(Date.now()/350);
       ctx.fillStyle=`rgba(30,136,229,${pulse})`;
-      ctx.beginPath();ctx.ellipse(kx+TILE*2,ky+14,TILE*2+6,18,0,0,Math.PI*2);ctx.fill();
-      const pdx=Math.abs(playerX-(kx+TILE*2)),pdy=Math.abs(playerY-(ky+14));
+      ctx.beginPath();ctx.ellipse(imgCx,imgCy,imgW/2+6,imgH/2+4,0,0,Math.PI*2);ctx.fill();
+      const pdx=Math.abs(playerX-imgCx),pdy=Math.abs(playerY-imgCy);
       if(pdx<TILE*3&&pdy<TILE*3){
         ctx.fillStyle='rgba(30,136,229,0.9)';ctx.font='6px "Press Start 2P"';ctx.textAlign='center';
-        ctx.fillText('[A] TAKE KAYAK',kx+TILE*2,ky-12);ctx.textAlign='left';
+        ctx.fillText('[A] TAKE KAYAK',imgCx,imgCy-imgH/2-8);ctx.textAlign='left';
       }
-    } else if(!kayakEarned){
+    } else {
       // Lock icon overlay — not yours yet
-      ctx.fillStyle='rgba(0,0,0,0.45)';ctx.beginPath();ctx.ellipse(kx+TILE*2,ky+14,TILE*2,14,0,0,Math.PI*2);ctx.fill();
-      ctx.fillStyle='#f0c040';ctx.font='14px serif';ctx.textAlign='center';ctx.fillText('🔒',kx+TILE*2,ky+18);ctx.textAlign='left';
+      ctx.fillStyle='rgba(0,0,0,0.45)';ctx.beginPath();ctx.ellipse(imgCx,imgCy,imgW/2,imgH/2,0,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#f0c040';ctx.font='14px serif';ctx.textAlign='center';ctx.fillText('🔒',imgCx,imgCy+5);ctx.textAlign='left';
     }
   }
 }
