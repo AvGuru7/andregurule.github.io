@@ -414,7 +414,7 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
 <!-- HUD -->
 <div id="hud">
   <div id="hud-name">ANDRE GURULE</div>
-  <div id="hud-title">Welcome! If you would like to review my profile,<br>visit the Hall of Records. Otherwise, feel<br>free to look around. The game is still under<br>construction (6/3/26). I should have it<br>completed soon.<br>The Start button opens and closes this dialogue.</div>
+  <div id="hud-title">Welcome! If you would like to review my profile,<br>visit the Hall of Records. Otherwise, feel<br>free to look around. The game is still under<br>construction (6/3/26).<br>I should have it completed soon.<br>The Start button opens and closes this dialogue.</div>
 </div>
 
 <!-- Minimap -->
@@ -644,7 +644,7 @@ const ZONES=[
    links:[{label:'📁 ENTER THE HALL',href:'hall-of-records.html',local:true}]},
   {id:'castle-anthrax',label:'📖 CASTLE ANTHRAX',x:2,y:4,w:6,h:5,color:'#4080ff',
    title:'CASTLE ANTHRAX',
-   body:'Feel free to explore the castle. Who knows, you might find the Holy Grail.',
+   body:'Welcome to the Castle Anthrax. It\'s said that the castle has many treasures, including a Holy Grail.',
    links:[{label:'🏰 ENTER CASTLE ANTHRAX',href:'castle-anthrax.html',local:true}]},
   {id:'erebor-mountain',label:'⛰ EREBOR MOUNTAIN',x:2,y:14,w:6,h:5,color:'#40c060',
    title:'EREBOR MOUNTAIN',
@@ -658,13 +658,13 @@ const ZONES=[
    requiresItem:'blue-kayak',
    title:'LAKE TAHOE',
    body:'One of my favorite places on Earth. Crystal-clear water, towering pines, and endless adventure.',
-   lockedBody:'🚣 You need a Blue Kayak to access the water. Find one somewhere in the world...',
+   lockedBody:'You will need a kayak to access the lake. Try to find someone with a kayak who is willing to sell or trade.',
    links:[{label:'🏔 ENTER LAKE TAHOE',href:'lake-tahoe.html',local:true}]},
   {id:'the-lake',label:'🌊 THE LAKE',x:17,y:4,w:4,h:4,color:'#1565c0',isWater:true,
    requiresItem:'blue-kayak',
    title:'THE CENTRAL PARK LAKE',
    body:'A quiet place in the middle of the big city to think, read, and recharge. Sometimes the best ideas come from the water\'s edge or an overachieving duck.',
-   lockedBody:'🚣 You need a Blue Kayak to paddle out here. Find one somewhere in the world...',
+   lockedBody:'You will need a kayak to access the lake. Try to find someone with a kayak who is willing to sell or trade.',
    links:[{label:'🌊 ENTER THE LAKE',href:'the-lake.html',local:true}]},
   {id:'town-square',label:'💌 TOWN SQUARE',x:13,y:10,w:6,h:4,color:'#e07030',
    title:'TOWN SQUARE',
@@ -700,9 +700,9 @@ const ITEMS=[
   {id:'sword',        icon:'⚔️', label:'Sword',               category:'quest',
    points:25, page:'Erebor Mountain',
    riddle:true,
-   riddleText:'A warrior fights for glory. A merchant fights for gold. But the mightiest blade is wielded by one who sees not himself in the mirror of battle, but the faces of those he fights for. I am the shift that turns a closed fist into an open hand. What am I?',
+   riddleText:'When our mind is focused inward, we create friction that leads to various levels of conflict. What perspective is required to see and act in a manner that reduces friction and improves results?',
    riddleParts:[{label:'Answer:',answer:'outward mindset'}],
-   hint:'The answer can be found in one of the leadership books in the Library. Look for something that is outside the box.',
+   hint:'The answer can be found in one of the leadership books in the Library. Look for something that will help with your self-deception.',
    spawnPage:null,
    worldTile:null},
 
@@ -717,8 +717,8 @@ const ITEMS=[
      title:'First Edition',
      subtitle:'A rare volume found in the Scroll Library',
      pages:[
-       {heading:'Foreword',body:'You have found something few ever discover — a first edition copy, tucked away behind the ordinary volumes. Its pages carry the weight of original thought.'},
-       {heading:'Chapter I — Origins',body:'Every great journey begins with a single step into the unknown. This volume chronicles the moments that shaped a path unlike any other.'},
+       {heading:'Foreword',body:'You have found something few ever discover — a first edition copy, tucked away behind the ordinary volumes. The contents of its pages will help to guide you through parts of your journey.'},
+       {heading:'Chapter I — Origins',body:'Every great journey begins with a single step into the unknown.'},
        {heading:'Chapter II — The Work',body:'Here lie the blueprints of projects built from scratch — each one a solution to a real problem, crafted with care and curiosity.'},
        {heading:'Chapter III — What Remains',body:'The most enduring things are not the finished products, but the lessons learned along the way. Keep exploring, adventurer.'},
      ]
@@ -749,7 +749,7 @@ const ITEMS=[
    riddle:false,
    requires:'artwork',   // must have Artwork
    consumes:'artwork',   // Artwork is given to King Lyn
-   hint:'Bring something beautiful to King Lyn.',
+   hint:'The castle walls are kind of bland. King Lyn would probably appreciate some artwork.',
    spawnPage:null,
    worldTile:null},
 
@@ -2299,13 +2299,13 @@ const ITEM_DETAILS={
   'holy-grail':   {desc:'The Holy Grail — the ultimate prize of Castle Anthrax. A legendary quest item.'},
   'skeleton-key': {desc:'A master key of unknown origin. Opens locks that others cannot.'},
   'sword':        {desc:'A sword from the Erebor Mountain swordsmith, given only to those who proved their qualifications.'},
-  'cert-badge':   {desc:'A certification badge earned at the Hall of Records.'},
+  'cert-badge':   {desc:'The holder of this badge is recognized as being capable of wielding one of the great swords from Mount Erebor.'},
   'first-edition':{desc:"A rare first-edition from the Library's restricted collection. Contains clues for those who seek them."},
   'fishing-rod':  {desc:'The Flux Capacitor — a special 1985 fishing rod from Raymond at Lake Tahoe.'},
-  'artwork':      {desc:'A piece of artwork from Town Square.'},
-  'bread':        {desc:'Fresh bread from Town Square. Ducks love it.'},
+  'artwork':      {desc:'A one-of-a-kind artpiece from Tahoe Fluid Art.'},
+  'bread':        {desc:'Fresh bread from the Town Square bakery. Ducks love it.'},
   'old-compass':  {desc:'An old compass from The Lake. Rumored to point toward hidden treasure.'},
-  'blue-kayak':   {desc:'A fine blue kayak. A gift from King Lyn, traded for a piece of artwork.'},
+  'blue-kayak':   {desc:'A kayak to explore the lakes.'},
   'sapphire':     {desc:'A brilliant sapphire found on the east side of the Hall of Records.'},
   'ruby':         {desc:'A rare ruby found south of Erebor Mountain.'},
 };
