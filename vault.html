@@ -82,6 +82,44 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
 .ab-label{font-family:'Press Start 2P',monospace;font-size:clamp(4px,0.7vw,5px);color:#555;width:clamp(36px,6.5vw,50px);text-align:center;}
 #ab-col{display:flex;flex-direction:column;align-items:center;flex-shrink:0;}
 #ctrl-hint{font-family:'VT323',monospace;font-size:clamp(10px,1.8vw,13px);color:var(--gold);text-align:center;opacity:0.75;}
+
+/* ── NAME ENTRY + LEADERBOARD OVERLAYS ──────────────────────────────────── */
+.arcade-overlay{position:fixed;inset:0;z-index:700;display:none;flex-direction:column;align-items:center;justify-content:center;background:rgba(6,5,14,0.96);backdrop-filter:blur(5px);padding:clamp(16px,4vw,40px);overflow-y:auto;}
+.arcade-overlay.active{display:flex;}
+.arcade-title{font-size:clamp(12px,2.6vw,20px);color:var(--gold);letter-spacing:2px;text-align:center;margin-bottom:clamp(6px,1.5vh,12px);text-shadow:0 0 16px rgba(240,192,64,0.6);animation:arcadePulse 1.4s ease-in-out infinite;}
+@keyframes arcadePulse{0%,100%{opacity:1}50%{opacity:0.65}}
+.arcade-sub{font-family:'VT323',monospace;font-size:clamp(15px,2.6vw,21px);color:var(--ui-text);text-align:center;margin-bottom:clamp(14px,3vh,26px);line-height:1.4;max-width:560px;}
+.arcade-score{font-family:'VT323',monospace;font-size:clamp(20px,4vw,32px);color:#a0d8ff;text-shadow:0 0 14px rgba(160,216,255,0.5);margin-bottom:clamp(16px,3vh,28px);}
+
+/* Initials picker — 3 rolling letter slots */
+#initials-row{display:flex;gap:clamp(12px,3vw,24px);margin-bottom:clamp(18px,3.5vh,30px);}
+.initial-slot{display:flex;flex-direction:column;align-items:center;gap:6px;}
+.initial-arrow{font-size:clamp(10px,2vw,16px);color:var(--gold2);cursor:pointer;user-select:none;padding:6px;transition:color 0.1s,transform 0.06s;touch-action:manipulation;}
+.initial-arrow:hover{color:var(--gold);}
+.initial-arrow:active{transform:scale(0.85);}
+.initial-arrow.dim{color:#333;}
+.initial-char{width:clamp(46px,10vw,68px);height:clamp(58px,12vw,84px);display:flex;align-items:center;justify-content:center;font-size:clamp(24px,5vw,40px);color:var(--gold);background:linear-gradient(180deg,#16131f,#0c0a14);border:3px solid var(--gold2);box-shadow:inset 0 0 14px rgba(0,0,0,0.7),0 0 10px rgba(240,192,64,0.15);}
+.initial-char.sel{border-color:var(--gold);box-shadow:inset 0 0 14px rgba(0,0,0,0.7),0 0 18px rgba(240,192,64,0.5);}
+.arcade-hint{font-family:'VT323',monospace;font-size:clamp(13px,2.2vw,17px);color:var(--ui-dim);text-align:center;margin-bottom:clamp(10px,2vh,18px);line-height:1.5;}
+.arcade-btn{font-family:'Press Start 2P',monospace;font-size:clamp(8px,1.4vw,11px);color:var(--ui-bg);background:var(--gold);border:none;padding:clamp(11px,1.8vh,15px) clamp(20px,4vw,34px);cursor:pointer;letter-spacing:1px;touch-action:manipulation;transition:background 0.1s,transform 0.06s;}
+.arcade-btn:hover{background:#fff3a0;}
+.arcade-btn:active{transform:translateY(2px);}
+.arcade-btn.secondary{background:transparent;color:var(--ui-dim);border:2px solid #333;margin-top:10px;}
+.arcade-btn.secondary:hover{color:var(--gold);border-color:var(--gold2);}
+
+/* Leaderboard table */
+#lb-table-wrap{width:min(620px,94vw);max-height:54vh;overflow-y:auto;border:3px solid var(--gold2);background:rgba(10,8,20,0.6);margin-bottom:clamp(14px,3vh,24px);}
+#lb-table{width:100%;border-collapse:collapse;font-family:'VT323',monospace;}
+#lb-table th{position:sticky;top:0;background:var(--ui-bg);color:var(--gold);font-family:'Press Start 2P',monospace;font-size:clamp(6px,1.1vw,9px);letter-spacing:1px;padding:clamp(9px,1.5vh,13px) clamp(8px,1.5vw,14px);text-align:left;border-bottom:2px solid var(--gold2);}
+#lb-table th.num,#lb-table td.num{text-align:right;}
+#lb-table td{font-size:clamp(16px,2.8vw,21px);color:var(--ui-text);padding:clamp(7px,1.3vh,11px) clamp(8px,1.5vw,14px);border-bottom:1px solid rgba(240,192,64,0.1);}
+#lb-table tr:nth-child(even) td{background:rgba(240,192,64,0.03);}
+#lb-table tr.you td{background:rgba(160,216,255,0.12);color:#cfeaff;}
+#lb-table .rank-1{color:var(--gold);font-weight:bold;}
+#lb-table .rank-2{color:#cfd4dc;}
+#lb-table .rank-3{color:#cd9b5a;}
+.lb-loading,.lb-error{font-family:'VT323',monospace;font-size:clamp(16px,3vw,20px);color:var(--ui-dim);text-align:center;padding:30px;}
+.lb-error{color:#cc6677;}
 </style>
 </head>
 <body>
@@ -113,6 +151,7 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
     <a class="menu-item" href="castle-anthrax.html"><span class="menu-item-icon">🏰</span> CASTLE ANTHRAX</a>
     <a class="menu-item selected" href="vault.html"><span class="menu-item-icon">🏆</span><span id="menu-cursor">▶ </span>THE VAULT</a>
     <a class="menu-item" href="hall-of-records.html"><span class="menu-item-icon">⚔</span> HALL OF RECORDS</a>
+    <button class="menu-item" type="button" onclick="closeMenu();openLeaderboard(false);"><span class="menu-item-icon">🏆</span> HALL OF LEGENDS</button>
     <div id="menu-divider"></div>
     <a class="menu-item" href="https://linkedin.com/in/andregurule" target="_blank"><span class="menu-item-icon">💼</span> LINKEDIN</a>
     <div id="menu-close-hint">
@@ -137,6 +176,31 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
       <div id="inv-detail-content" style="color:var(--ui-dim);font-family:'VT323',monospace;font-size:16px;text-align:center;margin-top:24px;">Select an item to view details</div>
     </div>
   </div>
+</div>
+
+<!-- ── NAME ENTRY (NES arcade style) ──────────────────────────────────── -->
+<div id="name-entry-overlay" class="arcade-overlay">
+  <div class="arcade-title">★ QUEST COMPLETE ★</div>
+  <div class="arcade-sub">The Holy Grail is yours. Enter your initials to record your name among the legends.</div>
+  <div class="arcade-score" id="ne-score">★ 0 PTS</div>
+  <div id="initials-row"></div>
+  <div class="arcade-hint">D-PAD to change letters &nbsp;·&nbsp; <span class="hint-badge">A</span> to confirm</div>
+  <button class="arcade-btn" onclick="submitInitials()">RECORD MY SCORE</button>
+  <button class="arcade-btn secondary" onclick="skipNameEntry()">SKIP</button>
+</div>
+
+<!-- ── LEADERBOARD ────────────────────────────────────────────────────── -->
+<div id="leaderboard-overlay" class="arcade-overlay">
+  <div class="arcade-title">🏆 HALL OF LEGENDS 🏆</div>
+  <div class="arcade-sub" id="lb-sub">Top adventurers who claimed the Grail</div>
+  <div id="lb-table-wrap">
+    <div class="lb-loading" id="lb-loading">Loading scores…</div>
+    <table id="lb-table" style="display:none;">
+      <thead><tr><th class="num">#</th><th>NAME</th><th class="num">SCORE</th></tr></thead>
+      <tbody id="lb-body"></tbody>
+    </table>
+  </div>
+  <button class="arcade-btn" onclick="closeLeaderboard()">CONTINUE</button>
 </div>
 
 <div id="nes-controller">
@@ -195,6 +259,142 @@ const GameState={
   toParams(){return new URLSearchParams({points:this.points,visited:this.visited.join(','),unlocked:this.unlocked.join(','),items:this.items.join(',')}).toString();},
   withState(href){const[base,hash]=href.split('#');const sep=base.includes('?')?'&':'?';return base+sep+this.toParams()+(hash?'#'+hash:'');}
 };
+
+// ── LEADERBOARD (Supabase) ──────────────────────────────────────────────────────
+// Replace these two values with your Supabase project credentials.
+// The anon public key is SAFE to expose client-side (RLS policies restrict access).
+const SUPABASE_URL = 'https://kfcbodswxjhqzauonxdx.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_7SJwq7QIS-N4fRvgUj09Xw_Wa7LzC2t';
+const LB_MAX_SCORE = 355; // total points available — used as a sanity cap
+
+// Set true once you've filled in SUPABASE_URL/KEY above.
+const LEADERBOARD_ENABLED = true;
+
+let submittedScoreId = null; // marks the player's own row for highlighting
+let initialsState = {chars:['A','A','A'], idx:0};
+let lbFromQuest = false; // true when leaderboard follows quest completion
+
+async function submitScore(name, score){
+  if(!LEADERBOARD_ENABLED) return null;
+  try{
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/leaderboard`,{
+      method:'POST',
+      headers:{
+        'apikey':SUPABASE_KEY,
+        'Authorization':`Bearer ${SUPABASE_KEY}`,
+        'Content-Type':'application/json',
+        'Prefer':'return=representation'
+      },
+      body:JSON.stringify({name:String(name).slice(0,12), score:Math.min(Math.max(0,score|0),LB_MAX_SCORE)})
+    });
+    if(!res.ok) return null;
+    const rows = await res.json();
+    return (rows && rows[0] && rows[0].id) ? rows[0].id : true;
+  }catch(e){console.error('Score submit failed:',e);return null;}
+}
+
+async function fetchLeaderboard(){
+  if(!LEADERBOARD_ENABLED) return [];
+  try{
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/leaderboard?select=id,name,score&order=score.desc,created_at.asc&limit=25`,
+      {headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`}}
+    );
+    if(!res.ok) return [];
+    return await res.json();
+  }catch(e){console.error('Leaderboard fetch failed:',e);return [];}
+}
+
+// ── NAME ENTRY ───────────────────────────────────────────────────────────────
+const ALPHABET='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ';
+function openNameEntry(){
+  initialsState={chars:['A','A','A'], idx:0};
+  document.getElementById('ne-score').textContent='★ '+GameState.points+' PTS';
+  renderInitials();
+  document.getElementById('name-entry-overlay').classList.add('active');
+}
+function renderInitials(){
+  const row=document.getElementById('initials-row');row.innerHTML='';
+  initialsState.chars.forEach((ch,i)=>{
+    const slot=document.createElement('div');slot.className='initial-slot';
+    const up=document.createElement('div');up.className='initial-arrow';up.textContent='▲';
+    up.onclick=()=>{initialsState.idx=i;cycleInitial(1);};
+    const box=document.createElement('div');box.className='initial-char'+(i===initialsState.idx?' sel':'');
+    box.textContent=ch===' '?'_':ch;
+    box.onclick=()=>{initialsState.idx=i;renderInitials();};
+    const dn=document.createElement('div');dn.className='initial-arrow';dn.textContent='▼';
+    dn.onclick=()=>{initialsState.idx=i;cycleInitial(-1);};
+    slot.appendChild(up);slot.appendChild(box);slot.appendChild(dn);
+    row.appendChild(slot);
+  });
+}
+function cycleInitial(dir){
+  const i=initialsState.idx;
+  let pos=ALPHABET.indexOf(initialsState.chars[i]);
+  pos=(pos+dir+ALPHABET.length)%ALPHABET.length;
+  initialsState.chars[i]=ALPHABET[pos];
+  renderInitials();
+}
+function moveInitialCursor(dir){
+  initialsState.idx=(initialsState.idx+dir+3)%3;
+  renderInitials();
+}
+async function submitInitials(){
+  const name=initialsState.chars.join('').trim()||'???';
+  const btn=document.querySelector('#name-entry-overlay .arcade-btn');
+  if(btn){btn.textContent='SAVING…';btn.disabled=true;}
+  submittedScoreId=await submitScore(name, GameState.points);
+  document.getElementById('name-entry-overlay').classList.remove('active');
+  if(btn){btn.textContent='RECORD MY SCORE';btn.disabled=false;}
+  lbFromQuest=true;
+  openLeaderboard();
+}
+function skipNameEntry(){
+  document.getElementById('name-entry-overlay').classList.remove('active');
+  lbFromQuest=true;
+  openLeaderboard();
+}
+
+// ── LEADERBOARD DISPLAY ──────────────────────────────────────────────────────
+async function openLeaderboard(fromQuest){
+  if(fromQuest!==undefined) lbFromQuest=fromQuest;
+  const ov=document.getElementById('leaderboard-overlay');
+  const loading=document.getElementById('lb-loading');
+  const table=document.getElementById('lb-table');
+  ov.classList.add('active');
+  loading.style.display='block';loading.textContent='Loading scores…';loading.className='lb-loading';
+  table.style.display='none';
+  if(!LEADERBOARD_ENABLED){
+    loading.className='lb-error';
+    loading.textContent='Leaderboard not yet configured. (See SUPABASE_URL in the source.)';
+    return;
+  }
+  const rows=await fetchLeaderboard();
+  if(!rows.length){
+    loading.className='lb-loading';
+    loading.textContent='No scores yet — you could be the first!';
+    return;
+  }
+  const body=document.getElementById('lb-body');body.innerHTML='';
+  rows.forEach((r,i)=>{
+    const tr=document.createElement('tr');
+    if(submittedScoreId&&r.id===submittedScoreId) tr.className='you';
+    const rankCls=i<3?('rank-'+(i+1)):'';
+    tr.innerHTML='<td class="num '+rankCls+'">'+(i+1)+'</td>'
+      +'<td class="'+rankCls+'">'+escapeHtml(r.name)+'</td>'
+      +'<td class="num '+rankCls+'">'+r.score+'</td>';
+    body.appendChild(tr);
+  });
+  loading.style.display='none';
+  table.style.display='table';
+}
+function closeLeaderboard(){
+  document.getElementById('leaderboard-overlay').classList.remove('active');
+  if(lbFromQuest){lbFromQuest=false;goToCastle();}
+}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function nameEntryOpen(){return document.getElementById('name-entry-overlay').classList.contains('active');}
+function leaderboardOpen(){return document.getElementById('leaderboard-overlay').classList.contains('active');}
 
 // ── LAYOUT ────────────────────────────────────────────────────────────────────
 // World is 28 wide x 18 tall.
@@ -652,7 +852,7 @@ function collectGrail(){
 
 // ── PLAYER UPDATE ─────────────────────────────────────────────────────────────
 function updatePlayer(){
-  if(dialogOpen||menuOpen||inventoryOpen||respawning) return;
+  if(dialogOpen||menuOpen||inventoryOpen||respawning||nameEntryOpen()||leaderboardOpen()) return;
   const SPEED=3;let dx=0,dy=0;
   if(keys.up){dy=-SPEED;facing='up';}
   if(keys.down){dy=SPEED;facing='down';}
@@ -859,12 +1059,16 @@ function closeInventory(){inventoryOpen=false;document.getElementById('inventory
 
 // ── INPUT ─────────────────────────────────────────────────────────────────────
 function handleA(){
+  // Name entry: A confirms / records the score
+  if(nameEntryOpen()){submitInitials();return;}
+  // Leaderboard: A continues onward
+  if(leaderboardOpen()){closeLeaderboard();return;}
   if(menuOpen){menuSelectCurrent();return;}
   if(dialogOpen){
-    // After grail collection dialog, navigate to castle anthrax
+    // After grail collection dialog, open the arcade name-entry screen
     if(grailCollected){
       closeDialog();
-      window.location.href=GameState.withState('castle-anthrax.html');
+      openNameEntry();
       return;
     }
     closeDialog();return;
@@ -879,6 +1083,7 @@ function handleA(){
     }
   }
 }
+function goToCastle(){window.location.href=GameState.withState('castle-anthrax.html');}
 function handleB(){
   if(menuOpen){closeMenu();return;}
   if(inventoryOpen){closeInventory();return;}
@@ -887,6 +1092,23 @@ function handleB(){
 
 document.addEventListener('keydown',e=>{
   if(document.activeElement&&document.activeElement.tagName==='INPUT') return;
+  // Name entry — D-pad drives the initials picker
+  if(nameEntryOpen()){
+    if(e.key==='ArrowUp'||e.key==='w'||e.key==='W'){cycleInitial(1);e.preventDefault();return;}
+    if(e.key==='ArrowDown'||e.key==='s'||e.key==='S'){cycleInitial(-1);e.preventDefault();return;}
+    if(e.key==='ArrowLeft'){moveInitialCursor(-1);e.preventDefault();return;}
+    if(e.key==='ArrowRight'){moveInitialCursor(1);e.preventDefault();return;}
+    if(e.key==='Enter'||e.key===' '||e.key==='a'||e.key==='A'){submitInitials();e.preventDefault();return;}
+    if(e.key==='Escape'||e.key==='b'||e.key==='B'){skipNameEntry();e.preventDefault();return;}
+    return;
+  }
+  // Leaderboard — any confirm/back continues onward
+  if(leaderboardOpen()){
+    if(e.key==='Enter'||e.key===' '||e.key==='a'||e.key==='A'||e.key==='Escape'||e.key==='b'||e.key==='B'){
+      closeLeaderboard();e.preventDefault();return;
+    }
+    return;
+  }
   if(menuOpen){
     if(e.key==='ArrowUp'||e.key==='w'){menuIdx=Math.max(0,menuIdx-1);updateMenuCursor();e.preventDefault();return;}
     if(e.key==='ArrowDown'||e.key==='s'){menuIdx=Math.min(menuItems.length-1,menuIdx+1);updateMenuCursor();e.preventDefault();return;}
@@ -911,13 +1133,20 @@ document.addEventListener('keyup',e=>{
   if(e.key==='ArrowRight') keys.right=false;
 });
 
+function dpadInitials(dir){
+  if(dir==='up'){cycleInitial(1);return true;}
+  if(dir==='down'){cycleInitial(-1);return true;}
+  if(dir==='left'){moveInitialCursor(-1);return true;}
+  if(dir==='right'){moveInitialCursor(1);return true;}
+  return false;
+}
 function setupDpad(){
   document.querySelectorAll('.dpad-btn').forEach(btn=>{
     const dir=btn.dataset.dir;
-    btn.addEventListener('touchstart',e=>{e.preventDefault();keys[dir]=true;btn.classList.add('pressing');},{passive:false});
+    btn.addEventListener('touchstart',e=>{e.preventDefault();if(nameEntryOpen()){dpadInitials(dir);return;}keys[dir]=true;btn.classList.add('pressing');},{passive:false});
     btn.addEventListener('touchend',e=>{e.preventDefault();keys[dir]=false;btn.classList.remove('pressing');},{passive:false});
     btn.addEventListener('touchcancel',e=>{e.preventDefault();keys[dir]=false;btn.classList.remove('pressing');},{passive:false});
-    btn.addEventListener('mousedown',e=>{e.preventDefault();keys[dir]=true;btn.classList.add('pressing');});
+    btn.addEventListener('mousedown',e=>{e.preventDefault();if(nameEntryOpen()){dpadInitials(dir);return;}keys[dir]=true;btn.classList.add('pressing');});
   });
   document.addEventListener('mouseup',()=>{
     document.querySelectorAll('.dpad-btn').forEach(btn=>{keys[btn.dataset.dir]=false;btn.classList.remove('pressing');});
