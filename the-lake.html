@@ -156,90 +156,143 @@
   #ab-col{display:flex;flex-direction:column;align-items:center;flex-shrink:0;}
   #ctrl-hint{font-family:'VT323',monospace;font-size:clamp(10px,1.8vw,13px);color:var(--gold);text-align:center;opacity:0.75;}
 
-  /* ── INVENTORY OVERLAY ── */
+  /* ── INVENTORY OVERLAY (sidebar design) ── */
   #inventory-overlay {
     display: none;
-    position: fixed; inset: 0;
-    background: rgba(10,8,24,0.95);
+    position: fixed;
+    top: 0; left: 0; right: 0;       /* bottom set at runtime via ctrlH() */
+    background: rgba(10,8,24,0.97);
     backdrop-filter: blur(4px);
     z-index: 400;
-    align-items: flex-start;
-    justify-content: center;
-    padding: clamp(12px,2vh,24px) clamp(8px,2vw,16px);
-    overflow-y: auto;
+    flex-direction: column;
+    overflow: hidden;
   }
   #inventory-overlay.open { display: flex; }
-  #inventory-box {
-    background: var(--ui-bg);
-    border: 4px solid var(--gold);
-    padding: clamp(16px,3vw,28px) clamp(18px,3.5vw,32px);
-    width: min(700px, 96vw);
-    position: relative;
+  #inv-header {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: clamp(8px,2vw,16px);
+    padding: clamp(8px,1.5vh,12px) clamp(12px,2.5vw,20px);
+    border-bottom: 1px solid rgba(240,192,64,0.25);
+    flex-shrink: 0;
   }
-  #inventory-box::before {
-    content: '';
-    position: absolute; inset: 3px;
-    border: 1px solid rgba(240,192,64,0.22);
-    pointer-events: none;
-  }
-  #inventory-title {
-    font-size: clamp(9px,1.6vw,13px);
+  #inv-title {
+    font-size: clamp(8px,1.6vw,13px);
     color: var(--gold);
-    text-align: center;
-    margin-bottom: clamp(6px,1.2vh,12px);
     letter-spacing: 2px;
   }
-  #inventory-subtitle {
+  #inv-points-banner {
     font-family: 'VT323', monospace;
     font-size: clamp(14px,2.5vw,18px);
+    color: #a0d8ff;
+  }
+  #inv-close-hint {
+    font-size: clamp(5px,1vw,8px);
     color: #a09070;
-    text-align: center;
-    margin-bottom: clamp(12px,2vh,20px);
-    border-bottom: 1px solid rgba(240,192,64,0.18);
-    padding-bottom: clamp(8px,1.5vh,14px);
   }
-  #inventory-points-banner {
-    font-family: 'VT323', monospace;
-    font-size: clamp(16px,3vw,22px);
-    color: var(--gold);
-    text-align: center;
-    margin-bottom: clamp(10px,1.8vh,18px);
+  .hint-badge-sm {
+    background: #222; border: 1.5px solid #555; color: #aaa;
+    padding: 1px 5px; border-radius: 2px;
   }
-  .inv-category {
-    font-size: clamp(6px,1vw,8px);
+  #inv-body {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+    min-height: 0;
+  }
+  #inv-items-list-wrap {
+    width: clamp(160px,28vw,220px);
+    flex-shrink: 0;
+    overflow-y: auto;
+    border-right: 1px solid rgba(240,192,64,0.15);
+    padding: clamp(6px,1.2vh,10px) clamp(6px,1.2vw,10px);
+  }
+  .inv-cat-label {
+    font-size: clamp(5px,0.9vw,7px);
     color: #a09070;
     letter-spacing: 2px;
-    margin: clamp(10px,1.8vh,16px) 0 clamp(6px,1vh,10px);
+    margin: clamp(8px,1.5vh,12px) 4px clamp(4px,0.8vh,6px);
     border-bottom: 1px solid rgba(240,192,64,0.12);
     padding-bottom: 4px;
   }
-  .inv-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(clamp(140px,22vw,200px), 1fr));
-    gap: clamp(6px,1.2vw,12px);
-    margin-bottom: clamp(8px,1.5vh,14px);
-  }
   .inv-item {
-    border: 2px solid rgba(240,192,64,0.18);
-    padding: clamp(8px,1.4vw,12px);
-    display: flex; flex-direction: column; gap: 4px;
-    position: relative;
+    display: flex; align-items: center; gap: clamp(6px,1.2vw,10px);
+    padding: clamp(5px,1vh,8px) clamp(6px,1.2vw,10px);
+    border: 2px solid transparent;
+    margin-bottom: 2px;
   }
-  .inv-item.obtained { border-color: rgba(240,192,64,0.6); }
+  .inv-item.obtained { }
   .inv-item.locked   { opacity: 0.45; }
-  .inv-icon     { font-size: clamp(18px,3.5vw,26px); line-height: 1; }
-  .inv-name     { font-size: clamp(5px,0.9vw,7px); color: var(--ui-text); line-height: 1.4; }
-  .inv-name.locked-name { color: #a09070; }
-  .inv-location { font-family: 'VT323', monospace; font-size: clamp(11px,2vw,14px); color: #a09070; }
-  .inv-pts      { font-size: clamp(5px,0.85vw,7px); color: var(--gold); margin-top: 2px; }
-  .inv-check    { position: absolute; top: 6px; right: 8px; font-size: clamp(10px,1.8vw,14px); color: #40c060; }
-  .inv-lock     { position: absolute; top: 6px; right: 8px; font-size: clamp(9px,1.6vw,12px); color: #554433; }
-  #inventory-close-hint {
-    text-align: center;
-    margin-top: clamp(12px,2vh,20px);
-    font-size: clamp(5px,0.8vw,7px);
-    color: #a09070;
+  .inv-item.has-content { cursor: pointer; }
+  .inv-item.has-content:hover { border-color: rgba(240,192,64,0.35); }
+  .inv-item.selected { border-color: var(--gold); background: rgba(240,192,64,0.08); }
+  .inv-item-icon { font-size: clamp(16px,3vw,22px); line-height: 1; flex-shrink: 0; }
+  .inv-item-info { flex: 1; min-width: 0; }
+  .inv-item-name {
+    font-size: clamp(5px,0.9vw,7px);
+    color: var(--ui-text);
+    line-height: 1.4;
   }
+  .inv-item-name.locked-name { color: #a09070; }
+  .inv-item-pts {
+    font-family: 'VT323', monospace;
+    font-size: clamp(11px,2vw,14px);
+    color: var(--gold);
+    margin-top: 2px;
+  }
+  .inv-item-check { font-size: clamp(10px,1.8vw,14px); color: #40c060; flex-shrink: 0; }
+  .inv-item-lock  { font-size: clamp(9px,1.6vw,12px); color: #554433; flex-shrink: 0; }
+  #inv-detail {
+    flex: 1;
+    overflow-y: auto;
+    padding: clamp(12px,2.5vh,20px) clamp(14px,3vw,24px);
+  }
+  #inv-detail-empty {
+    color: #a09070;
+    font-family: 'VT323', monospace;
+    font-size: clamp(15px,2.6vw,18px);
+    text-align: center;
+    margin-top: clamp(16px,4vh,32px);
+  }
+  #inv-detail-content { display: none; flex-direction: column; }
+  #item-detail-icon { font-size: clamp(24px,5vw,38px); line-height: 1; margin-bottom: clamp(6px,1.2vh,10px); }
+  #item-detail-title {
+    font-size: clamp(8px,1.4vw,11px);
+    color: var(--gold);
+    letter-spacing: 1px;
+  }
+  #item-detail-subtitle {
+    font-family: 'VT323', monospace;
+    font-size: clamp(13px,2.2vw,17px);
+    color: #a09070;
+    margin: 4px 0 clamp(10px,1.8vh,18px);
+    padding-bottom: clamp(8px,1.5vh,14px);
+    border-bottom: 1px solid rgba(240,192,64,0.25);
+  }
+  #item-detail-body { display: flex; flex-direction: column; gap: clamp(14px,2.5vh,24px); }
+  .detail-page {
+    border-left: 3px solid rgba(240,192,64,0.35);
+    padding-left: clamp(10px,1.8vw,18px);
+  }
+  .detail-page-heading {
+    font-size: clamp(6px,1vw,8px);
+    color: var(--gold);
+    margin-bottom: clamp(6px,1vh,10px);
+    letter-spacing: 1px;
+  }
+  .detail-page-body {
+    font-family: 'VT323', monospace;
+    font-size: clamp(15px,2.6vw,20px);
+    color: var(--ui-text);
+    line-height: 1.55;
+  }
+  .detail-map-placeholder {
+    border: 2px dashed rgba(240,192,64,0.4);
+    padding: clamp(16px,3vh,28px);
+    text-align: center;
+  }
+  .detail-map-placeholder .map-icon  { font-size: clamp(28px,6vw,44px); }
+  .detail-map-placeholder .map-label { font-size: clamp(6px,1.1vw,9px); color: var(--gold); margin-top: 10px; letter-spacing: 1px; }
+  .detail-map-placeholder .map-sub   { font-family: 'VT323', monospace; font-size: clamp(13px,2.2vw,16px); color: #a09070; margin-top: 6px; }
   .oval-btn.pressed { background: #4a4a80; }
 </style>
 </head>
@@ -334,7 +387,11 @@ const GameState = (() => {
 })();
 
 document.querySelectorAll('#menuOverlay a.menu-btn').forEach(a => {
-  a.href = GameState.withState(a.getAttribute('href'));
+  const h = a.getAttribute('href');
+  if (h && !h.startsWith('http')) {
+    a.setAttribute('data-href', h);
+    a.href = GameState.withState(h);
+  }
 });
 document.getElementById('pointsDisplay').textContent = GameState.points;
 
@@ -591,7 +648,11 @@ function openMenu() {
   menuOpen = true;
   document.getElementById('menuOverlay').classList.add('open');
   document.querySelectorAll('#menuOverlay a.menu-btn').forEach(a => {
-    a.href = GameState.withState(a.getAttribute('href'));
+    const h = a.getAttribute('data-href') || a.getAttribute('href');
+    if (h && !h.startsWith('http')) {
+      a.setAttribute('data-href', h);
+      a.href = GameState.withState(h);
+    }
   });
 }
 function closeMenu() { menuOpen = false; document.getElementById('menuOverlay').classList.remove('open'); }
@@ -1470,7 +1531,7 @@ const ITEMS = [
   {id:'skeleton-key',  icon:'🔑', label:'Skeleton Key',        category:'key',         points:30, page:'World Map'},
   {id:'sword',         icon:'⚔️', label:'Sword',               category:'quest',       points:25, page:'Erebor Mountain'},
   {id:'cert-badge',    icon:'📜', label:'Certification Badge', category:'collectible', points:20, page:'My Story'},
-  {id:'first-edition', icon:'📖', label:'First Edition',       category:'collectible', points:20, page:'Scroll Library'},
+  {id:'first-edition', icon:'📖', label:'First Edition',       category:'collectible', points:20, page:'The Library'},
   {id:'fishing-rod',   icon:'🎣', label:'Fishing Rod',         category:'collectible', points:15, page:'Lake Tahoe'},
   {id:'tahoe-fish',    icon:'🐟', label:'Tahoe Trout',         category:'collectible', points:25, page:'Lake Tahoe'},
   {id:'blue-kayak',    icon:'🚣', label:'Blue Kayak',          category:'quest',       points:15, page:'Castle Anthrax'},
@@ -1481,56 +1542,179 @@ const ITEMS = [
   {id:'ruby',          icon:'🔴', label:'Ruby',                category:'key',         points:75, page:'World Map'},
 ];
 
+const CAT_ORDER  = ['quest','key','collectible'];
+const CAT_LABELS = {quest:'QUEST ITEMS', key:'KEY ITEMS', collectible:'COLLECTIBLES'};
+
+const ITEM_DETAILS = {
+  'holy-grail': {
+    pages:[
+      {heading:'QUEST ITEM', body:'The Holy Grail — the ultimate prize of the realm. Recovered from the depths of the Vault after surviving the pressure-plate gauntlet. A legendary quest item.'},
+    ]
+  },
+  'skeleton-key': {
+    pages:[
+      {heading:'KEY ITEM', body:'A master key of unknown origin. Opens locks that others cannot. Earned by answering the riddle of the trees on the World Map.'},
+    ]
+  },
+  'sword': {
+    pages:[
+      {heading:'QUEST ITEM', body:'A knight\'s sword forged by Jimmy the Swordsmith deep within Erebor Mountain. Only those holding a Certification Badge — and the right mindset — may wield it.'},
+    ]
+  },
+  'cert-badge': {
+    pages:[
+      {heading:'COLLECTIBLE', body:'A Certification Badge earned by deciphering the hidden message in My Story. Proof of qualification — the swordsmith of the mountain forge will want to see this.'},
+    ]
+  },
+  'first-edition': {
+    pages:[
+      {heading:'PAGE I — THE QUEST', body:'To complete this quest, you must be qualified to wield a knight\'s sword. Seek your certification, then journey to the mountain forge where the swordsmith awaits.'},
+      {heading:'PAGE II — THE MAP', body:'__MAP__'},
+    ]
+  },
+  'fishing-rod': {
+    pages:[
+      {heading:'COLLECTIBLE', body:'A sturdy fishing rod from Raymond at Lake Tahoe. With this in hand, the waters of Tahoe may yield something special.'},
+    ]
+  },
+  'tahoe-fish': {
+    pages:[
+      {heading:'COLLECTIBLE', body:'A prized Tahoe Trout, caught in the crystal-clear waters of Lake Tahoe. A rare catch indeed.'},
+    ]
+  },
+  'blue-kayak': {
+    pages:[
+      {heading:'QUEST ITEM', body:'A blue kayak traded from King Lyn of Castle Anthrax in exchange for fine artwork. Perfect for navigating the waters of the realm.'},
+    ]
+  },
+  'artwork': {
+    pages:[
+      {heading:'COLLECTIBLE', body:'A beautiful piece of fluid art from the Town Square gallery. The castle walls are kind of bland — perhaps a certain king would appreciate this.'},
+    ]
+  },
+  'bread': {
+    pages:[
+      {heading:'COLLECTIBLE', body:'A fresh loaf of bread from the Town Square. Someone out on the water might be willing to trade for it.'},
+    ]
+  },
+  'old-compass': {
+    pages:[
+      {heading:'KEY ITEM', body:'An old compass recovered from The Lake. Its needle points unerringly toward the east wall of the Treasury in Castle Anthrax — where something is hidden.'},
+    ]
+  },
+  'sapphire': {
+    pages:[
+      {heading:'KEY ITEM', body:'A brilliant sapphire found on the eastern edge of the World Map, near the Hall of Records. Its purpose is unclear — for now.'},
+    ]
+  },
+  'ruby': {
+    pages:[
+      {heading:'KEY ITEM', body:'A deep red ruby found south of Erebor Mountain. Its purpose is unclear — for now.'},
+    ]
+  },
+};
+
+function ctrlH() {
+  const c = document.getElementById('nes-controller');
+  return c ? c.offsetHeight : CTRL_H;
+}
+
 let inventoryOpen = false;
+let selectedItemId = null;
+
 function toggleInventory() { inventoryOpen ? closeInventory() : openInventory(); }
 function openInventory() {
   if (activeDialog) closeDialog();
   if (menuOpen) closeMenu();
   inventoryOpen = true;
+  selectedItemId = null;
   document.getElementById('btnSelect').classList.add('pressed');
-  renderInventory();
-  document.getElementById('inventory-overlay').classList.add('open');
+  const overlay = document.getElementById('inventory-overlay');
+  overlay.style.bottom = ctrlH() + 'px';
+  renderItemList();
+  renderItemDetail(null);
+  overlay.classList.add('open');
 }
 function closeInventory() {
   inventoryOpen = false;
+  selectedItemId = null;
   document.getElementById('inventory-overlay').classList.remove('open');
   document.getElementById('btnSelect').classList.remove('pressed');
 }
-function renderInventory() {
+function renderItemList() {
   const total = ITEMS.reduce((s, i) => s + i.points, 0);
-  document.getElementById('inventory-points-banner').textContent =
+  document.getElementById('inv-points-banner').textContent =
     'Points: ' + GameState.points + ' / ' + total;
-  const list = document.getElementById('inventory-list');
+  const list = document.getElementById('inv-items-list');
   list.innerHTML = '';
-  [{key:'quest',label:'QUEST ITEMS'},{key:'key',label:'KEY ITEMS'},{key:'collectible',label:'COLLECTIBLES'}]
-    .forEach(cat => {
-      const catItems = ITEMS.filter(i => i.category === cat.key);
-      if (!catItems.length) return;
-      const h = document.createElement('div');
-      h.className = 'inv-category'; h.textContent = cat.label; list.appendChild(h);
-      const grid = document.createElement('div'); grid.className = 'inv-grid';
-      catItems.forEach(item => {
-        const got = GameState.hasItem(item.id);
-        const card = document.createElement('div');
-        card.className = 'inv-item ' + (got ? 'obtained' : 'locked');
-        const icon = document.createElement('div'); icon.className = 'inv-icon';
-        icon.textContent = got ? item.icon : '❓';
-        const name = document.createElement('div');
-        name.className = 'inv-name' + (got ? '' : ' locked-name');
-        name.textContent = got ? item.label : '???';
-        const loc = document.createElement('div'); loc.className = 'inv-location';
-        loc.textContent = item.page;
-        const pts = document.createElement('div'); pts.className = 'inv-pts';
-        pts.textContent = item.points + ' pts';
-        const badge = document.createElement('div');
-        badge.className = got ? 'inv-check' : 'inv-lock';
-        badge.textContent = got ? '✓' : '🔒';
-        card.append(icon, name, loc, pts, badge);
-        grid.appendChild(card);
-      });
-      list.appendChild(grid);
+  CAT_ORDER.forEach(cat => {
+    const catItems = ITEMS.filter(i => i.category === cat);
+    if (!catItems.length) return;
+    const lbl = document.createElement('div');
+    lbl.className = 'inv-cat-label'; lbl.textContent = CAT_LABELS[cat];
+    list.appendChild(lbl);
+    catItems.forEach(item => {
+      const got = GameState.hasItem(item.id);
+      const hasContent = got && ITEM_DETAILS[item.id];
+      const row = document.createElement('div');
+      row.className = 'inv-item' + (got ? ' obtained' : ' locked') + (hasContent ? ' has-content' : '');
+      if (item.id === selectedItemId) row.classList.add('selected');
+      const icon = document.createElement('div');
+      icon.className = 'inv-item-icon'; icon.textContent = got ? item.icon : '❓';
+      const info = document.createElement('div'); info.className = 'inv-item-info';
+      const name = document.createElement('div');
+      name.className = 'inv-item-name' + (got ? '' : ' locked-name');
+      name.textContent = got ? item.label : '???';
+      const pts = document.createElement('div');
+      pts.className = 'inv-item-pts'; pts.textContent = item.points + ' pts';
+      info.append(name, pts);
+      const badge = document.createElement('div');
+      badge.className = got ? 'inv-item-check' : 'inv-item-lock';
+      badge.textContent = got ? '✓' : '🔒';
+      row.append(icon, info, badge);
+      if (hasContent) { row.addEventListener('click', () => selectItem(item.id)); }
+      list.appendChild(row);
     });
+  });
 }
+function selectItem(id) {
+  selectedItemId = id;
+  renderItemList();
+  renderItemDetail(id);
+}
+function renderItemDetail(id) {
+  const empty   = document.getElementById('inv-detail-empty');
+  const content = document.getElementById('inv-detail-content');
+  if (!id || !ITEM_DETAILS[id]) {
+    empty.style.display = ''; content.style.display = 'none'; content.innerHTML = '';
+    return;
+  }
+  empty.style.display = 'none'; content.style.display = 'flex';
+  const item   = ITEMS.find(i => i.id === id);
+  const detail = ITEM_DETAILS[id];
+  content.innerHTML = '';
+  const iconEl  = document.createElement('div'); iconEl.id  = 'item-detail-icon';  iconEl.textContent  = item.icon;
+  const titleEl = document.createElement('div'); titleEl.id = 'item-detail-title'; titleEl.textContent = item.label;
+  const subEl   = document.createElement('div'); subEl.id   = 'item-detail-subtitle';
+  subEl.textContent = item.page + ' · ' + item.points + ' pts';
+  const bodyEl  = document.createElement('div'); bodyEl.id  = 'item-detail-body';
+  detail.pages.forEach(pg => {
+    const pageEl = document.createElement('div'); pageEl.className = 'detail-page';
+    const hEl = document.createElement('div'); hEl.className = 'detail-page-heading'; hEl.textContent = pg.heading;
+    pageEl.appendChild(hEl);
+    if (pg.body === '__MAP__') {
+      const mapEl = document.createElement('div'); mapEl.className = 'detail-map-placeholder';
+      mapEl.innerHTML = '<div class="map-icon">🗺</div><div class="map-label">EREBOR MOUNTAIN — TUNNEL MAP</div><div class="map-sub">Map image coming soon</div>';
+      pageEl.appendChild(mapEl);
+    } else {
+      const bEl = document.createElement('div'); bEl.className = 'detail-page-body'; bEl.textContent = pg.body;
+      pageEl.appendChild(bEl);
+    }
+    bodyEl.appendChild(pageEl);
+  });
+  content.append(iconEl, titleEl, subEl, bodyEl);
+}
+
 // ─────────────────────────────────────────────
 //  LOOP
 // ─────────────────────────────────────────────
@@ -1548,16 +1732,18 @@ GameState.visitZone('the-lake', 10);
 </script>
 
 <div id="inventory-overlay">
-  <div id="inventory-box">
-    <div id="inventory-title">★ INVENTORY ★</div>
-    <div id="inventory-subtitle">Items collected on your journey</div>
-    <div id="inventory-points-banner"></div>
-    <div id="inventory-list"></div>
-    <div id="inventory-close-hint">
-      <span style="background:#222;border:1.5px solid #555;color:#aaa;padding:1px 5px;border-radius:2px;">SELECT</span>
-      or
-      <span style="background:#222;border:1.5px solid #555;color:#aaa;padding:1px 5px;border-radius:2px;">B</span>
-      to close
+  <div id="inv-header">
+    <div id="inv-title">★ INVENTORY ★</div>
+    <div id="inv-points-banner"></div>
+    <div id="inv-close-hint"><span class="hint-badge-sm">SELECT</span> or <span class="hint-badge-sm">B</span> to close</div>
+  </div>
+  <div id="inv-body">
+    <div id="inv-items-list-wrap">
+      <div id="inv-items-list"></div>
+    </div>
+    <div id="inv-detail">
+      <div id="inv-detail-empty">Select an item to view details</div>
+      <div id="inv-detail-content"></div>
     </div>
   </div>
 </div>
