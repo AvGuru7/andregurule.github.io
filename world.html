@@ -620,9 +620,9 @@ const SPAWN_POINTS={
     'library':        {x:25,y:19},
     'town-square':    {x:16,y:14},
   'lake-tahoe':{x:11,y:21},
-  'the-lake':  {x:19,y:9},
+  'the-lake':  {x:19,y:8},
 };
-const _spawnHash=location.hash.match(/spawn=(\w+)/);
+const _spawnHash=location.hash.match(/spawn=([\w-]+)/);
 if(_spawnHash&&SPAWN_POINTS[_spawnHash[1]]){
   playerX=SPAWN_POINTS[_spawnHash[1]].x*TILE;
   playerY=SPAWN_POINTS[_spawnHash[1]].y*TILE;
