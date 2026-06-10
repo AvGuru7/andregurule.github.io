@@ -291,6 +291,72 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
 }
 #art-detail-back-btn:hover,#art-detail-back-btn:active{border-color:var(--gold);color:#fff3a0;}
 
+/* ── INVENTORY OVERLAY (two-column sidebar) ── */
+#inventory-overlay{
+  position:fixed;top:0;left:0;right:0;            /* bottom set at runtime via ctrlHeight() */
+  background:rgba(10,8,24,0.95);backdrop-filter:blur(4px);
+  z-index:500;display:none;flex-direction:column;
+  padding:clamp(10px,2vh,18px) clamp(10px,2vw,20px);
+}
+#inv-header{
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;
+  border-bottom:2px solid rgba(240,192,64,0.3);
+  padding-bottom:clamp(8px,1.5vh,12px);margin-bottom:clamp(8px,1.5vh,12px);
+}
+#inv-title{font-size:clamp(8px,1.5vw,12px);color:var(--gold);letter-spacing:2px;}
+#inv-points-banner{font-size:clamp(6px,1.1vw,9px);color:var(--ui-dim);}
+#inv-pts{color:var(--gold);}
+#inv-close-hint{font-size:clamp(5px,0.8vw,7px);color:var(--ui-dim);}
+#inv-body{flex:1;display:flex;gap:clamp(8px,1.5vw,14px);min-height:0;}
+#inv-items-list{
+  width:clamp(180px,42%,320px);overflow-y:auto;
+  display:flex;flex-direction:column;gap:2px;padding-right:4px;
+}
+.inv-cat-label{
+  font-size:clamp(5px,0.9vw,7px);color:var(--gold);letter-spacing:1px;
+  border-bottom:1px solid rgba(240,192,64,0.2);
+  padding-bottom:3px;margin:clamp(8px,1.4vh,12px) 0 4px;
+}
+.inv-cat-label:first-child{margin-top:0;}
+.inv-row{
+  display:flex;align-items:center;gap:6px;
+  padding:clamp(5px,0.9vh,8px) 6px;border:2px solid transparent;
+  font-size:clamp(5px,0.85vw,7px);color:var(--ui-text);line-height:1.5;
+  opacity:0.55;
+}
+.inv-row.collected{opacity:1;}
+.inv-row.has-content{cursor:pointer;}
+.inv-row.has-content:hover{border-color:var(--gold2);}
+.inv-row.selected{border-color:var(--gold);background:rgba(240,192,64,0.06);}
+.inv-row-icon{font-size:clamp(12px,2vw,16px);width:20px;text-align:center;flex-shrink:0;}
+.inv-row-label{flex:1;}
+.inv-row-pts{font-family:"VT323",monospace;font-size:clamp(11px,1.8vw,14px);color:var(--gold);flex-shrink:0;}
+.inv-row-badge{font-size:clamp(5px,0.8vw,7px);flex-shrink:0;}
+.inv-row-badge.got{color:#40c060;}
+.inv-row-badge.locked{color:#c04040;}
+#inv-detail{
+  flex:1;border:3px solid #3a3060;background:#0a0818;
+  padding:clamp(10px,2vw,18px);overflow-y:auto;min-width:0;
+}
+#inv-detail-empty{
+  height:100%;display:flex;align-items:center;justify-content:center;text-align:center;
+  font-size:clamp(5px,0.9vw,7px);color:var(--ui-dim);line-height:2;
+}
+#inv-detail-heading{font-size:clamp(6px,1.1vw,9px);color:var(--gold);letter-spacing:1px;margin-bottom:clamp(8px,1.5vh,12px);line-height:1.6;}
+#inv-detail-body{font-family:"VT323",monospace;font-size:clamp(15px,2.4vw,19px);color:var(--ui-text);line-height:1.45;}
+.inv-map-placeholder{
+  border:2px dashed rgba(240,192,64,0.4);padding:clamp(16px,3vh,28px);
+  text-align:center;font-size:clamp(6px,1vw,8px);color:var(--ui-dim);line-height:2;
+}
+#inv-detail-pager{display:flex;justify-content:center;align-items:center;gap:14px;margin-top:clamp(10px,2vh,16px);}
+.inv-pager-btn{
+  font-family:"Press Start 2P",monospace;font-size:clamp(7px,1.1vw,9px);
+  color:var(--gold);background:transparent;border:2px solid var(--gold2);
+  padding:5px 10px;cursor:pointer;touch-action:manipulation;
+}
+.inv-pager-btn:disabled{opacity:0.3;cursor:default;}
+#inv-detail-page-num{font-family:"VT323",monospace;font-size:clamp(13px,2vw,16px);color:var(--ui-dim);}
+
 /* ── EXIT SIGN ── */
 #exit-sign{
   position:fixed;bottom:clamp(170px,26vh,220px);left:50%;transform:translateX(-50%);
@@ -354,17 +420,17 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <a class="menu-item" id="menu-world" href="world.html">
       <span class="menu-item-icon">🗺</span> WORLD MAP
     </a>
-    <a class="menu-item" id="menu-library" href="andregurule-library.html">
+    <a class="menu-item" id="menu-records" href="hall-of-records.html">
       <span class="menu-item-icon">⚔</span> HALL OF RECORDS
     </a>
     <a class="menu-item" id="menu-anthrax" href="castle-anthrax.html">
       <span class="menu-item-icon">📖</span> CASTLE ANTHRAX
     </a>
-    <a class="menu-item" href="https://www.andregurule.com/hobbies" target="_blank">
+    <a class="menu-item" id="menu-erebor" href="erebor-mountain.html">
       <span class="menu-item-icon">⛰</span> EREBOR MOUNTAIN
     </a>
-    <a class="menu-item" href="https://www.andregurule.com/blog" target="_blank">
-      <span class="menu-item-icon">📜</span> SCROLL LIBRARY
+    <a class="menu-item" id="menu-library" href="andregurule-library.html">
+      <span class="menu-item-icon">📜</span> LIBRARY
     </a>
     <div id="menu-divider"></div>
     <a class="menu-item" href="https://linkedin.com/in/andregurule" target="_blank">
@@ -450,17 +516,26 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </div>
 </div>
 
-<!-- Inventory Overlay -->
-<div id="inventory-overlay" style="display:none;position:fixed;inset:0;background:rgba(10,8,24,0.92);backdrop-filter:blur(4px);z-index:500;align-items:center;justify-content:center;overflow-y:auto;padding:12px;">
-  <div id="inventory-box" style="background:var(--ui-bg);border:4px solid var(--gold);padding:clamp(16px,3vw,28px) clamp(18px,3.5vw,32px);width:min(700px,96vw);position:relative;">
-    <div style="content:'';position:absolute;inset:3px;border:1px solid rgba(240,192,64,0.22);pointer-events:none;"></div>
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:clamp(12px,2vh,20px);flex-wrap:wrap;gap:8px;">
-      <div style="font-size:clamp(8px,1.5vw,12px);color:var(--gold);letter-spacing:2px;">★ INVENTORY ★</div>
-      <div id="inv-pts-banner" style="font-size:clamp(6px,1.1vw,9px);color:var(--ui-dim);">POINTS: <span id="inv-pts" style="color:var(--gold);">0</span> / 205</div>
-    </div>
-    <div id="inventory-list"></div>
-    <div style="text-align:center;margin-top:clamp(12px,2vh,20px);font-size:clamp(5px,0.8vw,7px);color:var(--ui-dim);">
-      <span class="hint-badge-sm">B</span> or <span class="hint-badge-sm">SELECT</span> to close
+<!-- Inventory Overlay (two-column sidebar) -->
+<div id="inventory-overlay" style="display:none;">
+  <div id="inv-header">
+    <div id="inv-title">★ INVENTORY ★</div>
+    <div id="inv-points-banner">POINTS: <span id="inv-pts">0</span> / 355</div>
+    <div id="inv-close-hint"><span class="hint-badge-sm">B</span> or <span class="hint-badge-sm">SELECT</span> to close</div>
+  </div>
+  <div id="inv-body">
+    <div id="inv-items-list"></div>
+    <div id="inv-detail">
+      <div id="inv-detail-empty">Select a collected item<br>to view its details.</div>
+      <div id="inv-detail-content" style="display:none;">
+        <div id="inv-detail-heading"></div>
+        <div id="inv-detail-body"></div>
+        <div id="inv-detail-pager" style="display:none;">
+          <button class="inv-pager-btn" id="inv-prev-btn" onclick="invPage(-1)">◀ PREV</button>
+          <span id="inv-detail-page-num">1 / 1</span>
+          <button class="inv-pager-btn" id="inv-next-btn" onclick="invPage(1)">NEXT ▶</button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -526,15 +601,84 @@ function trackArtPurchase(piece){
   }).catch(()=>{});
 }
 
-// Items available on this page
+// Items registry (canonical 13 + Town Square art pieces)
 const ITEMS = [
-  {id:'artwork', icon:'🖼️', label:'Artwork',   category:'collectible', points:10, page:'Town Square'},
-  {id:'bread',   icon:'🍞', label:'Bread',     category:'collectible', points:10, page:'Town Square'},
-  {id:'art-lake-tahoe',      icon:'🖼️', label:'Lake Tahoe',       category:'collectible', points:0, page:'Art Gallery'},
-  {id:'art-tahoe-bear',      icon:'🖼️', label:'Tahoe Bear',       category:'collectible', points:0, page:'Art Gallery'},
-  {id:'art-the-sierras',     icon:'🖼️', label:'The Sierras',      category:'collectible', points:0, page:'Art Gallery'},
-  {id:'art-california-nevada',icon:'🖼️',label:'California Nevada', category:'collectible', points:0, page:'Art Gallery'},
+  {id:'holy-grail',    icon:'🏆', label:'Holy Grail',          category:'quest',       points:50, page:'Castle Anthrax'},
+  {id:'skeleton-key',  icon:'🔑', label:'Skeleton Key',         category:'key',         points:30, page:'World Map'},
+  {id:'sword',         icon:'⚔️', label:'Sword',                category:'quest',       points:25, page:'Erebor Mountain'},
+  {id:'cert-badge',    icon:'📜', label:'Certification Badge',  category:'collectible', points:20, page:'My Story'},
+  {id:'first-edition', icon:'📖', label:'First Edition',        category:'collectible', points:20, page:'The Library'},
+  {id:'fishing-rod',   icon:'🎣', label:'Fishing Rod',          category:'collectible', points:15, page:'Lake Tahoe'},
+  {id:'tahoe-fish',    icon:'🐟', label:'Tahoe Trout',          category:'collectible', points:25, page:'Lake Tahoe'},
+  {id:'blue-kayak',    icon:'🚣', label:'Blue Kayak',           category:'quest',       points:15, page:'Castle Anthrax'},
+  {id:'artwork',       icon:'🖼️', label:'Artwork',              category:'collectible', points:10, page:'Town Square'},
+  {id:'bread',         icon:'🍞', label:'Bread',                category:'collectible', points:10, page:'Town Square'},
+  {id:'old-compass',   icon:'🧭', label:'Old Compass',          category:'collectible', points:10, page:'The Lake'},
+  {id:'sapphire',      icon:'💎', label:'Sapphire',             category:'key',         points:75, page:'World Map'},
+  {id:'ruby',          icon:'🔴', label:'Ruby',                 category:'key',         points:75, page:'World Map'},
+  {id:'art-lake-tahoe',       icon:'🖼️', label:'Lake Tahoe',        category:'collectible', points:0, page:'Art Gallery'},
+  {id:'art-tahoe-bear',       icon:'🖼️', label:'Tahoe Bear',        category:'collectible', points:0, page:'Art Gallery'},
+  {id:'art-the-sierras',      icon:'🖼️', label:'The Sierras',       category:'collectible', points:0, page:'Art Gallery'},
+  {id:'art-california-nevada',icon:'🖼️', label:'California Nevada', category:'collectible', points:0, page:'Art Gallery'},
 ];
+
+const CAT_ORDER = ['quest','key','collectible'];
+const CAT_LABELS = {quest:'QUEST ITEMS', key:'KEY ITEMS', collectible:'COLLECTIBLES'};
+
+const ITEM_DETAILS = {
+  'holy-grail':{pages:[
+    {heading:'QUEST ITEM',body:'The legendary Holy Grail — retrieved from the depths of Castle Anthrax. Those who seek it must answer a riddle worthy of King Arthur himself.'},
+  ]},
+  'skeleton-key':{pages:[
+    {heading:'KEY ITEM',body:'A master key found in the wild lands of the World Map. It is said to open doors that knowledge and wisdom cannot.'},
+  ]},
+  'sword':{pages:[
+    {heading:'QUEST ITEM — THE OUTWARD BLADE',body:'Forged by Jimmy the Swordsmith in the heart of Erebor Mountain. Only those who have proven their qualifications and passed the riddle may wield it.'},
+  ]},
+  'cert-badge':{pages:[
+    {heading:'COLLECTIBLE',body:'A certification badge earned by decoding the cipher in My Story. Proof that you have done the work — and that Jimmy will take you seriously.'},
+  ]},
+  'first-edition':{pages:[
+    {heading:'THE QUEST',body:'To complete this quest, you must be qualified to wield a knight\'s sword. The swordsmith in the mountain will only give swords to those who can prove their qualifications. However, the means of gaining those skills is classified.'},
+    {heading:'MAP — EREBOR MOUNTAIN',body:'__MAP__'},
+  ]},
+  'fishing-rod':{pages:[
+    {heading:'COLLECTIBLE',body:'A sturdy fishing rod found at the shores of Lake Tahoe. Useful for catching Tahoe Trout — and maybe something more.'},
+  ]},
+  'tahoe-fish':{pages:[
+    {heading:'COLLECTIBLE',body:'A fine Tahoe Trout pulled from the crystal waters of Lake Tahoe. Fresh catch of the day.'},
+  ]},
+  'blue-kayak':{pages:[
+    {heading:'QUEST ITEM',body:'A beautiful blue kayak, traded to King Lyn of Castle Anthrax in exchange for passage. Something beautiful for something useful.'},
+  ]},
+  'artwork':{pages:[
+    {heading:'COLLECTIBLE',body:'A piece of artwork recovered from Town Square. King Lyn of Castle Anthrax has expressed interest in fine art. Perhaps it is worth something to him.'},
+  ]},
+  'bread':{pages:[
+    {heading:'COLLECTIBLE',body:'A fresh loaf of bread from Town Square. Sustenance for the long journey ahead.'},
+  ]},
+  'old-compass':{pages:[
+    {heading:'COLLECTIBLE',body:'An old compass recovered from The Lake. Its needle points unerringly toward the east wall of the Treasury in Castle Anthrax — where something is hidden.'},
+  ]},
+  'sapphire':{pages:[
+    {heading:'KEY ITEM',body:'A brilliant sapphire found on the eastern edge of the World Map, near the Hall of Records. Its purpose is unclear — for now.'},
+  ]},
+  'ruby':{pages:[
+    {heading:'KEY ITEM',body:'A deep red ruby found south of Erebor Mountain. Its purpose is unclear — for now.'},
+  ]},
+  'art-lake-tahoe':{pages:[
+    {heading:'TAHOE FLUID ART',body:'"Lake Tahoe" — an original fluid art piece from the Art Gallery in Town Square. Handcrafted by a husband and wife team.'},
+  ]},
+  'art-tahoe-bear':{pages:[
+    {heading:'TAHOE FLUID ART',body:'"Tahoe Bear" — an original fluid art piece from the Art Gallery in Town Square. Handcrafted by a husband and wife team.'},
+  ]},
+  'art-the-sierras':{pages:[
+    {heading:'TAHOE FLUID ART',body:'"The Sierras" — an original fluid art piece from the Art Gallery in Town Square. Handcrafted by a husband and wife team.'},
+  ]},
+  'art-california-nevada':{pages:[
+    {heading:'TAHOE FLUID ART',body:'"California Nevada" — an original fluid art piece from the Art Gallery in Town Square. Handcrafted by a husband and wife team.'},
+  ]},
+};
 
 // Art Gallery pieces for purchase
 const ART_PIECES = [
@@ -1382,9 +1526,11 @@ function openMenu(){
   menuIdx=0;updateMenuCursor();
   document.getElementById('menu-btn').classList.add('pressed');
   // Rewrite internal nav links with state
-  document.getElementById('menu-world').href=GameState.withState('world.html#spawn=contact');
-  document.getElementById('menu-library').href=GameState.withState('andregurule-library.html');
+  document.getElementById('menu-world').href=GameState.withState('world.html#spawn=town-square');
+  document.getElementById('menu-records').href=GameState.withState('hall-of-records.html');
   document.getElementById('menu-anthrax').href=GameState.withState('castle-anthrax.html');
+  document.getElementById('menu-erebor').href=GameState.withState('erebor-mountain.html');
+  document.getElementById('menu-library').href=GameState.withState('andregurule-library.html');
 }
 function closeMenu(){
   menuOpen=false;
@@ -1400,59 +1546,104 @@ function updateMenuCursor(){
 }
 function menuSelectCurrent(){if(menuItems[menuIdx])menuItems[menuIdx].click();}
 
-// ── INVENTORY ──
+// ── INVENTORY (two-column sidebar) ──
 let inventoryOpen = false;
+let selectedItemId = null;
+let invPageIdx = 0;
 function toggleInventory(){ inventoryOpen ? closeInventory() : openInventory(); }
 function openInventory(){
   if(menuOpen) closeMenu();
   if(dialogOpen) closeDialog();
   inventoryOpen = true;
-  document.getElementById('inv-pts').textContent = GameState.points;
-  // Build item list grouped by category
-  const groups = [
-    {label:'Quest Items',   cat:'quest'},
-    {label:'Key Items',     cat:'key'},
-    {label:'Collectibles',  cat:'collectible'},
-  ];
-  const list = document.getElementById('inventory-list');
-  list.innerHTML = '';
-  groups.forEach(g => {
-    const groupItems = ITEMS.filter(i => i.category === g.cat);
-    if(!groupItems.length) return;
-    const heading = document.createElement('div');
-    heading.style.cssText = 'font-size:clamp(6px,1vw,8px);color:var(--gold);margin:clamp(10px,1.8vh,16px) 0 8px;letter-spacing:1px;border-bottom:1px solid rgba(240,192,64,0.2);padding-bottom:4px;';
-    heading.textContent = g.label;
-    list.appendChild(heading);
-    const grid = document.createElement('div');
-    grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(clamp(120px,18vw,160px),1fr));gap:clamp(6px,1.2vw,10px);margin-bottom:8px;';
-    groupItems.forEach(item => {
-      const collected = GameState.hasItem(item.id);
-      const card = document.createElement('div');
-      card.style.cssText = `background:#0a0818;border:3px solid ${collected?'#40c060':'#3a3060'};padding:clamp(8px,1.4vw,12px);display:flex;flex-direction:column;gap:4px;position:relative;opacity:${collected?'1':'0.55'};`;
-      card.innerHTML = `
-        <div style="font-size:clamp(18px,3vw,24px);text-align:center;">${collected?item.icon:'❓'}</div>
-        <div style="font-size:clamp(5px,0.85vw,7px);color:var(--ui-text);line-height:1.5;text-align:center;">${collected?item.label:'???'}</div>
-        <div style="font-family:'VT323',monospace;font-size:clamp(12px,2vw,16px);color:var(--ui-dim);text-align:center;">${item.page}</div>
-        <div style="position:absolute;top:4px;right:4px;font-size:clamp(4px,0.7vw,6px);${collected?'color:#40c060;':'color:#c04040;'}">${collected?'✓':'🔒'}</div>
-        ${item.points>0?`<div style="font-family:'VT323',monospace;font-size:clamp(12px,2vw,16px);color:var(--gold);text-align:center;">+${item.points} pts</div>`:''}
-      `;
-      grid.appendChild(card);
-    });
-    list.appendChild(grid);
-  });
   const ov = document.getElementById('inventory-overlay');
+  ov.style.bottom = ctrlHeight() + 'px';   // clear above the NES controller — never inset:0
   ov.style.display = 'flex';
+  document.getElementById('inv-pts').textContent = GameState.points;
+  renderItemList();
+  renderItemDetail(null);
   document.getElementById('btn-select').classList.add('pressed');
 }
 function closeInventory(){
   inventoryOpen = false;
+  selectedItemId = null;
   document.getElementById('inventory-overlay').style.display = 'none';
   document.getElementById('btn-select').classList.remove('pressed');
+}
+function renderItemList(){
+  const list = document.getElementById('inv-items-list');
+  list.innerHTML = '';
+  CAT_ORDER.forEach(cat => {
+    const groupItems = ITEMS.filter(i => i.category === cat);
+    if(!groupItems.length) return;
+    const label = document.createElement('div');
+    label.className = 'inv-cat-label';
+    label.textContent = CAT_LABELS[cat];
+    list.appendChild(label);
+    groupItems.forEach(item => {
+      const collected  = GameState.hasItem(item.id);
+      const hasContent = collected && ITEM_DETAILS[item.id];
+      const row = document.createElement('div');
+      row.className = 'inv-row'
+        + (collected ? ' collected' : '')
+        + (hasContent ? ' has-content' : '')
+        + (item.id === selectedItemId ? ' selected' : '');
+      row.innerHTML =
+        '<span class="inv-row-icon">' + (collected ? item.icon : '❓') + '</span>' +
+        '<span class="inv-row-label">' + (collected ? item.label : '???') + '</span>' +
+        (item.points > 0 ? '<span class="inv-row-pts">+' + item.points + '</span>' : '') +
+        '<span class="inv-row-badge ' + (collected ? 'got' : 'locked') + '">' + (collected ? '✓' : '🔒') + '</span>';
+      if(hasContent){
+        row.addEventListener('click', () => selectItem(item.id));
+      }
+      list.appendChild(row);
+    });
+  });
+}
+function selectItem(id){
+  selectedItemId = id;
+  invPageIdx = 0;
+  renderItemList();
+  renderItemDetail(id);
+}
+function renderItemDetail(id){
+  const empty   = document.getElementById('inv-detail-empty');
+  const content = document.getElementById('inv-detail-content');
+  if(!id || !ITEM_DETAILS[id]){
+    empty.style.display = 'flex';
+    content.style.display = 'none';
+    return;
+  }
+  empty.style.display = 'none';
+  content.style.display = 'block';
+  const pages = ITEM_DETAILS[id].pages;
+  const pg = pages[Math.min(invPageIdx, pages.length - 1)];
+  document.getElementById('inv-detail-heading').textContent = pg.heading;
+  const bodyEl = document.getElementById('inv-detail-body');
+  if(pg.body === '__MAP__'){
+    bodyEl.innerHTML = '<div class="inv-map-placeholder">🗺<br>EREBOR MOUNTAIN MAP<br>(coming soon)</div>';
+  } else {
+    bodyEl.textContent = pg.body;
+  }
+  const pager = document.getElementById('inv-detail-pager');
+  if(pages.length > 1){
+    pager.style.display = 'flex';
+    document.getElementById('inv-detail-page-num').textContent = (invPageIdx + 1) + ' / ' + pages.length;
+    document.getElementById('inv-prev-btn').disabled = invPageIdx === 0;
+    document.getElementById('inv-next-btn').disabled = invPageIdx === pages.length - 1;
+  } else {
+    pager.style.display = 'none';
+  }
+}
+function invPage(dir){
+  if(!selectedItemId || !ITEM_DETAILS[selectedItemId]) return;
+  const max = ITEM_DETAILS[selectedItemId].pages.length - 1;
+  invPageIdx = Math.max(0, Math.min(max, invPageIdx + dir));
+  renderItemDetail(selectedItemId);
 }
 
 // ── EXIT ──
 function exitToWorld(){
-  window.location.href=GameState.withState('world.html#spawn=contact');
+  window.location.href=GameState.withState('world.html#spawn=town-square');
 }
 
 // ── KEYBOARD ──
