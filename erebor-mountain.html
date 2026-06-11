@@ -987,7 +987,7 @@ function handleJimmyRiddle(){
     if(answer==='outward mindset'){
       swordCollected=true;GameState.collectItem('sword');
       closeDialog();
-      showZoneLabel('⚔ Correct! The Outward Blade is yours. +25 pts');
+      showInlineDialog('⚔ THE OUTWARD BLADE','*Jimmy nods slowly and lifts the sword from his anvil.*\n\n"You understand. Most never do. The Outward Blade is yours — use it well."\n\n⚔ Sword added to inventory. +25 pts','[A] Thank you');
     } else {
       feedback.style.color='#ff6060';
       feedback.textContent='That is not the answer. Try again.';
