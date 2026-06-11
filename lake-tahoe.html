@@ -349,64 +349,80 @@ const canvas = document.getElementById('gameCanvas');
 const ctx    = canvas.getContext('2d');
 const CTRL_H = 110;
 
+let WORLD_W, WORLD_H;
+let camX = 0, camY = 0;
+let LAKE_MARGIN, lakePoly;
+
 function resize() {
   canvas.width  = window.innerWidth;
   canvas.height = window.innerHeight - CTRL_H;
+  WORLD_W = canvas.width;
+  WORLD_H = canvas.height * 3;
 }
 resize();
-window.addEventListener('resize', () => { resize(); });
+window.addEventListener('resize', () => { resize(); computeLakeGeometry(); });
 
 // ─────────────────────────────────────────────
 //  LAKE TAHOE SHAPE (normalized 0–1 polygon)
 //  Approximates real Tahoe outline — elongated N-S, slightly crescent
 // ─────────────────────────────────────────────
 // Points go clockwise from top-center
+// Real Tahoe: narrow pointed north, wide body, broad flat south shore
+// Aspect ratio ~1.83:1 (22mi tall × 12mi wide)
 const LAKE_POLY_NORM = [
-  [0.46, 0.01], // North tip — extended up
-  [0.54, 0.01],
-  [0.63, 0.04],
-  [0.70, 0.08],
-  [0.74, 0.14],
-  [0.76, 0.22],
-  [0.75, 0.30],
-  [0.73, 0.38],
-  [0.72, 0.46],
-  [0.74, 0.54],
-  [0.73, 0.62],
-  [0.70, 0.70],
-  [0.64, 0.79],  // SE
-  [0.56, 0.85],
-  [0.50, 0.88],  // South — boat landing area
-  [0.44, 0.85],
-  [0.36, 0.79],
-  [0.30, 0.71],
-  [0.27, 0.63],
-  [0.26, 0.55],
-  [0.28, 0.47],
-  [0.27, 0.39],
-  [0.25, 0.31],
-  [0.24, 0.23],
-  [0.26, 0.15],
-  [0.30, 0.08],
-  [0.37, 0.04],
+  // ── NORTH TIP (narrow) ──
+  [0.48, 0.00],
+  [0.52, 0.00],
+  // ── NORTHEAST shore (bulges out) ──
+  [0.60, 0.02],
+  [0.67, 0.06],
+  [0.72, 0.11],
+  [0.76, 0.17],
+  [0.78, 0.24],
+  // ── EAST shore (Nevada side — wider, straighter) ──
+  [0.79, 0.32],
+  [0.80, 0.40],
+  [0.80, 0.48],
+  [0.79, 0.56],
+  [0.77, 0.63],
+  // ── SOUTHEAST — Stateline/Cave Rock area ──
+  [0.74, 0.70],
+  [0.70, 0.76],
+  // ── SOUTH shore (broad, nearly flat — South Lake Tahoe) ──
+  [0.65, 0.82],
+  [0.58, 0.87],
+  [0.50, 0.89],
+  [0.42, 0.87],
+  [0.35, 0.82],
+  // ── SOUTHWEST — Emerald Bay side ──
+  [0.29, 0.76],
+  [0.25, 0.70],
+  // ── WEST shore (California side — slightly irregular) ──
+  [0.22, 0.63],
+  [0.21, 0.56],
+  [0.21, 0.48],
+  [0.22, 0.40],
+  [0.23, 0.32],
+  // ── NORTHWEST ──
+  [0.24, 0.24],
+  [0.27, 0.17],
+  [0.31, 0.11],
+  [0.37, 0.06],
+  [0.43, 0.02],
 ];
 
 // ─────────────────────────────────────────────
 //  WORLD COORDINATES  (lake fills most of canvas)
 // ─────────────────────────────────────────────
-let W, H, LAKE_MARGIN, lakePoly;
 
 function computeLakeGeometry() {
-  W = canvas.width;
-  H = canvas.height;
-  LAKE_MARGIN = Math.min(W, H) * 0.06;
+  LAKE_MARGIN = Math.min(WORLD_W, WORLD_H) * 0.06;
   lakePoly = LAKE_POLY_NORM.map(([nx, ny]) => [
-    LAKE_MARGIN + nx * (W - 2 * LAKE_MARGIN),
-    LAKE_MARGIN + ny * (H - 2 * LAKE_MARGIN)
+    LAKE_MARGIN + nx * (WORLD_W - 2 * LAKE_MARGIN),
+    LAKE_MARGIN + ny * (WORLD_H - 2 * LAKE_MARGIN)
   ]);
 }
 computeLakeGeometry();
-window.addEventListener('resize', computeLakeGeometry);
 
 // Point-in-polygon (ray casting)
 function pointInPoly(px, py, poly) {
@@ -425,10 +441,9 @@ function pointInPoly(px, py, poly) {
 // ─────────────────────────────────────────────
 // Spawn at south boat landing (~50%, 88% of lake area)
 function lakePoint(nx, ny) {
-  computeLakeGeometry();
   return {
-    x: LAKE_MARGIN + nx * (W - 2 * LAKE_MARGIN),
-    y: LAKE_MARGIN + ny * (H - 2 * LAKE_MARGIN)
+    x: LAKE_MARGIN + nx * (WORLD_W - 2 * LAKE_MARGIN),
+    y: LAKE_MARGIN + ny * (WORLD_H - 2 * LAKE_MARGIN)
   };
 }
 
@@ -438,6 +453,9 @@ function resetPlayerPos() {
   const pt = lakePoint(0.50, 0.82);
   playerX = pt.x;
   playerY = pt.y;
+  // Centre camera on spawn
+  camX = Math.max(0, Math.min(playerX - canvas.width / 2,  WORLD_W - canvas.width));
+  camY = Math.max(0, Math.min(playerY - canvas.height / 2, WORLD_H - canvas.height));
 }
 resetPlayerPos();
 window.addEventListener('resize', () => {
@@ -864,6 +882,12 @@ function update(dt) {
   waveOffset += dt * 0.0008;
   fishBobOffset = Math.sin(Date.now() * 0.002) * 3;
   document.getElementById('pointsDisplay').textContent = GameState.points;
+
+  // ── CAMERA — follow player, clamp to world bounds ──
+  const targetCamX = playerX - canvas.width / 2;
+  const targetCamY = playerY - canvas.height / 2;
+  camX = Math.max(0, Math.min(targetCamX, WORLD_W - canvas.width));
+  camY = Math.max(0, Math.min(targetCamY, WORLD_H - canvas.height));
 }
 
 // ─────────────────────────────────────────────
@@ -1412,37 +1436,40 @@ function drawInteractPrompt(x, y, label) {
 // ─────────────────────────────────────────────
 function draw() {
   const W = canvas.width, H = canvas.height;
-  ctx.clearRect(0, 0, W, H);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // ── WORLD SPACE (camera-translated) ──
+  ctx.save();
+  ctx.translate(-camX, -camY);
 
   // ── LAND BACKGROUND ──
-  // Dark forest/mountain gradient around the outside
-  const landGrad = ctx.createRadialGradient(W/2, H/2, 0, W/2, H/2, Math.max(W, H) * 0.8);
+  const landGrad = ctx.createRadialGradient(WORLD_W/2, WORLD_H/6, 0, WORLD_W/2, WORLD_H/6, Math.max(WORLD_W, WORLD_H) * 0.8);
   landGrad.addColorStop(0, '#2a3a20');
   landGrad.addColorStop(0.4, '#1e2e18');
   landGrad.addColorStop(1, '#0f1a0a');
   ctx.fillStyle = landGrad;
-  ctx.fillRect(0, 0, W, H);
+  ctx.fillRect(0, 0, WORLD_W, WORLD_H);
 
   // ── DECORATIONS (behind lake) ──
   // Pine trees
   for (const [nx, ny] of DECO.pines) {
-    const px = LAKE_MARGIN + nx * (W - 2 * LAKE_MARGIN);
-    const py = LAKE_MARGIN + ny * (H - 2 * LAKE_MARGIN);
+    const px = LAKE_MARGIN + nx * (WORLD_W - 2 * LAKE_MARGIN);
+    const py = LAKE_MARGIN + ny * (WORLD_H - 2 * LAKE_MARGIN);
     const sz = 28 + Math.abs(Math.sin(nx * 17 + ny * 31)) * 18;
     drawPineTree(px, py, sz);
   }
 
   // Cabins
   for (const [nx, ny] of DECO.cabins) {
-    const px = LAKE_MARGIN + nx * (W - 2 * LAKE_MARGIN);
-    const py = LAKE_MARGIN + ny * (H - 2 * LAKE_MARGIN);
+    const px = LAKE_MARGIN + nx * (WORLD_W - 2 * LAKE_MARGIN);
+    const py = LAKE_MARGIN + ny * (WORLD_H - 2 * LAKE_MARGIN);
     drawLogCabin(px, py, 52, 44);
   }
 
   // Boulders
   for (const [nx, ny] of DECO.boulders) {
-    const px = LAKE_MARGIN + nx * (W - 2 * LAKE_MARGIN);
-    const py = LAKE_MARGIN + ny * (H - 2 * LAKE_MARGIN);
+    const px = LAKE_MARGIN + nx * (WORLD_W - 2 * LAKE_MARGIN);
+    const py = LAKE_MARGIN + ny * (WORLD_H - 2 * LAKE_MARGIN);
     const r = 12 + Math.abs(Math.sin(nx * 13 + ny * 23)) * 10;
     drawGraniteBoulder(px, py, r);
   }
@@ -1457,23 +1484,24 @@ function draw() {
   ctx.clip();
 
   // Base water fill
-  const waterGrad = ctx.createLinearGradient(W * 0.2, H * 0.05, W * 0.8, H * 0.95);
+  const waterGrad = ctx.createLinearGradient(WORLD_W * 0.2, WORLD_H * 0.02, WORLD_W * 0.8, WORLD_H * 0.32);
   waterGrad.addColorStop(0, '#0d2d60');
   waterGrad.addColorStop(0.35, '#0a2050');
   waterGrad.addColorStop(0.65, '#081840');
   waterGrad.addColorStop(1, '#061030');
   ctx.fillStyle = waterGrad;
-  ctx.fillRect(0, 0, W, H);
+  ctx.fillRect(0, 0, WORLD_W, WORLD_H);
 
   // Wave lines (subtle horizontal shimmer)
   ctx.strokeStyle = 'rgba(40,100,200,0.18)';
   ctx.lineWidth = 1.2;
+  const lakeH = WORLD_H;
   for (let row = 0; row < 30; row++) {
-    const wy = H * 0.05 + row * H * 0.03;
+    const wy = lakeH * 0.05 + row * lakeH * 0.03;
     const phase = waveOffset + row * 0.4;
     ctx.beginPath();
-    for (let xi = 0; xi < W; xi += 4) {
-      const yd = Math.sin((xi / W) * 8 + phase) * 2 + Math.cos((xi / W) * 5 + phase * 1.3) * 1.5;
+    for (let xi = 0; xi < WORLD_W; xi += 4) {
+      const yd = Math.sin((xi / WORLD_W) * 8 + phase) * 2 + Math.cos((xi / WORLD_W) * 5 + phase * 1.3) * 1.5;
       xi === 0 ? ctx.moveTo(xi, wy + yd) : ctx.lineTo(xi, wy + yd);
     }
     ctx.stroke();
@@ -1483,8 +1511,8 @@ function draw() {
   ctx.fillStyle = 'rgba(180,220,255,0.12)';
   const sparkCount = 28;
   for (let i = 0; i < sparkCount; i++) {
-    const sx = W * (0.15 + (i * 0.618 % 0.7));
-    const sy = H * (0.08 + ((i * 0.382) % 0.84));
+    const sx = WORLD_W * (0.15 + (i * 0.618 % 0.7));
+    const sy = lakeH * (0.08 + ((i * 0.382) % 0.84));
     const sw = 2 + Math.sin(waveOffset * 2 + i) * 1;
     const salpha = Math.abs(Math.sin(waveOffset * 1.5 + i * 0.7)) * 0.5;
     ctx.globalAlpha = salpha;
@@ -1571,7 +1599,11 @@ function draw() {
   // ── PLAYER ──
   drawKayakPlayer(playerX, playerY, playerDir, playerFrame);
 
-  // ── LOCATION LABEL ──
+  // ── END WORLD SPACE ──
+  ctx.restore();
+
+  // ── HUD (screen space) ──
+  // Location label
   ctx.save();
   ctx.fillStyle = 'rgba(13,10,24,0.7)';
   ctx.fillRect(W / 2 - 90, 10, 180, 22);
