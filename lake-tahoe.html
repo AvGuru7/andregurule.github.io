@@ -160,26 +160,44 @@
   #ctrl-hint{font-family:'VT323',monospace;font-size:clamp(10px,1.8vw,13px);color:var(--gold);text-align:center;opacity:0.75;}
 
   /* ── INVENTORY OVERLAY ── */
-  #inventory-overlay{position:fixed;inset:0;background:rgba(10,8,24,0.95);backdrop-filter:blur(4px);z-index:400;display:none;align-items:flex-start;justify-content:center;padding:clamp(12px,2vh,24px) clamp(8px,2vw,16px);overflow-y:auto;}
+  /* ── Inventory overlay — two-column sidebar design ── */
+  #inventory-overlay{position:fixed;top:0;left:0;right:0;background:rgba(10,8,24,0.97);backdrop-filter:blur(4px);z-index:400;display:none;flex-direction:column;}
   #inventory-overlay.open{display:flex;}
-  #inventory-box{background:var(--ui-bg);border:4px solid var(--gold);padding:clamp(16px,3vw,28px) clamp(18px,3.5vw,32px);width:min(700px,96vw);position:relative;}
-  #inventory-box::before{content:'';position:absolute;inset:3px;border:1px solid rgba(240,192,64,0.22);pointer-events:none;}
-  #inventory-title{font-size:clamp(9px,1.6vw,13px);color:var(--gold);text-align:center;margin-bottom:clamp(6px,1.2vh,12px);letter-spacing:2px;}
-  #inventory-subtitle{font-family:'VT323',monospace;font-size:clamp(14px,2.5vw,18px);color:#a09070;text-align:center;margin-bottom:clamp(12px,2vh,20px);border-bottom:1px solid rgba(240,192,64,0.18);padding-bottom:clamp(8px,1.5vh,14px);}
-  #inventory-points-banner{font-family:'VT323',monospace;font-size:clamp(16px,3vw,22px);color:var(--gold);text-align:center;margin-bottom:clamp(10px,1.8vh,18px);}
-  .inv-category{font-size:clamp(6px,1vw,8px);color:#a09070;letter-spacing:2px;margin:clamp(10px,1.8vh,16px) 0 clamp(6px,1vh,10px);border-bottom:1px solid rgba(240,192,64,0.12);padding-bottom:4px;}
-  .inv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(clamp(140px,22vw,200px),1fr));gap:clamp(6px,1.2vw,12px);margin-bottom:clamp(8px,1.5vh,14px);}
-  .inv-item{border:2px solid rgba(240,192,64,0.18);padding:clamp(8px,1.4vw,12px);display:flex;flex-direction:column;gap:4px;position:relative;}
-  .inv-item.obtained{border-color:rgba(240,192,64,0.6);}
-  .inv-item.locked{opacity:0.45;}
-  .inv-icon{font-size:clamp(18px,3.5vw,26px);line-height:1;}
-  .inv-name{font-size:clamp(5px,0.9vw,7px);color:var(--ui-text);line-height:1.4;}
-  .inv-name.locked-name{color:#a09070;}
-  .inv-location{font-family:'VT323',monospace;font-size:clamp(11px,2vw,14px);color:#a09070;}
-  .inv-pts{font-size:clamp(5px,0.85vw,7px);color:var(--gold);margin-top:2px;}
-  .inv-check{position:absolute;top:6px;right:8px;font-size:clamp(10px,1.8vw,14px);color:#40c060;}
-  .inv-lock{position:absolute;top:6px;right:8px;font-size:clamp(9px,1.6vw,12px);color:#554433;}
-  #inventory-close-hint{text-align:center;margin-top:clamp(12px,2vh,20px);font-size:clamp(5px,0.8vw,7px);color:#a09070;}
+  /* Header */
+  #inv-header{display:flex;align-items:center;justify-content:space-between;padding:clamp(8px,1.5vh,14px) clamp(12px,2vw,20px);border-bottom:2px solid rgba(240,192,64,0.35);flex-shrink:0;}
+  #inv-header-title{font-size:clamp(8px,1.4vw,12px);color:var(--gold);letter-spacing:2px;}
+  #inv-header-pts{font-family:'VT323',monospace;font-size:clamp(16px,2.8vw,22px);color:var(--gold);}
+  #inv-header-hint{font-size:clamp(5px,0.8vw,7px);color:#a09070;}
+  /* Body — two columns */
+  #inv-body{display:flex;flex:1;overflow:hidden;min-height:0;}
+  /* Left: item list */
+  #inv-items-list{width:clamp(180px,30vw,260px);flex-shrink:0;overflow-y:auto;border-right:2px solid rgba(240,192,64,0.2);padding:clamp(8px,1.2vh,14px) 0;}
+  .inv-category{font-size:clamp(6px,0.9vw,8px);color:#a09070;letter-spacing:2px;padding:clamp(8px,1.2vh,12px) clamp(10px,1.5vw,16px) 4px;border-bottom:1px solid rgba(240,192,64,0.12);}
+  .inv-row{display:flex;align-items:center;gap:8px;padding:clamp(6px,1vh,10px) clamp(10px,1.5vw,16px);cursor:default;border-left:3px solid transparent;transition:background 0.1s;}
+  .inv-row.has-content{cursor:pointer;}
+  .inv-row.has-content:hover{background:rgba(240,192,64,0.08);}
+  .inv-row.selected{background:rgba(240,192,64,0.13);border-left-color:var(--gold);}
+  .inv-row.locked{opacity:0.4;}
+  .inv-row-icon{font-size:clamp(14px,2.2vw,20px);line-height:1;flex-shrink:0;}
+  .inv-row-info{flex:1;min-width:0;}
+  .inv-row-name{font-size:clamp(5px,0.82vw,7px);color:var(--ui-text);line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .inv-row-name.locked-name{color:#a09070;}
+  .inv-row-pts{font-family:'VT323',monospace;font-size:clamp(11px,1.8vw,14px);color:var(--gold);}
+  .inv-row-badge{font-size:clamp(9px,1.4vw,12px);flex-shrink:0;}
+  .inv-row-badge.obtained{color:#40c060;}
+  .inv-row-badge.locked-badge{color:#554433;}
+  /* Right: detail panel */
+  #inv-detail{flex:1;overflow-y:auto;padding:clamp(12px,2vh,20px) clamp(14px,2.5vw,24px);}
+  #inv-detail-empty{height:100%;display:flex;align-items:center;justify-content:center;font-family:'VT323',monospace;font-size:clamp(14px,2.2vw,18px);color:#554433;text-align:center;}
+  #inv-detail-content{display:none;}
+  #inv-detail-content.visible{display:block;}
+  #inv-detail-icon{font-size:clamp(28px,5vw,44px);margin-bottom:8px;}
+  #inv-detail-name{font-size:clamp(8px,1.4vw,12px);color:var(--gold);margin-bottom:clamp(6px,1vh,10px);letter-spacing:1px;}
+  #inv-detail-category{font-family:'VT323',monospace;font-size:clamp(12px,2vw,16px);color:#a09070;margin-bottom:clamp(8px,1.4vh,14px);letter-spacing:2px;}
+  #inv-detail-pts{font-family:'VT323',monospace;font-size:clamp(14px,2.4vw,20px);color:var(--gold);margin-bottom:clamp(10px,1.8vh,18px);border-bottom:1px solid rgba(240,192,64,0.18);padding-bottom:clamp(8px,1.2vh,12px);}
+  .inv-detail-page{margin-bottom:clamp(10px,1.8vh,16px);}
+  .inv-detail-page-heading{font-size:clamp(6px,0.9vw,8px);color:#a09070;letter-spacing:2px;margin-bottom:6px;}
+  .inv-detail-page-body{font-family:'VT323',monospace;font-size:clamp(14px,2.2vw,18px);color:var(--ui-text);line-height:1.5;}
 </style>
 </head>
 <body>
@@ -250,16 +268,27 @@
 
 <!-- Inventory Overlay -->
 <div id="inventory-overlay">
-  <div id="inventory-box">
-    <div id="inventory-title">★ INVENTORY ★</div>
-    <div id="inventory-subtitle">Items collected on your journey</div>
-    <div id="inventory-points-banner"></div>
-    <div id="inventory-list"></div>
-    <div id="inventory-close-hint">
+  <div id="inv-header">
+    <div id="inv-header-title">★ INVENTORY ★</div>
+    <div id="inv-header-pts"></div>
+    <div id="inv-header-hint">
       <span style="background:#222;border:1.5px solid #555;color:#aaa;padding:1px 5px;border-radius:2px;">SELECT</span>
       or
       <span style="background:#222;border:1.5px solid #555;color:#aaa;padding:1px 5px;border-radius:2px;">B</span>
       to close
+    </div>
+  </div>
+  <div id="inv-body">
+    <div id="inv-items-list"></div>
+    <div id="inv-detail">
+      <div id="inv-detail-empty">← Select an item<br>to view details</div>
+      <div id="inv-detail-content">
+        <div id="inv-detail-icon"></div>
+        <div id="inv-detail-name"></div>
+        <div id="inv-detail-category"></div>
+        <div id="inv-detail-pts"></div>
+        <div id="inv-detail-pages"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -445,8 +474,7 @@ const NPCS = [
       "GRRRR... oh. Hello there.",
       "Don't mind me, I'm just fishing.",
       "These are MY mountains. The Sierra Nevada.",
-      "Andre used to hike up here. Left good snacks behind.",
-      "Respect the wilderness. Pack it in, pack it out. GRRRR."
+      "Andre likes to hike and kayak around here."
     ]
   },
   {
@@ -1577,25 +1605,36 @@ const ITEMS = [
 ];
 
 let inventoryOpen = false;
+let selectedItemId = null;
 function toggleInventory() { inventoryOpen ? closeInventory() : openInventory(); }
 function openInventory() {
   if (activeDialog) closeDialog();
   if (menuOpen) closeMenu();
   inventoryOpen = true;
+  selectedItemId = null;
   document.getElementById('btnSelect').classList.add('pressed');
-  renderInventory();
-  document.getElementById('inventory-overlay').classList.add('open');
+  const overlay = document.getElementById('inventory-overlay');
+  overlay.style.bottom = CTRL_H + 'px';
+  overlay.classList.add('open');
+  renderItemList();
+  renderItemDetail(null);
 }
 function closeInventory() {
   inventoryOpen = false;
+  selectedItemId = null;
   document.getElementById('inventory-overlay').classList.remove('open');
   document.getElementById('btnSelect').classList.remove('pressed');
 }
-function renderInventory() {
+function selectItem(id) {
+  selectedItemId = id;
+  renderItemList();
+  renderItemDetail(id);
+}
+function renderItemList() {
   const total = ITEMS.reduce((s, i) => s + i.points, 0);
-  document.getElementById('inventory-points-banner').textContent =
+  document.getElementById('inv-header-pts').textContent =
     'Points: ' + GameState.points + ' / ' + total;
-  const list = document.getElementById('inventory-list');
+  const list = document.getElementById('inv-items-list');
   list.innerHTML = '';
   [{key:'quest',label:'QUEST ITEMS'},{key:'key',label:'KEY ITEMS'},{key:'collectible',label:'COLLECTIBLES'}]
     .forEach(cat => {
@@ -1603,28 +1642,63 @@ function renderInventory() {
       if (!catItems.length) return;
       const h = document.createElement('div');
       h.className = 'inv-category'; h.textContent = cat.label; list.appendChild(h);
-      const grid = document.createElement('div'); grid.className = 'inv-grid';
       catItems.forEach(item => {
         const got = GameState.hasItem(item.id);
-        const card = document.createElement('div');
-        card.className = 'inv-item ' + (got ? 'obtained' : 'locked');
-        const icon = document.createElement('div'); icon.className = 'inv-icon';
+        const hasDetail = got && item.pages && item.pages.length > 0;
+        const row = document.createElement('div');
+        row.className = 'inv-row' +
+          (got ? '' : ' locked') +
+          (hasDetail ? ' has-content' : '') +
+          (selectedItemId === item.id ? ' selected' : '');
+        const icon = document.createElement('div'); icon.className = 'inv-row-icon';
         icon.textContent = got ? item.icon : '❓';
+        const info = document.createElement('div'); info.className = 'inv-row-info';
         const name = document.createElement('div');
-        name.className = 'inv-name' + (got ? '' : ' locked-name');
+        name.className = 'inv-row-name' + (got ? '' : ' locked-name');
         name.textContent = got ? item.label : '???';
-        const loc = document.createElement('div'); loc.className = 'inv-location';
-        loc.textContent = item.page;
-        const pts = document.createElement('div'); pts.className = 'inv-pts';
+        const pts = document.createElement('div'); pts.className = 'inv-row-pts';
         pts.textContent = item.points + ' pts';
+        info.append(name, pts);
         const badge = document.createElement('div');
-        badge.className = got ? 'inv-check' : 'inv-lock';
+        badge.className = 'inv-row-badge ' + (got ? 'obtained' : 'locked-badge');
         badge.textContent = got ? '✓' : '🔒';
-        card.append(icon, name, loc, pts, badge);
-        grid.appendChild(card);
+        row.append(icon, info, badge);
+        if (hasDetail) row.addEventListener('click', () => selectItem(item.id));
+        list.appendChild(row);
       });
-      list.appendChild(grid);
     });
+}
+function renderItemDetail(id) {
+  const empty = document.getElementById('inv-detail-empty');
+  const content = document.getElementById('inv-detail-content');
+  if (!id) {
+    empty.style.display = 'flex';
+    content.classList.remove('visible');
+    return;
+  }
+  const item = ITEMS.find(i => i.id === id);
+  if (!item || !GameState.hasItem(id)) {
+    empty.style.display = 'flex';
+    content.classList.remove('visible');
+    return;
+  }
+  empty.style.display = 'none';
+  content.classList.add('visible');
+  document.getElementById('inv-detail-icon').textContent = item.icon;
+  document.getElementById('inv-detail-name').textContent = item.label;
+  document.getElementById('inv-detail-category').textContent = item.category.toUpperCase();
+  document.getElementById('inv-detail-pts').textContent = '★ ' + item.points + ' pts';
+  const pagesEl = document.getElementById('inv-detail-pages');
+  pagesEl.innerHTML = '';
+  (item.pages || []).forEach(p => {
+    const pageDiv = document.createElement('div'); pageDiv.className = 'inv-detail-page';
+    const heading = document.createElement('div'); heading.className = 'inv-detail-page-heading';
+    heading.textContent = p.heading;
+    const body = document.createElement('div'); body.className = 'inv-detail-page-body';
+    body.textContent = p.body;
+    pageDiv.append(heading, body);
+    pagesEl.appendChild(pageDiv);
+  });
 }
 
 // ─────────────────────────────────────────────
