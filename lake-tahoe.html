@@ -366,49 +366,103 @@ window.addEventListener('resize', () => { resize(); computeLakeGeometry(); });
 //  LAKE TAHOE SHAPE (normalized 0–1 polygon)
 //  Approximates real Tahoe outline — elongated N-S, slightly crescent
 // ─────────────────────────────────────────────
-// Points go clockwise from top-center
-// Real Tahoe: narrow pointed north, wide body, broad flat south shore
-// Aspect ratio ~1.83:1 (22mi tall × 12mi wide)
+// Points go clockwise from top, traced directly from reference image
 const LAKE_POLY_NORM = [
-  // ── NORTH TIP (narrow) ──
-  [0.48, 0.00],
-  [0.52, 0.00],
-  // ── NORTHEAST shore (bulges out) ──
-  [0.60, 0.02],
-  [0.67, 0.06],
-  [0.72, 0.11],
-  [0.76, 0.17],
-  [0.78, 0.24],
-  // ── EAST shore (Nevada side — wider, straighter) ──
-  [0.79, 0.32],
-  [0.80, 0.40],
-  [0.80, 0.48],
-  [0.79, 0.56],
-  [0.77, 0.63],
-  // ── SOUTHEAST — Stateline/Cave Rock area ──
-  [0.74, 0.70],
-  [0.70, 0.76],
-  // ── SOUTH shore (broad, nearly flat — South Lake Tahoe) ──
-  [0.65, 0.82],
-  [0.58, 0.87],
-  [0.50, 0.89],
-  [0.42, 0.87],
-  [0.35, 0.82],
-  // ── SOUTHWEST — Emerald Bay side ──
-  [0.29, 0.76],
-  [0.25, 0.70],
-  // ── WEST shore (California side — slightly irregular) ──
-  [0.22, 0.63],
-  [0.21, 0.56],
-  [0.21, 0.48],
-  [0.22, 0.40],
-  [0.23, 0.32],
+  // ── NORTH ──
+  [0.719, 0.000],
+  [0.756, 0.000],
+  // ── NORTHEAST ──
+  [0.885, 0.023],
+  [0.950, 0.047],
+  [0.971, 0.070],
+  [0.994, 0.093],
+  [0.989, 0.116],
+  [0.980, 0.140],
+  [0.969, 0.163],
+  [0.994, 0.186],
+  [0.995, 0.209],
+  [0.994, 0.233],
+  [0.969, 0.256],
+  // ── EAST ──
+  [0.972, 0.279],
+  [0.968, 0.302],
+  [0.966, 0.326],
+  [0.924, 0.349],
+  [0.928, 0.372],
+  [0.886, 0.395],
+  [0.883, 0.419],
+  [0.868, 0.442],
+  [0.869, 0.465],
+  [0.930, 0.488],
+  [0.943, 0.512],
+  [0.907, 0.535],
+  [0.919, 0.558],
+  [0.928, 0.581],
+  [0.924, 0.605],
+  [0.918, 0.628],
+  [0.905, 0.651],
+  [0.899, 0.674],
+  [0.903, 0.698],
+  [0.901, 0.721],
+  [0.889, 0.744],
+  [0.906, 0.767],
+  [0.858, 0.791],
+  [0.883, 0.814],
+  [0.875, 0.837],
+  [0.888, 0.860],
+  [0.900, 0.884],
+  [0.901, 0.907],
+  [0.891, 0.930],
+  // ── SOUTH ──
+  [0.861, 0.953],
+  [0.735, 0.977],
+  [0.631, 1.000],
+  [0.587, 1.000],
+  [0.388, 0.977],
+  [0.363, 0.953],
+  // ── SOUTHWEST ──
+  [0.361, 0.930],
+  [0.351, 0.907],
+  [0.300, 0.884],
+  [0.293, 0.860],
+  [0.290, 0.837],
+  [0.293, 0.814],
+  [0.257, 0.791],
+  [0.215, 0.767],
+  [0.198, 0.744],
+  [0.187, 0.721],
+  [0.196, 0.698],
+  [0.175, 0.674],
+  // ── WEST ──
+  [0.202, 0.651],
+  [0.214, 0.628],
+  [0.210, 0.605],
+  [0.161, 0.581],
+  [0.078, 0.558],
+  [0.028, 0.535],
+  [0.012, 0.512],
+  [0.000, 0.488],
+  [0.015, 0.465],
+  [0.023, 0.442],
+  [0.020, 0.419],
+  [0.010, 0.395],
+  [0.046, 0.372],
+  [0.044, 0.349],
+  [0.079, 0.326],
+  [0.083, 0.302],
+  [0.092, 0.279],
+  [0.092, 0.256],
+  [0.131, 0.233],
   // ── NORTHWEST ──
-  [0.24, 0.24],
-  [0.27, 0.17],
-  [0.31, 0.11],
-  [0.37, 0.06],
-  [0.43, 0.02],
+  [0.221, 0.209],
+  [0.286, 0.186],
+  [0.287, 0.163],
+  [0.290, 0.140],
+  [0.319, 0.116],
+  [0.325, 0.093],
+  [0.385, 0.070],
+  [0.394, 0.047],
+  [0.693, 0.023],
 ];
 
 // ─────────────────────────────────────────────
@@ -450,7 +504,7 @@ function lakePoint(nx, ny) {
 const PLAYER_SPEED = 2.8;
 let playerX, playerY;
 function resetPlayerPos() {
-  const pt = lakePoint(0.50, 0.82);
+  const pt = lakePoint(0.60, 0.95);
   playerX = pt.x;
   playerY = pt.y;
   // Centre camera on spawn
@@ -459,7 +513,7 @@ function resetPlayerPos() {
 }
 resetPlayerPos();
 window.addEventListener('resize', () => {
-  const pt = lakePoint(0.50, 0.82);
+  const pt = lakePoint(0.60, 0.95);
   playerX = pt.x;
   playerY = pt.y;
 });
@@ -487,7 +541,7 @@ const NPCS = [
   {
     id: 'bear',
     label: '🐻 SIERRA BEAR',
-    nx: 0.69, ny: 0.48, // east shore
+    nx: 0.901, ny: 0.48, // east shore edge
     dialog: [
       "GRRRR... oh. Hello there.",
       "Don't mind me, I'm just fishing.",
@@ -574,7 +628,7 @@ let dialogPages = [];
 //  BOAT LANDING (exit zone at south)
 // ─────────────────────────────────────────────
 // Normalized center of landing
-const LANDING = { nx: 0.50, ny: 0.90, r: 36 };
+const LANDING = { nx: 0.60, ny: 0.98, r: 36 };
 
 // ─────────────────────────────────────────────
 //  HIDDEN FISH ITEM (center of lake)
