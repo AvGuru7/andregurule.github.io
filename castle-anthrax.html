@@ -1152,6 +1152,7 @@ function showZoneLabel(label){
 function hideZoneLabel(){document.getElementById('zone-label').style.opacity='0';}
 
 function handleA(){
+  if(vaultDialOpen){dialConfirm();return;}
   if(menuOpen){menuSelectCurrent();return;}
   if(dialogOpen){
     if(activeInteractable&&activeInteractable.type==='npc'){
@@ -1478,12 +1479,29 @@ document.addEventListener('keyup',e=>{
 function setupDpad(){
   document.querySelectorAll('.dpad-btn').forEach(btn=>{
     const dir=btn.dataset.dir;
-    btn.addEventListener('touchstart',e=>{e.preventDefault();keys[dir]=true;btn.classList.add('pressing');},{passive:false});
-    btn.addEventListener('touchend',e=>{e.preventDefault();keys[dir]=false;btn.classList.remove('pressing');},{passive:false});
-    btn.addEventListener('touchcancel',e=>{e.preventDefault();keys[dir]=false;btn.classList.remove('pressing');},{passive:false});
-    btn.addEventListener('mousedown',e=>{e.preventDefault();keys[dir]=true;btn.classList.add('pressing');});
+    function pressDir(e){
+      e.preventDefault();
+      if(vaultDialOpen){
+        if(dir==='left'){dialSpin(-1);}
+        else if(dir==='right'){dialSpin(1);}
+        return;
+      }
+      keys[dir]=true;btn.classList.add('pressing');
+    }
+    function releaseDir(e){
+      e.preventDefault();
+      if(vaultDialOpen) return;
+      keys[dir]=false;btn.classList.remove('pressing');
+    }
+    btn.addEventListener('touchstart',pressDir,{passive:false});
+    btn.addEventListener('touchend',releaseDir,{passive:false});
+    btn.addEventListener('touchcancel',releaseDir,{passive:false});
+    btn.addEventListener('mousedown',pressDir);
   });
-  document.addEventListener('mouseup',()=>{document.querySelectorAll('.dpad-btn').forEach(btn=>{keys[btn.dataset.dir]=false;btn.classList.remove('pressing');});});
+  document.addEventListener('mouseup',()=>{
+    if(vaultDialOpen) return;
+    document.querySelectorAll('.dpad-btn').forEach(btn=>{keys[btn.dataset.dir]=false;btn.classList.remove('pressing');});
+  });
 }
 setupDpad();
 canvas.addEventListener('click',()=>handleA());
