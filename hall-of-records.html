@@ -401,7 +401,7 @@ html, body {
 /* ─── SHARED BUTTON ─── */
 .d-btn {
   font-family:'Press Start 2P',monospace;
-  font-size:clamp(5.5px,0.75vw,7px);
+  font-size:clamp(9px,1.0vw,11px);
   padding:clamp(8px,1.2vh,10px) clamp(10px,1.3vw,15px);
   border:2px solid var(--wood-mid); border-radius:4px;
   background:var(--cream2); color:var(--text-dark);
@@ -1108,33 +1108,20 @@ const DIALOGS = {
     text:'Welcome to The Hall of Andre\'s Records!\n\nEach book on the shelf is one of Andre\'s projects. Hover over a book spine to lift it — then click (or tap) to read the full record inside.\n\nI\'m Dewey, the Head Librarian. How can I help you today?',
     acts:[
       {l:'How do I browse the shelf?',    n:'howto'},
-      {l:'Any secrets in here?',          n:'secret_hint'},
       {l:'Thanks — I\'ll look around!',   n:null},
     ]
   },
   howto:{
-    text:'Each colored spine is a project. Hover (or tap) to see it rise, then click to open the full project tome.\n\nOn mobile, swipe sideways to browse the full shelf — there are more books than fit on screen!\n\nThe top row holds Andre\'s most recent work. The bottom holds the classics.',
+    text:'Each colored spine is a project. Hover (or tap) to see it rise, then click to open the full project book.\n\nOn mobile, swipe sideways to browse the full shelf — there are more books than fit on screen!',
     acts:[
-      {l:'What\'s that glowing red book?', n:'secret_hint'},
       {l:'Got it — thanks!',               n:null},
     ]
   },
-  secret_hint:{
-    text:'Ah... the G-14 file. *adjusts reading glasses*\n\nThat tome is encrypted. But knowledge should never be fully locked away. Here is your clue:\n\n"I am always in front of you, but can never be seen. I guide every project, every line, every dream."\n\nSolve it, then click the red book.',
-    acts:[
-      {l:'I think I know the answer!', n:'try_secret', ac:'clue'},
-      {l:'I need time to think...',    n:null,          ac:'clue'},
-    ]
-  },
-  try_secret:{
-    text:'Very well, Agent. Return to the G-14 tome on the lower shelf and enter your passphrase.\n\nGood luck.',
-    acts:[{l:'I\'m ready.', n:null}]
-  },
   no_clue:{
-    text:'*Dewey steps in front of the red book*\n\nNot so fast! That file requires clearance. Ask me about the library\'s secrets first — then we\'ll see.',
+    text:'Not so fast! That file requires proper clearance. To access it, you must provide the correct password.',
     acts:[
-      {l:'Tell me about the secrets.', n:'secret_hint'},
-      {l:'Very well...',               n:null},
+      {l:'I\'ll try opening the book.', n:null, ac:'open_secret'},
+      {l:'Maybe later.',                n:null},
     ]
   },
 };
@@ -1151,7 +1138,7 @@ function showDialog(key) {
   d.acts.forEach(a=>{
     const btn = document.createElement('button');
     btn.className='d-btn'; btn.textContent=a.l;
-    btn.onclick=()=>{ if(a.ac==='clue') clueGiven=true; a.n?showDialog(a.n):closeDialog(); };
+    btn.onclick=()=>{ if(a.ac==='clue') clueGiven=true; if(a.ac==='open_secret'){ closeDialog(); openSecretPrompt(); return; } a.n?showDialog(a.n):closeDialog(); };
     acts.appendChild(btn);
   });
 }
