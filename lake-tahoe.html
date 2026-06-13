@@ -158,6 +158,24 @@
   .ab-label{font-family:'Press Start 2P',monospace;font-size:clamp(4px,0.7vw,5px);color:#555;width:clamp(36px,6.5vw,50px);text-align:center;}
   #ab-col{display:flex;flex-direction:column;align-items:center;flex-shrink:0;}
   #ctrl-hint{font-family:'VT323',monospace;font-size:clamp(10px,1.8vw,13px);color:var(--gold);text-align:center;opacity:0.75;}
+/* ── Larger touch targets on touch devices ── */
+@media (pointer:coarse){
+  #dpad{
+    width:clamp(96px,22vw,120px);
+    height:clamp(96px,22vw,120px);
+  }
+  .dpad-btn::after{ font-size:clamp(12px,3vw,16px); }
+  .ss-btn{
+    width:clamp(46px,11vw,60px);
+    height:clamp(16px,3.6vw,22px);
+  }
+  .ss-label{ font-size:clamp(6px,1.4vw,8px); }
+  #controller-body{
+    height:clamp(120px,30vw,150px);
+    width:min(560px, calc(100vw - 16px));
+    padding:0 clamp(6px,2vw,16px);
+  }
+}
 
   /* ── INVENTORY OVERLAY ── */
   /* ── Inventory overlay — two-column sidebar design ── */
@@ -347,7 +365,16 @@ document.getElementById('pointsDisplay').textContent = GameState.points;
 // ─────────────────────────────────────────────
 const canvas = document.getElementById('gameCanvas');
 const ctx    = canvas.getContext('2d');
-const CTRL_H = 110;
+// Reads the live controller height so the canvas reserves the right
+// amount of space at any controller size (touch devices enlarge it).
+// Falls back to 110 if the element isn't measurable yet.
+function CTRL_H() {
+  const ctrl = document.getElementById('nes-controller');
+  if (!ctrl) return 110;
+  const cs = getComputedStyle(ctrl);
+  const h = ctrl.offsetHeight + parseInt(cs.bottom || '0');
+  return h || 110;
+}
 
 let WORLD_W, WORLD_H;
 let camX = 0, camY = 0;
@@ -355,7 +382,7 @@ let LAKE_MARGIN, lakePoly;
 
 function resize() {
   canvas.width  = window.innerWidth;
-  canvas.height = window.innerHeight - CTRL_H;
+  canvas.height = window.innerHeight - CTRL_H();
   WORLD_W = canvas.width;
   WORLD_H = canvas.height * 3;
 }
@@ -1700,7 +1727,7 @@ function openInventory() {
   selectedItemId = null;
   document.getElementById('btnSelect').classList.add('pressed');
   const overlay = document.getElementById('inventory-overlay');
-  overlay.style.bottom = CTRL_H + 'px';
+  overlay.style.bottom = CTRL_H() + 'px';
   overlay.classList.add('open');
   renderItemList();
   renderItemDetail(null);
