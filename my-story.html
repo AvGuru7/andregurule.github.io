@@ -174,6 +174,13 @@ main {
   margin: clamp(24px,4vh,36px) 0;
 }
 .photo-placeholder .ph-icon { font-size: 32px; opacity: 0.35; }
+.photo-placeholder img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+  border-radius: 4px;
+}
+.photo-placeholder.has-img { border-style: solid; padding: 0; overflow: hidden; }
 
 /* ── SECTIONS ── */
 section { margin-bottom: clamp(48px,8vh,80px); }
@@ -684,9 +691,8 @@ section { margin-bottom: clamp(48px,8vh,80px); }
       This page focuses not so much on my skills, but rather on the things in life that have shaped who I am and how I work.<br><br>
       For more information about my professional skills, please navigate to my <a href="training-portfolio.html">Training Portfolio</a> page.
     </p>
-    <div class="photo-placeholder">
-      <span class="ph-icon">📷</span>
-      Photo / Image Placeholder
+    <div class="photo-placeholder has-img">
+      <img src="images/ms_pic-1.png" alt="Andre Gurule">
     </div>
   </div>
 
@@ -804,9 +810,8 @@ section { margin-bottom: clamp(48px,8vh,80px); }
       <p>As the property manager, I handled all yard work, general maintenance, cleaning, and the setup of household electronics. I coordinated major projects with various local contractors. For the most part, managing the property was only a part-time job, so I started doing part-time volunteer work again.</p>
     </div>
 
-    <div class="photo-placeholder" style="max-width:100%;margin:clamp(20px,3vh,28px) 0;">
-      <span class="ph-icon">📷</span>
-      Photo / Image Placeholder
+    <div class="photo-placeholder has-img" style="max-width:100%;margin:clamp(20px,3vh,28px) 0;">
+      <img src="images/ms_pic-2.png" alt="Andre Gurule">
     </div>
 
     <div class="skills-wrap">
