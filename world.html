@@ -351,6 +351,32 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
   color:var(--gold);text-align:center;opacity:0.75;
 }
 
+/* ── Larger touch targets on touch devices ── */
+@media (pointer:coarse){
+  /* D-pad: bump min and preferred sizes; cap stays reasonable.
+     The four buttons are sized as % of #dpad, so they grow with it. */
+  #dpad{
+    width:clamp(96px,22vw,120px);
+    height:clamp(96px,22vw,120px);
+  }
+  .dpad-btn::after{ font-size:clamp(12px,3vw,16px); }
+
+  /* SELECT / START ovals: taller + wider hit area */
+  .ss-btn{
+    width:clamp(46px,11vw,60px);
+    height:clamp(16px,3.6vw,22px);
+  }
+  .ss-label{ font-size:clamp(6px,1.4vw,8px); }
+
+  /* Give the controller body room to grow so nothing overlaps.
+     ctrlHeight() reads this live, so the canvas resizes to match. */
+  #controller-body{
+    height:clamp(120px,30vw,150px);
+    width:clamp(440px,82vw,560px);
+    padding:0 clamp(8px,2vw,16px);
+  }
+}
+
 /* loading screen lives in loading.html */
 
 /* ── INVENTORY OVERLAY ── */
