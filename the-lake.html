@@ -1588,9 +1588,6 @@ function draw() {
   ctx.stroke();
   ctx.restore();
 
-  // ── BOW BRIDGE — spans the channel narrows; player paddles under it ──
-  drawBowBridge();
-
   // ── DOCK ──
   const dp = lakePoint(DOCK.nx, DOCK.ny);
   drawDock(dp.x, dp.y);
@@ -1622,6 +1619,9 @@ function draw() {
 
   // ── PLAYER ──
   drawKayakPlayer(playerX, playerY, playerDir, playerFrame);
+
+  // ── BOW BRIDGE — drawn AFTER the player so the kayak passes UNDER the arch ──
+  drawBowBridge();
 
   ctx.restore(); // end camera translate — HUD below is screen space
 
