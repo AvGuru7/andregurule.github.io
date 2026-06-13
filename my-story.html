@@ -679,6 +679,24 @@ section { margin-bottom: clamp(48px,8vh,80px); }
   font-size: clamp(16px,2.3vw,20px);
   color: #a0d0b0; line-height: 1.5;
 }
+#badge-close-btn {
+  display: inline-block;
+  margin-top: clamp(14px,2.5vh,20px);
+  background: var(--gold-lt, #f0c040);
+  border: 1.5px solid var(--gold-lt, #f0c040);
+  color: #1e0a0a;
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(7px,1.1vw,9px);
+  padding: 10px 22px;
+  border-radius: 3px;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transition: background 0.15s, box-shadow 0.15s;
+}
+#badge-close-btn:hover {
+  background: #ffd24d;
+  box-shadow: 0 0 12px rgba(240,192,64,0.6);
+}
 </style>
 </head>
 <body>
@@ -1041,6 +1059,7 @@ section { margin-bottom: clamp(48px,8vh,80px); }
       <p>You have decoded the message: <strong style="color:#60e090;">SEEK THE MOUNTAIN FORGE</strong><br><br>
       The swordsmith awaits in Erebor Mountain. Prove your qualifications and claim your sword.<br><br>
       ★ Certification Badge added to your inventory!</p>
+      <button id="badge-close-btn" onclick="closeCipher()">✕ CLOSE</button>
     </div>
   </div>
 </div>
@@ -1197,10 +1216,12 @@ function openCipher() {
     document.getElementById('badge-award').style.display = 'block';
     document.getElementById('cipher-feedback').textContent = '';
     document.getElementById('cipher-check-btn').style.display = 'none';
+    document.getElementById('cipher-close-btn').style.display = 'none';
   } else {
     document.getElementById('badge-award').style.display = 'none';
     document.getElementById('cipher-feedback').textContent = '';
     document.getElementById('cipher-check-btn').style.display = '';
+    document.getElementById('cipher-close-btn').style.display = '';
     // Focus first input
     setTimeout(function() {
       var first = document.querySelector('.decode-input');
@@ -1259,6 +1280,7 @@ function checkCipher() {
     fb.className = 'success';
     fb.textContent = '✓ CORRECT! Message decoded.';
     document.getElementById('cipher-check-btn').style.display = 'none';
+    document.getElementById('cipher-close-btn').style.display = 'none';
     setTimeout(function() {
       document.getElementById('badge-award').style.display = 'block';
     }, 600);
