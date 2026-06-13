@@ -181,6 +181,27 @@ main {
   border-radius: 4px;
 }
 .photo-placeholder.has-img { border-style: solid; padding: 0; overflow: hidden; }
+/* center all photo frames horizontally */
+.photo-placeholder { margin-left: auto; margin-right: auto; }
+/* wide (16:9) photos: keep native shape, no cropping of captions */
+.photo-placeholder.wide {
+  aspect-ratio: 16/9;
+  max-width: 760px;
+}
+.photo-placeholder.wide img { object-fit: contain; }
+/* HTML photo captions */
+figure.photo-fig { margin: clamp(24px,4vh,36px) auto; max-width: 760px; }
+figure.photo-fig .photo-placeholder { margin: 0 auto; }
+figure.photo-fig figcaption {
+  font-family: 'DM Sans', sans-serif;
+  font-size: clamp(13px,1.6vw,15px);
+  color: var(--text-light);
+  text-align: center;
+  margin-top: 10px;
+  line-height: 1.4;
+}
+figure.photo-fig figcaption .cap-line { display: block; }
+figure.photo-fig figcaption .cap-line + .cap-line { margin-top: 4px; }
 
 /* ── SECTIONS ── */
 section { margin-bottom: clamp(48px,8vh,80px); }
@@ -810,9 +831,14 @@ section { margin-bottom: clamp(48px,8vh,80px); }
       <p>As the property manager, I handled all yard work, general maintenance, cleaning, and the setup of household electronics. I coordinated major projects with various local contractors. For the most part, managing the property was only a part-time job, so I started doing part-time volunteer work again.</p>
     </div>
 
-    <div class="photo-placeholder has-img">
-      <img src="images/ms_pic-2-2.png" alt="Andre Gurule">
-    </div>
+    <figure class="photo-fig">
+      <div class="photo-placeholder has-img wide">
+        <img src="images/ms_pic-2-2.png" alt="Property in Montana with bighorn sheep, 2013">
+      </div>
+      <figcaption>
+        <span class="cap-line">2013 — Property I managed in MT and the bighorn sheep that would come to visit</span>
+      </figcaption>
+    </figure>
 
     <div class="skills-wrap">
       <span class="skill-tag">Project Management</span>
@@ -864,9 +890,15 @@ section { margin-bottom: clamp(48px,8vh,80px); }
       <p>Sadly, due to the chip shortage and reduced inventory, I was laid off at the end of January 2022. Overall, I enjoyed my time with Fast Company. I was given many opportunities to use the skills I had learned in New York, and I learned a lot about photography, videography, and video editing.</p>
     </div>
 
-     <div class="photo-placeholder has-img">
-      <img src="images/ms_pic-3.png" alt="Andre Gurule">
-    </div>
+     <figure class="photo-fig">
+      <div class="photo-placeholder has-img wide">
+        <img src="images/ms_pic-3.png" alt="Car dealership work in Montana and SEMA trip with Fast Company">
+      </div>
+      <figcaption>
+        <span class="cap-line">2019 — Back in MT, taking pictures at a dealership in single-digit weather</span>
+        <span class="cap-line">2021 — Trip to SEMA with Fast Company</span>
+      </figcaption>
+    </figure>
     
     <h3 style="font-family:'Playfair Display',serif;font-size:clamp(14px,1.8vw,17px);color:var(--text-dark);margin:clamp(20px,3vh,28px) 0 10px;font-weight:600;">Fast Company Accomplishments</h3>
     <div class="accomplishments-list">
