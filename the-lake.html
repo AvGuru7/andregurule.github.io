@@ -418,9 +418,13 @@ document.getElementById('pointsDisplay').textContent = GameState.points;
 // ─────────────────────────────────────────────
 const canvas = document.getElementById('gameCanvas');
 const ctx    = canvas.getContext('2d');
-const CTRL_H = 110;
+const CTRL_H = 110; // fallback height if controller isn't measurable yet
 
-function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight - CTRL_H; }
+function ctrlHeightLive() {
+  const c = document.getElementById('nes-controller');
+  return c ? (c.offsetHeight + parseInt(getComputedStyle(c).bottom || '0')) : CTRL_H;
+}
+function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight - ctrlHeightLive(); }
 resize();
 
 // Scrolling world: larger than the viewport, camera follows the player.
