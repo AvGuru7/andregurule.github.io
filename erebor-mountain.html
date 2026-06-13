@@ -423,7 +423,7 @@ const GameState={
     if(this.items.includes(id))return false;
     this.items.push(id);this.points+=25;return true;
   },
-  visitZone(id,pts){if(this.visited.includes(id))return;this.visited.push(id);this.points+=pts;},
+  visitZone(id,pts=0){if(this.visited.includes(id))return;this.visited.push(id);this.points+=pts;},
   unlock(key){if(!this.unlocked.includes(key))this.unlocked.push(key);},
   withState(href){
     const [base,hash]=href.split('#');
