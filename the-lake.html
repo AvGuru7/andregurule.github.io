@@ -404,55 +404,83 @@ const CTRL_H = 110;
 
 function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight - CTRL_H; }
 resize();
-window.addEventListener('resize', () => { resize(); computeLakeGeometry(); resetPlayerPos(); });
+
+// Scrolling world: larger than the viewport, camera follows the player.
+// The Central Park Lake is landscape-oriented (wider than tall), so the
+// world is wider than it is tall.
+let WORLD_W, WORLD_H, camX = 0, camY = 0;
+function computeWorldSize() {
+  WORLD_W = Math.max(canvas.width * 2.0, 1800);
+  WORLD_H = Math.max(canvas.height * 1.5, 1100);
+}
+computeWorldSize();
+
+window.addEventListener('resize', () => { resize(); computeWorldSize(); computeLakeGeometry(); });
 
 // ─────────────────────────────────────────────
 //  CENTRAL PARK LAKE POLYGON (normalized 0–1)
-//  Based on the real lake shape — irregular amoeba,
-//  wider in center, southeastern arm, northwestern cove
+//  Traced from the real Central Park Lake map.
+//  West main lake (Hernshead cove + Wagner Cove tail) is joined
+//  to the east "The Point" arm by a navigable channel at the Bow
+//  Bridge — the player can paddle under the bridge between sides.
 // ─────────────────────────────────────────────
 const LAKE_POLY_NORM = [
-  // Starting north tip, going clockwise
-  [0.42, 0.06],  // N — narrow north tip
-  [0.52, 0.05],
-  [0.60, 0.07],
-  [0.68, 0.10],  // NE bulge
-  [0.74, 0.15],
-  [0.76, 0.22],
-  [0.74, 0.30],
-  [0.70, 0.36],  // East indent
-  [0.74, 0.42],
-  [0.76, 0.50],  // E center bulge
-  [0.75, 0.58],
-  [0.72, 0.65],
-  [0.68, 0.72],  // SE arm begins
-  [0.66, 0.80],
-  [0.62, 0.87],
-  [0.56, 0.91],  // SE tip
-  [0.50, 0.93],
-  [0.44, 0.91],  // South dock area
-  [0.38, 0.87],
-  [0.32, 0.82],
-  [0.26, 0.76],  // SW
-  [0.22, 0.68],
-  [0.20, 0.60],
-  [0.22, 0.52],
-  [0.24, 0.44],  // W side
-  [0.22, 0.36],
-  [0.20, 0.28],  // NW cove dip
-  [0.24, 0.20],
-  [0.30, 0.14],
-  [0.36, 0.09],  // Back to N
+  // ── West lake: southern Wagner Cove tail, then up the west shore ──
+  [0.305, 0.894],
+  [0.261, 0.851],
+  [0.226, 0.757],
+  [0.085, 0.581],
+  [0.045, 0.492],
+  [0.047, 0.428],
+  [0.064, 0.392],
+  [0.091, 0.377],   // Hernshead cove
+  [0.145, 0.390],
+  [0.164, 0.371],
+  [0.163, 0.349],
+  [0.112, 0.228],
+  [0.120, 0.145],
+  [0.169, 0.063],   // N tip (Bank Rock Bay)
+  [0.232, 0.165],
+  [0.293, 0.179],
+  [0.314, 0.232],
+  [0.350, 0.276],   // NE shore toward the Ramble
+  [0.367, 0.504],
+  [0.385, 0.554],
+  [0.405, 0.576],   // ── channel: into the Bow Bridge narrows ──
+  [0.463, 0.576],
+  [0.532, 0.545],
+  [0.607, 0.528],
+  [0.658, 0.490],   // ── east arm: north finger (The Point) ──
+  [0.705, 0.434],
+  [0.729, 0.459],
+  [0.740, 0.577],
+  [0.764, 0.620],
+  [0.789, 0.605],
+  [0.837, 0.516],
+  [0.876, 0.475],
+  [0.922, 0.474],   // east tip (Loeb Boathouse / dock)
+  [0.940, 0.490],
+  [0.947, 0.516],
+  [0.933, 0.560],
+  [0.828, 0.676],
+  [0.782, 0.711],
+  [0.727, 0.727],   // east arm: south finger (toward Bethesda)
+  [0.712, 0.724],
+  [0.598, 0.623],
+  [0.551, 0.619],
+  [0.506, 0.635],   // ── channel south bank, back under the bridge ──
+  [0.348, 0.769],
+  [0.324, 0.829],
+  [0.324, 0.886],   // back to Wagner Cove tail
 ];
 
-let W, H, LAKE_MARGIN, lakePoly;
+let LAKE_MARGIN, lakePoly;
 
 function computeLakeGeometry() {
-  W = canvas.width; H = canvas.height;
-  LAKE_MARGIN = Math.min(W, H) * 0.05;
+  LAKE_MARGIN = Math.min(WORLD_W, WORLD_H) * 0.05;
   lakePoly = LAKE_POLY_NORM.map(([nx, ny]) => [
-    LAKE_MARGIN + nx * (W - 2 * LAKE_MARGIN),
-    LAKE_MARGIN + ny * (H - 2 * LAKE_MARGIN)
+    LAKE_MARGIN + nx * (WORLD_W - 2 * LAKE_MARGIN),
+    LAKE_MARGIN + ny * (WORLD_H - 2 * LAKE_MARGIN)
   ]);
 }
 computeLakeGeometry();
@@ -469,8 +497,8 @@ function pointInPoly(px, py, poly) {
 
 function lakePoint(nx, ny) {
   return {
-    x: LAKE_MARGIN + nx * (W - 2 * LAKE_MARGIN),
-    y: LAKE_MARGIN + ny * (H - 2 * LAKE_MARGIN)
+    x: LAKE_MARGIN + nx * (WORLD_W - 2 * LAKE_MARGIN),
+    y: LAKE_MARGIN + ny * (WORLD_H - 2 * LAKE_MARGIN)
   };
 }
 
@@ -481,7 +509,8 @@ const PLAYER_SPEED = 2.6;
 let playerX, playerY, playerDir = 'up', playerFrame = 0, frameTimer = 0;
 
 function resetPlayerPos() {
-  const pt = lakePoint(0.50, 0.86);
+  // Spawn just inside the lake, beside the east dock
+  const pt = lakePoint(0.86, 0.51);
   playerX = pt.x; playerY = pt.y;
 }
 resetPlayerPos();
@@ -493,13 +522,13 @@ const NPCS = [
   {
     id: 'duck',
     label: '🦆 DR. MALLARD',
-    nx: 0.50, ny: 0.38,
+    nx: 0.17, ny: 0.50,
     dialog: [] // built dynamically — see getDuckDialog()
   },
   {
     id: 'raquel',
     label: '🚣 RAQUEL',
-    nx: 0.30, ny: 0.52,
+    nx: 0.66, ny: 0.585,
     dialog: [
       "Have you been to the Central Park Lake before?",
       "I try to come out here every weekend when the weather is nice.",
@@ -513,9 +542,9 @@ const NPCS = [
 let npcDialogIdx = {}, activeDialog = null, dialogPages = [];
 
 // ─────────────────────────────────────────────
-//  DOCK (south entry/exit)
+//  DOCK (east-side entry/exit — near the Loeb Boathouse)
 // ─────────────────────────────────────────────
-const DOCK = { nx: 0.50, ny: 0.93, r: 38 };
+const DOCK = { nx: 0.905, ny: 0.505, r: 38 };
 
 // ─────────────────────────────────────────────
 //  DECORATIONS — Central Park deciduous trees, benches, lamp posts
@@ -557,15 +586,11 @@ const DECO = {
   fallenLeaves: [],
 };
 
-// Generate fallen leaves
+// Generate fallen leaves (normalized coords; keep them on land only)
 for (let i = 0; i < 80; i++) {
   const nx = Math.random();
   const ny = Math.random();
-  if (!pointInPoly(
-    LAKE_MARGIN + nx * (1000 - 2 * LAKE_MARGIN),
-    LAKE_MARGIN + ny * (800 - 2 * LAKE_MARGIN),
-    LAKE_POLY_NORM.map(([x, y]) => [LAKE_MARGIN + x * (1000 - 2 * LAKE_MARGIN), LAKE_MARGIN + y * (800 - 2 * LAKE_MARGIN)])
-  )) {
+  if (!pointInPoly(nx, ny, LAKE_POLY_NORM)) {
     DECO.fallenLeaves.push([nx, ny, Math.floor(Math.random() * 5)]);
   }
 }
@@ -830,6 +855,12 @@ function update(dt) {
     if (frameTimer > 200) { playerFrame = (playerFrame + 1) % 4; frameTimer = 0; }
   } else { playerFrame = 0; }
 
+  // Camera follows the player, clamped to world bounds
+  camX = playerX - canvas.width / 2;
+  camY = playerY - canvas.height / 2;
+  camX = Math.max(0, Math.min(camX, WORLD_W - canvas.width));
+  camY = Math.max(0, Math.min(camY, WORLD_H - canvas.height));
+
   waveOffset += dt * 0.00065;
   duckBob = Math.sin(Date.now() * 0.0018) * 2.5;
   document.getElementById('pointsDisplay').textContent = GameState.points;
@@ -1021,6 +1052,86 @@ function drawDock(cx, cy) {
   ctx.stroke();
   ctx.restore();
   ctx.textAlign = 'left';
+}
+
+// ─────────────────────────────────────────────
+//  DRAW — BOW BRIDGE (spans the channel narrows)
+//  The kayak is drawn after this, so the player visibly
+//  passes UNDER the arch when crossing east <-> west.
+// ─────────────────────────────────────────────
+function drawBowBridge() {
+  // Anchor the span across the channel between the two banks.
+  const a = lakePoint(0.44, 0.575);  // north bank
+  const b = lakePoint(0.49, 0.655);  // south bank
+  const cx = (a.x + b.x) / 2;
+  const cy = (a.y + b.y) / 2;
+  const dx = b.x - a.x, dy = b.y - a.y;
+  const len = Math.hypot(dx, dy);
+  const ang = Math.atan2(dy, dx);
+
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(ang);
+
+  const half = len / 2 + 14;     // overhang onto each bank
+  const deckW = 13;              // width of the walkway
+  const rise  = 18;              // arch height
+
+  // Shadow of the arch on the water
+  ctx.save();
+  ctx.globalAlpha = 0.18;
+  ctx.fillStyle = '#000';
+  ctx.beginPath();
+  ctx.moveTo(-half, deckW * 0.5 + 4);
+  ctx.quadraticCurveTo(0, -rise + deckW + 4, half, deckW * 0.5 + 4);
+  ctx.lineTo(half, deckW + 6);
+  ctx.quadraticCurveTo(0, -rise + deckW * 2 + 6, -half, deckW + 6);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+
+  // Underside / stone arch
+  ctx.fillStyle = '#8a7a5a';
+  ctx.beginPath();
+  ctx.moveTo(-half, deckW * 0.5);
+  ctx.quadraticCurveTo(0, -rise + deckW, half, deckW * 0.5);
+  ctx.lineTo(half, -deckW * 0.5);
+  ctx.quadraticCurveTo(0, -rise, -half, -deckW * 0.5);
+  ctx.closePath();
+  ctx.fill();
+
+  // Walkway top (lighter cast-iron cream)
+  ctx.strokeStyle = '#d8cba0';
+  ctx.lineWidth = 6;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(-half, -deckW * 0.5);
+  ctx.quadraticCurveTo(0, -rise, half, -deckW * 0.5);
+  ctx.stroke();
+
+  // Railing (the Bow Bridge's signature lattice)
+  ctx.strokeStyle = '#bfb085';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(-half, -deckW * 0.5 - 7);
+  ctx.quadraticCurveTo(0, -rise - 7, half, -deckW * 0.5 - 7);
+  ctx.stroke();
+  // Balusters
+  for (let t = 0; t <= 1; t += 1 / 14) {
+    const px = -half + t * (2 * half);
+    const py = -rise * Math.sin(Math.PI * t) - deckW * 0.5;
+    ctx.beginPath();
+    ctx.moveTo(px, py);
+    ctx.lineTo(px, py - 7);
+    ctx.stroke();
+  }
+
+  // Stone abutments where the bridge meets each bank
+  ctx.fillStyle = '#6f6045';
+  ctx.fillRect(-half - 4, -deckW * 0.5, 8, deckW + 4);
+  ctx.fillRect(half - 4, -deckW * 0.5, 8, deckW + 4);
+
+  ctx.restore();
 }
 
 // ─────────────────────────────────────────────
@@ -1305,8 +1416,11 @@ function drawInteractPrompt(x, y) {
 //  MAIN DRAW
 // ─────────────────────────────────────────────
 function draw() {
-  W = canvas.width; H = canvas.height;
-  ctx.clearRect(0, 0, W, H);
+  const W = WORLD_W, H = WORLD_H;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  ctx.save();
+  ctx.translate(-camX, -camY);
 
   // ── LAND BACKGROUND — Central Park autumn grass ──
   const landGrad = ctx.createLinearGradient(0, 0, W * 0.5, H);
@@ -1366,12 +1480,12 @@ function draw() {
   ctx.lineWidth = 6;
   ctx.stroke();
 
-  // South path to dock
+  // East path to dock (relocated east entry/exit)
   ctx.beginPath();
-  const pds = lakePoint(0.50, 0.97);
-  ctx.moveTo(pds.x - 50, H);
-  ctx.lineTo(pds.x + 50, H);
-  ctx.bezierCurveTo(pds.x + 40, pds.y + 20, pds.x - 40, pds.y + 20, pds.x - 50, H);
+  const pde = lakePoint(0.97, 0.50);
+  ctx.moveTo(W, pde.y - 50);
+  ctx.lineTo(W, pde.y + 50);
+  ctx.bezierCurveTo(pde.x + 20, pde.y + 40, pde.x + 20, pde.y - 40, W, pde.y - 50);
   ctx.strokeStyle = '#c4ac80';
   ctx.lineWidth = 12;
   ctx.stroke();
@@ -1474,6 +1588,9 @@ function draw() {
   ctx.stroke();
   ctx.restore();
 
+  // ── BOW BRIDGE — spans the channel narrows; player paddles under it ──
+  drawBowBridge();
+
   // ── DOCK ──
   const dp = lakePoint(DOCK.nx, DOCK.ny);
   drawDock(dp.x, dp.y);
@@ -1506,17 +1623,20 @@ function draw() {
   // ── PLAYER ──
   drawKayakPlayer(playerX, playerY, playerDir, playerFrame);
 
+  ctx.restore(); // end camera translate — HUD below is screen space
+
   // ── LOCATION LABEL ──
+  const cw = canvas.width;
   ctx.save();
   ctx.fillStyle = 'rgba(13,10,24,0.72)';
-  ctx.fillRect(W / 2 - 88, 10, 176, 22);
+  ctx.fillRect(cw / 2 - 88, 10, 176, 22);
   ctx.strokeStyle = '#1a7060';
   ctx.lineWidth = 1.5;
-  ctx.strokeRect(W / 2 - 88, 10, 176, 22);
+  ctx.strokeRect(cw / 2 - 88, 10, 176, 22);
   ctx.fillStyle = '#80e8c8';
   ctx.font = '8px "Press Start 2P", monospace';
   ctx.textAlign = 'center';
-  ctx.fillText('🌊 THE LAKE', W / 2, 26);
+  ctx.fillText('🌊 THE LAKE', cw / 2, 26);
   ctx.restore();
 }
 
