@@ -594,7 +594,7 @@ const GameState = {
   unlocked: _p.get('unlocked')  ? _p.get('unlocked').split(',').filter(Boolean) : [],
 
   // Mark a zone as visited and award points
-  visitZone(id, pts = 10){
+  visitZone(id, pts = 0){
     if(!this.visited.includes(id)){
       this.visited.push(id);
       this.points += pts;

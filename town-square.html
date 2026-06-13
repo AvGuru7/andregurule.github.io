@@ -576,7 +576,7 @@ const GameState = {
   visited:  _p.get('visited')   ? _p.get('visited').split(',').filter(Boolean)  : [],
   unlocked: _p.get('unlocked')  ? _p.get('unlocked').split(',').filter(Boolean) : [],
   items:    _p.get('items')     ? _p.get('items').split(',').filter(Boolean)    : [],
-  visitZone(id,pts=10){if(!this.visited.includes(id)){this.visited.push(id);this.points+=pts;}},
+  visitZone(id,pts=0){if(!this.visited.includes(id)){this.visited.push(id);this.points+=pts;}},
   unlock(key){if(!this.unlocked.includes(key))this.unlocked.push(key);},
   collectItem(id){
     const item=ITEMS.find(i=>i.id===id);
@@ -597,9 +597,6 @@ const GameState = {
     return base+sep+this.toParams()+(hash?'#'+hash:'');
   }
 };
-
-// Mark this zone visited on arrival
-GameState.visitZone('contact', 10);
 
 // ── Supabase art-purchase tracking ──
 // Same project as the vault.html leaderboard. Base URL only — code appends /rest/v1/ itself.
