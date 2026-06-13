@@ -767,7 +767,7 @@ const NPCS = [
   // Contact NPCs — stationary, interactive
   {x:PW*0.28, y:PH*0.76, body:'#1a5090', head:'#f0d0a0', phase:0, wander:false, speed:0,
    name:'BRUCE', scale:1.0, hair:'#e8e8e8',
-   speech:'Greetings! Welcome to the Town Square. Here\'s a tip: You can use the points you accumulate to purchase items from the shops in this square.',
+   speech:'bruce-dialog',
    links:[]},
   {x:PW*0.72, y:PH*0.76, body:'#902020', head:'#f5c5a3', phase:2, wander:false, speed:0,
    name:'ALICIA', scale:1.0,
@@ -1259,6 +1259,31 @@ function purchaseBread(){
   }, 2200);
 }
 
+// ── BRUCE BRANCHING DIALOG ──
+function openBruceDialog(){
+  openDialogWithButtons('BRUCE',
+    'Greetings, traveler! Welcome to the Town Square. Spend your points at the shops here \u2014 but a wise adventurer also carries items to share. Want a tip on using your pack?',
+    [
+      {label:'Yes', action: bruceItemHowTo},
+      {label:'No thanks', action: closeDialog},
+    ]
+  );
+}
+function bruceItemHowTo(){
+  openDialogWithButtons('BRUCE',
+    'Press SELECT (or the I key) to open your inventory. Tap any item to read about it. When you stand close to the right soul, a GIVE button appears \u2014 hand the item over, and watch what comes back.',
+    [
+      {label:'Tell me more', action: bruceGenerosity},
+      {label:'Got it!', action: closeDialog},
+    ]
+  );
+}
+function bruceGenerosity(){
+  openDialog('BRUCE',
+    'Here\u2019s the secret most folk miss: hoarding fills your pack, but giving fills your purse. The greatest rewards in this land are not bought \u2014 they\u2019re earned by offering the right gift to the right friend. Give freely, and the realm gives back tenfold.'
+  );
+}
+
 // ── ALICIA BRANCHING DIALOG ──
 function openAliciaDialog(){
   const hasBread = GameState.hasItem('bread');
@@ -1480,6 +1505,8 @@ function handleA(){
     if(dist<72){
       if(n.speech==='alicia-dialog'){
         openAliciaDialog();
+      } else if(n.speech==='bruce-dialog'){
+        openBruceDialog();
       } else {
         openDialog(n.name, n.speech, n.links||[]);
       }
