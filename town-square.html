@@ -766,8 +766,8 @@ const NPCS = [
   {x:FCX+28,  y:FCY-FR-18,body:'#507080',head:'#f0d0a0', phase:1.5, wander:true, speed:0.35,name:null, scale:1.0},
   // Contact NPCs — stationary, interactive
   {x:PW*0.28, y:PH*0.76, body:'#1a5090', head:'#f0d0a0', phase:0, wander:false, speed:0,
-   name:'BRUCE', scale:1.0, hair:'#e8e8e8',
-   speech:'bruce-dialog',
+   name:'', scale:1.0, hair:'#e8e8e8',
+   speech:'-dialog',
    links:[]},
   {x:PW*0.72, y:PH*0.76, body:'#902020', head:'#f5c5a3', phase:2, wander:false, speed:0,
    name:'ALICIA', scale:1.0,
@@ -1262,7 +1262,7 @@ function purchaseBread(){
 // ── BRUCE BRANCHING DIALOG ──
 function openBruceDialog(){
   openDialogWithButtons('BRUCE',
-    'Greetings, traveler! Welcome to the Town Square. Spend your points at the shops here \u2014 but a wise adventurer also carries items to share. Want a tip on using your pack?',
+    'Greetings, traveler! Welcome to the Town Square. Spend your points at the shops here \u2014 but a wise adventurer also carries items to share. Want a tip on using your inventory pack?',
     [
       {label:'Yes', action: bruceItemHowTo},
       {label:'No thanks', action: closeDialog},
@@ -1271,7 +1271,7 @@ function openBruceDialog(){
 }
 function bruceItemHowTo(){
   openDialogWithButtons('BRUCE',
-    'Press SELECT (or the I key) to open your inventory. Tap any item to read about it. When you stand close to the right soul, a GIVE button appears \u2014 hand the item over, and watch what comes back.',
+    'Press SELECT (or the I key) to open your inventory. Tap any item to read about it. When you stand close to the right individual, a GIVE button appears. You then have the option to give them the item. Some items can also be used to further your quest.',
     [
       {label:'Tell me more', action: bruceGenerosity},
       {label:'Got it!', action: closeDialog},
@@ -1280,7 +1280,7 @@ function bruceItemHowTo(){
 }
 function bruceGenerosity(){
   openDialog('BRUCE',
-    'Here\u2019s the secret most folk miss: hoarding fills your pack, but giving fills your purse. The greatest rewards in this land are not bought \u2014 they\u2019re earned by offering the right gift to the right friend. Give freely, and the realm gives back tenfold.'
+    'Here\u2019s the secret most folk miss. Hoarding fills your pack, but giving brings greater success in this game.'
   );
 }
 
