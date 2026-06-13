@@ -369,11 +369,13 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
   .ss-label{ font-size:clamp(6px,1.4vw,8px); }
 
   /* Give the controller body room to grow so nothing overlaps.
-     ctrlHeight() reads this live, so the canvas resizes to match. */
+     ctrlHeight() reads this live, so the canvas resizes to match.
+     Width is capped to the viewport (minus margin) so it never clips
+     on narrow phones; min lowered so it can shrink when needed. */
   #controller-body{
     height:clamp(120px,30vw,150px);
-    width:clamp(440px,82vw,560px);
-    padding:0 clamp(8px,2vw,16px);
+    width:min(560px, calc(100vw - 16px));
+    padding:0 clamp(6px,2vw,16px);
   }
 }
 
