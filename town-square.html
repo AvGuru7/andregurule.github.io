@@ -1,13 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- Google Tag Manager -->
-<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','GTM-MJTQKBTC');</script>
-<!-- End Google Tag Manager -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Town Square — Andre Gurule</title>
@@ -396,10 +389,6 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
 </style>
 </head>
 <body>
-<!-- Google Tag Manager (noscript) -->
-<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MJTQKBTC"
-height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-<!-- End Google Tag Manager (noscript) -->
 
 <div id="cursor"></div>
 <canvas id="world-canvas"></canvas>
@@ -602,11 +591,11 @@ const GameState = {
 // ── Supabase art-purchase tracking ──
 // Same project as the vault.html leaderboard. Base URL only — code appends /rest/v1/ itself.
 const SUPABASE_URL = 'https://kfcbodswxjhqzauonxdx.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_REPLACE_ME'; // paste the same publishable key used in vault.html
+const SUPABASE_KEY = 'sb_publishable_7SJwq7QIS-N4fRvgUj09Xw_Wa7LzC2t';
 const ART_TRACKING_ENABLED = true;
 
 function trackArtPurchase(piece){
-  if(!ART_TRACKING_ENABLED || SUPABASE_KEY.includes('REPLACE_ME')) return;
+  if(!ART_TRACKING_ENABLED) return;
   // Fire-and-forget: never block or break gameplay if this fails
   fetch(SUPABASE_URL + '/rest/v1/art_purchases', {
     method:'POST',
@@ -782,8 +771,8 @@ const NPCS = [
   {x:FCX+28,  y:FCY-FR-18,body:'#507080',head:'#f0d0a0', phase:1.5, wander:true, speed:0.35,name:null, scale:1.0},
   // Contact NPCs — stationary, interactive
   {x:PW*0.28, y:PH*0.76, body:'#1a5090', head:'#f0d0a0', phase:0, wander:false, speed:0,
-   name:'', scale:1.0, hair:'#e8e8e8',
-   speech:'-dialog',
+   name:'BRUCE', scale:1.0, hair:'#e8e8e8',
+   speech:'bruce-dialog',
    links:[]},
   {x:PW*0.72, y:PH*0.76, body:'#902020', head:'#f5c5a3', phase:2, wander:false, speed:0,
    name:'ALICIA', scale:1.0,
@@ -1455,7 +1444,10 @@ function purchaseArt(piece, card){
     GameState.collectItem('artwork');
   }
   document.getElementById('gallery-pts').textContent = GameState.points;
-  // ── GTM dataLayer push ──
+  // ── dataLayer hook (dormant) ──
+  // GTM was removed; tracking now goes to Supabase below. This push is harmless
+  // with no GTM loaded (just appends to a plain array) and is kept as a ready
+  // hook if an analytics tag is ever reconnected.
   window.dataLayer = window.dataLayer || [];
   window.dataLayer.push({
     event: 'art_purchase',
@@ -1463,7 +1455,7 @@ function purchaseArt(piece, card){
     art_piece_title: piece.title,
     art_piece_price: piece.price
   });
-  // ── Supabase tracking ──
+  // ── Supabase tracking (primary) ──
   trackArtPurchase(piece);
   // Flash success on card (only when called with a card element)
   if(card){
