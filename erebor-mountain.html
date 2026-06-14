@@ -418,6 +418,7 @@ const GameState={
   visited:_p.get('visited')?_p.get('visited').split(',').filter(Boolean):[],
   unlocked:_p.get('unlocked')?_p.get('unlocked').split(',').filter(Boolean):[],
   items:_p.get('items')?_p.get('items').split(',').filter(Boolean):[],
+  log:_p.get('log')||'',  // combination-log notes — forwarded untouched
   hasItem(id){return this.items.includes(id);},
   collectItem(id){
     if(this.items.includes(id))return false;
@@ -428,7 +429,7 @@ const GameState={
   withState(href){
     const [base,hash]=href.split('#');
     const sep=base.includes('?')?'&':'?';
-    return base+sep+new URLSearchParams({points:this.points,visited:this.visited.join(','),unlocked:this.unlocked.join(','),items:this.items.join(',')}).toString()+(hash?'#'+hash:'');
+    return base+sep+new URLSearchParams({points:this.points,visited:this.visited.join(','),unlocked:this.unlocked.join(','),items:this.items.join(','),log:this.log}).toString()+(hash?'#'+hash:'');
   }
 };
 

@@ -271,11 +271,12 @@ const GameState={
   visited:_p.get('visited')?_p.get('visited').split(',').filter(Boolean):[],
   unlocked:_p.get('unlocked')?_p.get('unlocked').split(',').filter(Boolean):[],
   items:_p.get('items')?_p.get('items').split(',').filter(Boolean):[],
+  log:_p.get('log')||'',  // combination-log notes — forwarded untouched
   hasItem(id){return this.items.includes(id);},
   collectItem(id,pts){if(this.items.includes(id))return false;this.items.push(id);if(pts)this.points+=pts;return true;},
   consumeItem(id){this.items=this.items.filter(i=>i!==id);},
   unlock(key){if(!this.unlocked.includes(key))this.unlocked.push(key);},
-  toParams(){return new URLSearchParams({points:this.points,visited:this.visited.join(','),unlocked:this.unlocked.join(','),items:this.items.join(',')}).toString();},
+  toParams(){return new URLSearchParams({points:this.points,visited:this.visited.join(','),unlocked:this.unlocked.join(','),items:this.items.join(','),log:this.log}).toString();},
   withState(href){const[base,hash]=href.split('#');const sep=base.includes('?')?'&':'?';return base+sep+this.toParams()+(hash?'#'+hash:'');}
 };
 

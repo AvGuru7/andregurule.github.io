@@ -607,6 +607,7 @@ const GameState = {
   },
 
   items: _p.get('items') ? _p.get('items').split(',').filter(Boolean) : [],
+  log: _p.get('log') || '',  // combination-log notes — forwarded untouched through the hub
 
   collectItem(id){
     const item=ITEMS.find(i=>i.id===id);
@@ -628,7 +629,8 @@ const GameState = {
       points:   this.points,
       visited:  this.visited.join(','),
       unlocked: this.unlocked.join(','),
-      items:    this.items.join(',')
+      items:    this.items.join(','),
+      log:      this.log
     }).toString();
   },
 

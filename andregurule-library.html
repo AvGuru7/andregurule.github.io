@@ -953,11 +953,13 @@ const GameState = (() => {
   let visited  = (params.get('visited') || '').split(',').filter(Boolean);
   let unlocked = (params.get('unlocked') || '').split(',').filter(Boolean);
   let items    = (params.get('items') || '').split(',').filter(Boolean);
+  let log      = params.get('log') || '';  // combination-log notes — forwarded untouched
 
   const toParams = () => {
     const p = new URLSearchParams();
     p.set('points', points); p.set('visited', visited.join(','));
     p.set('unlocked', unlocked.join(',')); p.set('items', items.join(','));
+    p.set('log', log);
     return p.toString();
   };
   const withState = href => {

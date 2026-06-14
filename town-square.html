@@ -576,6 +576,7 @@ const GameState = {
   visited:  _p.get('visited')   ? _p.get('visited').split(',').filter(Boolean)  : [],
   unlocked: _p.get('unlocked')  ? _p.get('unlocked').split(',').filter(Boolean) : [],
   items:    _p.get('items')     ? _p.get('items').split(',').filter(Boolean)    : [],
+  log:      _p.get('log')||'',  // combination-log notes — forwarded untouched
   visitZone(id,pts=0){if(!this.visited.includes(id)){this.visited.push(id);this.points+=pts;}},
   unlock(key){if(!this.unlocked.includes(key))this.unlocked.push(key);},
   collectItem(id){
@@ -588,7 +589,7 @@ const GameState = {
   toParams(){
     return new URLSearchParams({
       points:this.points,visited:this.visited.join(','),
-      unlocked:this.unlocked.join(','),items:this.items.join(',')
+      unlocked:this.unlocked.join(','),items:this.items.join(','),log:this.log
     }).toString();
   },
   withState(href){

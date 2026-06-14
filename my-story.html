@@ -1073,6 +1073,7 @@ var GameState = (function() {
   var visited  = parse('visited');
   var items    = parse('items');
   var unlocked = parse('unlocked');
+  var log      = params.get('log')||'';  // combination-log notes — forwarded untouched
 
   function toParams() {
     var p = new URLSearchParams();
@@ -1080,6 +1081,7 @@ var GameState = (function() {
     p.set('visited',  visited.join(','));
     p.set('items',    items.join(','));
     p.set('unlocked', unlocked.join(','));
+    p.set('log',      log);
     return p.toString();
   }
   function withState(href) {
