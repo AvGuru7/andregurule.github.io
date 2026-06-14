@@ -181,6 +181,14 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
   <div id="vault-dial-hint" style="font-family:'VT323',monospace;font-size:clamp(14px,2.5vw,18px);color:var(--ui-dim);text-align:center;margin-top:8px;line-height:1.7;"></div>
 </div>
 
+<!-- Prison-cell carved inscription: 12 tally marks + a skeleton pointing left -->
+<div id="inscription-overlay" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(4,3,10,0.97);z-index:700;align-items:center;justify-content:center;flex-direction:column;gap:14px;">
+  <div style="font-family:'Press Start 2P',monospace;font-size:clamp(8px,1.6vw,12px);color:var(--gold);letter-spacing:1px;text-align:center;">CARVED INTO THE CELL WALL</div>
+  <canvas id="inscription-canvas" style="image-rendering:pixelated;border:3px solid #3a3a3a;background:#1a1714;max-width:92vw;"></canvas>
+  <div id="inscription-hint" style="font-family:'VT323',monospace;font-size:clamp(15px,2.6vw,20px);color:var(--ui-text);text-align:center;max-width:90vw;line-height:1.5;padding:0 12px;">Twelve marks, scratched deep by a long-forgotten prisoner. A skeletal hand points the way.</div>
+  <div style="font-family:'VT323',monospace;font-size:clamp(13px,2.2vw,16px);color:var(--ui-dim);">Press <span style="color:var(--gold)">B</span> or tap to close</div>
+</div>
+
 <div id="nes-controller">
   <div id="controller-body">
     <div id="dpad">
@@ -385,6 +393,7 @@ const SIGNS=[
   {id:'banquet_sign',  label:'🍖 BANQUET HALL', tx:30, ty:17, title:'BANQUET HALL',       body:'A grand hall for feasts. The great table at its center is carved with a single bold mark and rows of arrows.', links:[]},
   {id:'banquet_table', label:'🍷 THE TABLE',     tx:30, ty:25, title:'THE FEAST TABLE',    body:'A bold V is carved deep into the wood at the center of the table, flanked by rows of arrows pointing to the right.', links:[]},
   {id:'dungeon_sign',  label:'⛓ DUNGEON',       tx:42, ty:17, title:'THE DUNGEON',        body:'Cold stone, dripping water, iron bars. Not all who descend return. You have been warned.', links:[]},
+  {id:'prison_inscription', label:'🪨 CARVED WALL', tx:41, ty:26, title:'CELL INSCRIPTION', body:'', inscription:true, links:[]},
 ];
 
 // ── TREASURY LOCKED DOOR ──────────────────────────────────────────────────────
@@ -536,6 +545,11 @@ kayakImg.src='images/blue-kayak.png';
 // Banquet Hall feast table — painted V + rightward chevrons (combination clue: 5).
 const tableImg=new Image();
 tableImg.src='images/table-v.png';
+
+// Prison-cell carved inscription — 12 tally marks + skeleton pointing left (clue: 12, Left).
+const inscriptionImg=new Image();
+inscriptionImg.src='images/twelve-left.png';
+inscriptionImg.onload=function(){ if(typeof inscriptionOpen!=='undefined'&&inscriptionOpen) drawInscription(); };
 
 function ctrlHeight(){const c=document.getElementById('nes-controller');return c?c.offsetHeight+16:0;}
 function resize(){canvas.width=window.innerWidth;canvas.height=window.innerHeight-ctrlHeight();ctx.imageSmoothingEnabled=false;}
@@ -1032,6 +1046,24 @@ function drawPrisonWall(wx,wy){
   // Door jamb pillars (always drawn)
   ctx.fillStyle='#4a4a4a';ctx.fillRect(doorX-4,wallY,5,TILE);ctx.fillRect(doorX+doorW-1,wallY,5,TILE);
   ctx.fillStyle='#5a5a5a';ctx.fillRect(doorX-3,wallY+2,2,TILE-4);ctx.fillRect(doorX+doorW,wallY+2,2,TILE-4);
+
+  // ── Faint carved-tally hint on the cell's south wall (only once cell is open) ──
+  // Draws a small cluster of scratch marks the player can walk up to and inspect.
+  if(prisonOpen){
+    const insTile=SIGNS.find(s=>s.id==='prison_inscription');
+    const ix=insTile.tx*TILE-wx+TILE*0.15, iy=(insTile.ty+1)*TILE-wy-10;
+    ctx.strokeStyle='rgba(180,170,150,0.45)';ctx.lineWidth=2;ctx.lineCap='round';
+    for(let m=0;m<5;m++){const mx=ix+m*5;ctx.beginPath();ctx.moveTo(mx,iy);ctx.lineTo(mx,iy+12);ctx.stroke();}
+    ctx.beginPath();ctx.moveTo(ix-2,iy+12);ctx.lineTo(ix+22,iy);ctx.stroke();
+    // soft glow prompt when the player is close
+    const pdx=Math.abs(playerX-insTile.tx*TILE), pdy=Math.abs(playerY-insTile.ty*TILE);
+    if(pdx<TILE*2.5&&pdy<TILE*2.5){
+      const pulse=0.4+0.3*Math.sin(Date.now()/300);
+      ctx.fillStyle=`rgba(240,192,64,${pulse})`;
+      ctx.font='6px "Press Start 2P"';ctx.textAlign='center';
+      ctx.fillText('[A] INSPECT',insTile.tx*TILE-wx+TILE/2,iy-6);ctx.textAlign='left';
+    }
+  }
 }
 
 // ── EXIT SIGN ─────────────────────────────────────────────────────────────────
@@ -1356,6 +1388,7 @@ function showZoneLabel(label){
 function hideZoneLabel(){document.getElementById('zone-label').style.opacity='0';}
 
 function handleA(){
+  if(inscriptionOpen){closeInscription();return;}
   if(vaultDialOpen){dialConfirm();return;}
   if(menuOpen){menuSelectCurrent();return;}
   if(dialogOpen){
@@ -1384,10 +1417,11 @@ function handleA(){
       showInlineDialog('🚣 BLUE KAYAK',"You must talk to the king before you can take his kayak. He will likely want something of value to trade.",'[B] Close');
       return;
     }
+    if(activeInteractable.type==='sign'&&activeInteractable.obj.inscription){openInscription();return;}
     openDialog(activeInteractable);
   }
 }
-function handleB(){if(menuOpen){closeMenu();return;}if(inventoryOpen){closeInventory();return;}if(vaultDialOpen){closeVaultDial();return;}if(dialogOpen){closeDialog();return;}if(compassActive){compassActive=false;return;}}
+function handleB(){if(menuOpen){closeMenu();return;}if(inventoryOpen){closeInventory();return;}if(vaultDialOpen){closeVaultDial();return;}if(inscriptionOpen){closeInscription();return;}if(dialogOpen){closeDialog();return;}if(compassActive){compassActive=false;return;}}
 
 function openDialog(interactable){
   dialogOpen=true;
@@ -1500,6 +1534,62 @@ function drawCompassOverlay(){
   ctx.textAlign='right';ctx.textBaseline='alphabetic';
   ctx.fillText('[B] dismiss compass',canvas.width-8,canvas.height-8);
   ctx.restore();
+}
+
+// ── PRISON INSCRIPTION OVERLAY ────────────────────────────────────────────────
+// Carved into the cell's south wall: 12 tally marks (grouped 5-5-2) and a
+// skeleton whose left arm points left — the combination clue (12, Left).
+let inscriptionOpen=false;
+function openInscription(){
+  inscriptionOpen=true;
+  if(dialogOpen)closeDialog();
+  document.getElementById('inscription-overlay').style.display='flex';
+  drawInscription();
+}
+function closeInscription(){
+  inscriptionOpen=false;
+  document.getElementById('inscription-overlay').style.display='none';
+}
+function drawInscription(){
+  const c=document.getElementById('inscription-canvas');
+  const w=Math.min(window.innerWidth*0.9,560);
+  // height tracks the image aspect (1280×720) so nothing is squashed
+  const aspect=(inscriptionImg.naturalWidth&&inscriptionImg.naturalHeight)
+    ? inscriptionImg.naturalHeight/inscriptionImg.naturalWidth : 720/1280;
+  const h=Math.round(w*aspect);
+  c.width=w;c.height=h;
+  const x=c.getContext('2d');
+
+  if(inscriptionImg.complete&&inscriptionImg.naturalWidth>0){
+    x.imageSmoothingEnabled=false;
+    x.drawImage(inscriptionImg,0,0,w,h);
+    return;
+  }
+
+  // ── Fallback (image not yet loaded): stone wall + 12 tally marks + ◀ ──
+  x.fillStyle='#2a2622';x.fillRect(0,0,w,h);
+  for(let i=0;i<140;i++){
+    const px=(i*97)%w, py=(i*53)%h, sh=((i*29)%18)-9;
+    x.fillStyle=`rgba(${60+sh},${56+sh},${50+sh},0.5)`;
+    x.fillRect(px,py,3,3);
+  }
+  const markH=h*0.30, topY=h*0.22, grpGap=w*0.085, tickGap=w*0.026, slashPad=w*0.012;
+  let cx=w*0.12;
+  function tick(tx){
+    x.strokeStyle='rgba(10,8,6,0.85)';x.lineWidth=4;x.lineCap='round';
+    x.beginPath();x.moveTo(tx,topY);x.lineTo(tx,topY+markH);x.stroke();
+  }
+  function slash(x0,x1){
+    x.strokeStyle='rgba(10,8,6,0.85)';x.lineWidth=4;x.lineCap='round';
+    x.beginPath();x.moveTo(x0,topY+markH);x.lineTo(x1,topY);x.stroke();
+  }
+  function group5(){const x0=cx;for(let t=0;t<4;t++){tick(cx);cx+=tickGap;}slash(x0-slashPad,cx-tickGap+slashPad);cx+=grpGap;}
+  function group2(){for(let t=0;t<2;t++){tick(cx);cx+=tickGap;}}
+  group5();group5();group2();
+  // ◀ pointing left
+  const ay=topY+markH/2, ax=w*0.62;
+  x.fillStyle='rgba(240,192,64,0.85)';
+  x.beginPath();x.moveTo(ax-w*0.03,ay);x.lineTo(ax+w*0.02,ay-h*0.08);x.lineTo(ax+w*0.02,ay+h*0.08);x.closePath();x.fill();
 }
 
 // ── FIRST EDITION BOOK ───────────────────────────────────────────────────────
@@ -2021,6 +2111,8 @@ window.addEventListener('load',function(){
   document.getElementById('book-prev').addEventListener('click',function(){bookPageNav(-1);});
   document.getElementById('book-next').addEventListener('click',function(){bookPageNav(1);});
   document.getElementById('book-close').addEventListener('click',function(){closeBook();});
+  document.getElementById('inscription-overlay').addEventListener('click',function(){closeInscription();});
+  window.addEventListener('resize',function(){if(inscriptionOpen)drawInscription();});
 });
 requestAnimationFrame(gameLoop);
 </script>
