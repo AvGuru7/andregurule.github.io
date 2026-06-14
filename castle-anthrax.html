@@ -278,6 +278,12 @@ function isWalkable(tx,ty){
   if(isInteriorWall(tx,ty)) return false;
   // Treasury corridor connector tiles are blocked when door is locked
   if(!treasuryOpen&&ty===11&&(tx===32||tx===33)) return false;
+  // Prison cell dividing wall (Dungeon row 23, cols 38–45). The doorway opening
+  // at cols 41,42 is blocked only while the cell is locked.
+  if(ty===PRISON.wallRow&&tx>=38&&tx<=45){
+    if(tx===PRISON.doorL||tx===PRISON.doorR) return prisonOpen; // doorway: open only when unlocked
+    return false; // solid wall
+  }
   for(const r of ROOMS) if(tx>=r.x&&tx<r.x+r.w&&ty>=r.y&&ty<r.y+r.h) return true;
   for(const c of CORRIDORS) if(tx>=c.x&&tx<c.x+c.w&&ty>=c.y&&ty<c.y+c.h) return true;
   return false;
@@ -383,21 +389,74 @@ const TREASURY_DOOR={
   tx:32, ty:11,   // interactable tile — player stands in corridor at y:12, faces up
 };
 
+// ── PRISON CELL LOCKED DOOR ───────────────────────────────────────────────────
+// The Dungeon's south end is walled off into a 3-tile-deep prison cell.
+// A horizontal wall runs across row 23 (cols 38–45); the doorway opening is at
+// cols 41,42. Like the Treasury door, it is sealed until the player has the
+// Skeleton Key. prisonOpen drives both collision and visuals.
+let prisonOpen=false; // will be set from GameState after it is initialised
+const PRISON={
+  doorL:41, doorR:42,  // doorway columns in the prison wall
+  wallRow:23,          // the wall row dividing the cell from the rest of the dungeon
+};
+const PRISON_DOOR={
+  id:'prison_door',
+  label:'🔒 PRISON DOOR',
+  tx:41, ty:22,   // interactable tile — player stands just north of the wall, faces down
+};
+// Locked-door registry. Each entry pairs a door's interact tile with the flag
+// that opens it. Used both for proximity checks and by the Skeleton Key unlock.
+const LOCKED_DOORS=[
+  {key:'treasury', tx:32, ty:11, label:'TREASURY DOOR', open:'✓ The heavy door swings open!',  setOpen:()=>{treasuryOpen=true;}, isOpen:()=>treasuryOpen},
+  {key:'prison',   tx:41, ty:22, label:'PRISON DOOR',   open:'✓ The cell door creaks open!',   setOpen:()=>{prisonOpen=true;},   isOpen:()=>prisonOpen},
+];
+// Returns the nearest still-locked door within reach (≤ UNLOCK_RANGE px), or null.
+const UNLOCK_RANGE=120;
+function nearestLockedDoor(){
+  let best=null,bestD=UNLOCK_RANGE;
+  for(const d of LOCKED_DOORS){
+    if(d.isOpen()) continue;
+    const dist=Math.hypot(playerX-(d.tx*TILE+TILE/2),playerY-(d.ty*TILE+TILE/2));
+    if(dist<bestD){bestD=dist;best=d;}
+  }
+  return best;
+}
+// Called from the inventory "Unlock Door" button on the Skeleton Key.
+function useSkeletonKey(){
+  if(!GameState.unlocked.includes('skeleton-key')) return;
+  const door=nearestLockedDoor();
+  if(!door) return; // button shouldn't be visible, but guard anyway
+  door.setOpen();
+  showZoneLabel(door.open);
+  closeInventory();
+}
+
+// Pressing A at a locked door no longer opens it directly — it points the player
+// to the Skeleton Key in their inventory.
+function lockedDoorPrompt(title,body){
+  dialogOpen=true;
+  document.getElementById('dialog-title').textContent=title;
+  document.getElementById('dialog-body').textContent=body;
+  const linksEl=document.getElementById('dialog-links');linksEl.innerHTML='';
+  const hint=document.createElement('span');
+  hint.style.cssText='font-family:VT323,monospace;font-size:16px;color:#a09070;display:block;margin-top:4px;';
+  hint.textContent='[B] Close';linksEl.appendChild(hint);
+  document.getElementById('dialog-box').style.display='block';
+}
+function tryOpenPrison(){
+  if(prisonOpen) return;
+  if(GameState.unlocked.includes('skeleton-key')){
+    lockedDoorPrompt('🔒 PRISON DOOR','Rusted iron bars seal the cell. Open your inventory (SELECT / I), choose the Skeleton Key, and unlock the door.');
+  } else {
+    lockedDoorPrompt('🔒 PRISON DOOR','Rusted iron bars seal the cell. A heavy lock holds them fast. You need the Skeleton Key to enter.');
+  }
+}
 function tryOpenTreasury(){
   if(treasuryOpen) return;
   if(GameState.unlocked.includes('skeleton-key')){
-    treasuryOpen=true;
-    showZoneLabel('✓ The door swings open!');
+    lockedDoorPrompt('🔒 TREASURY DOOR','The heavy iron door is sealed with an ornate lock. Open your inventory (SELECT / I), choose the Skeleton Key, and unlock the door.');
   } else {
-    // Show locked dialog inline (no SIGN object needed)
-    dialogOpen=true;
-    document.getElementById('dialog-title').textContent='🔒 TREASURY DOOR';
-    document.getElementById('dialog-body').textContent='The heavy iron door is sealed with an ornate lock. You need the Skeleton Key to enter.';
-    const linksEl=document.getElementById('dialog-links');linksEl.innerHTML='';
-    const hint=document.createElement('span');
-    hint.style.cssText='font-family:VT323,monospace;font-size:16px;color:#a09070;display:block;margin-top:4px;';
-    hint.textContent='[B] Close';linksEl.appendChild(hint);
-    document.getElementById('dialog-box').style.display='block';
+    lockedDoorPrompt('🔒 TREASURY DOOR','The heavy iron door is sealed with an ornate lock. You need the Skeleton Key to enter.');
   }
 }
 const _p=new URLSearchParams(window.location.search);
@@ -424,6 +483,7 @@ const GameState={
 };
 // Restore treasury door state from URL params
 treasuryOpen=GameState.unlocked.includes('skeleton-key');
+prisonOpen=GameState.unlocked.includes('skeleton-key');
 kayakEarned=GameState.unlocked.includes('kayak-earned');
 kayakCollected=GameState.unlocked.includes('kayak-collected');
 
@@ -828,31 +888,87 @@ function drawDungeon(wx,wy){
   const rx=r.x*TILE-wx,ry=r.y*TILE-wy,rw=r.w*TILE,rh=r.h*TILE;
   // Damp overlay
   ctx.fillStyle='rgba(0,20,8,0.2)';ctx.fillRect(rx,ry,rw,rh);
-  // Cells
-  for(let ci=0;ci<2;ci++){
-    const cx2=rx+TILE*0.5+ci*(rw-TILE);
-    const cy2=ry+TILE;
-    ctx.fillStyle='#0e0e0e';ctx.fillRect(cx2,cy2,TILE*3.5,rh-TILE*3);
-    ctx.fillStyle='#303030';
-    for(let bi=0;bi<=5;bi++) ctx.fillRect(cx2+bi*(TILE*3.5/5)-1,cy2,3,rh-TILE*3);
-    ctx.fillRect(cx2,cy2+(rh-TILE*3)*0.45,TILE*3.5,3);
-    // Chains
-    for(let ch=0;ch<2;ch++){const chx=cx2+TILE*0.5+ch*TILE*2;ctx.fillStyle='#555';ctx.fillRect(chx-2,cy2+8,4,TILE*2);for(let lk=0;lk<6;lk++)ctx.fillRect(chx-4,cy2+12+lk*12,8,4);}
-    // Bones
-    ctx.fillStyle='#ccc8b0';
-    ctx.fillRect(cx2+TILE,cy2+rh-TILE*2.8,26,5);ctx.fillRect(cx2+TILE-3,cy2+rh-TILE*2.9,10,9);ctx.fillRect(cx2+TILE+18,cy2+rh-TILE*2.9,10,9);
-    ctx.beginPath();ctx.arc(cx2+TILE*2,cy2+rh-TILE*2.5-10,9,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle='#0e0e0e';ctx.fillRect(cx2+TILE*2-5,cy2+rh-TILE*2.5-13,4,3);ctx.fillRect(cx2+TILE*2+1,cy2+rh-TILE*2.5-13,4,3);
-  }
+  // Upper-dungeon area (above the prison wall). Holding cells removed — the
+  // locked south prison cell now serves the cell role.
+  const cellH=(PRISON.wallRow-1-r.y)*TILE - TILE; // vertical span of the upper area (used by drips)
   // Drips
   const t=Date.now()/1000;
   for(let di=0;di<4;di++){
     const dripX=rx+TILE+di*TILE*2;
-    const dripY=ry+TILE+(t*24+di*31)%(rh-TILE*2);
+    const dripY=ry+TILE+(t*24+di*31)%(cellH);
     ctx.fillStyle='rgba(80,160,200,0.55)';ctx.beginPath();ctx.ellipse(dripX,dripY,2,4,0,0,Math.PI*2);ctx.fill();
   }
   // Dim torches
   torch(rx+TILE*0.5,ry+TILE*0.5,true);torch(rx+rw-TILE,ry+TILE*0.5,true);
+}
+
+// ── PRISON CELL WALL & LOCKED DOOR ────────────────────────────────────────────
+// Draws the stone wall dividing off the south end of the Dungeon, plus the
+// iron-barred locked door. Mirrors the Treasury door's lock/key visuals.
+function drawPrisonWall(wx,wy){
+  const r=ROOMS[6];
+  const wallY=PRISON.wallRow*TILE-wy;
+  const wallX0=(r.x+1)*TILE-wx;            // interior starts one tile in (col 38)
+  const wallW=(r.w-2)*TILE;                // cols 38–45
+  const doorX=PRISON.doorL*TILE-wx;        // doorway left edge (col 41)
+  const doorW=TILE*2;                      // 2-tile doorway (cols 41,42)
+
+  // Floor of the prison cell (rows 24–26) — darker, grimier stone
+  const cellY=(PRISON.wallRow+1)*TILE-wy;
+  const cellH=(r.y+r.h-1-(PRISON.wallRow+1))*TILE;
+  ctx.fillStyle='rgba(0,0,0,0.35)';ctx.fillRect(wallX0,cellY,wallW,cellH);
+  // Scattered straw on the cell floor
+  ctx.fillStyle='rgba(150,130,70,0.25)';
+  for(let s=0;s<10;s++){const sxv=wallX0+((s*53)%(wallW-12))+4, syv=cellY+((s*37)%(Math.max(1,cellH-8)))+4;ctx.fillRect(sxv,syv,8,2);}
+
+  // ── Stone dividing wall ──
+  ctx.fillStyle='#3a3a3a';ctx.fillRect(wallX0,wallY,wallW,TILE);
+  // Brick coursing
+  ctx.fillStyle='#2e2e2e';
+  for(let bx=0;bx<wallW;bx+=TILE){ctx.fillRect(wallX0+bx,wallY+2,2,TILE-4);}
+  ctx.fillRect(wallX0,wallY+TILE*0.5,wallW,2);
+  ctx.fillStyle='#484848';ctx.fillRect(wallX0,wallY+2,wallW,2);
+
+  if(!prisonOpen){
+    // ── Locked iron-bar door filling the 2-tile opening ──
+    const dx=doorX, dy=wallY, dw=doorW;
+    // Dark recess behind the bars
+    ctx.fillStyle='#0c0c0c';ctx.fillRect(dx,dy,dw,TILE);
+    // Vertical iron bars
+    ctx.fillStyle='#5a5a5a';
+    const bars=7;
+    for(let b=0;b<bars;b++){const bxp=dx+4+b*((dw-8)/(bars-1));ctx.fillRect(bxp-2,dy+2,4,TILE-4);}
+    // Horizontal cross-rails
+    ctx.fillStyle='#6a6a6a';
+    ctx.fillRect(dx+2,dy+6,dw-4,3);ctx.fillRect(dx+2,dy+TILE-9,dw-4,3);
+    // Bar highlights
+    ctx.fillStyle='rgba(255,255,255,0.12)';
+    for(let b=0;b<bars;b++){const bxp=dx+4+b*((dw-8)/(bars-1));ctx.fillRect(bxp-2,dy+2,1,TILE-4);}
+    // Gold lock plate + keyhole, centred
+    const kx=dx+dw/2, ky=dy+TILE/2;
+    ctx.fillStyle='#c8a000';ctx.fillRect(kx-9,ky-9,18,22);
+    ctx.fillStyle='#a88600';ctx.fillRect(kx-9,ky-9,18,2);
+    ctx.fillStyle='#111';
+    ctx.beginPath();ctx.arc(kx,ky-1,5,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.moveTo(kx-3,ky-1);ctx.lineTo(kx+3,ky-1);ctx.lineTo(kx+2,ky+9);ctx.lineTo(kx-2,ky+9);ctx.closePath();ctx.fill();
+    // Glow hint when player is nearby
+    const pdx=Math.abs(playerX-(dx+dw/2)), pdy=Math.abs(playerY-(dy+TILE/2));
+    if(pdx<TILE*3&&pdy<TILE*3){
+      const pulse=0.4+0.3*Math.sin(Date.now()/300);
+      ctx.fillStyle=`rgba(240,192,64,${pulse})`;
+      ctx.font='6px "Press Start 2P"';ctx.textAlign='center';
+      ctx.fillText('USE SKELETON KEY',dx+dw/2,dy-6);ctx.textAlign='left';
+    }
+  } else {
+    // Opened — bars swung aside; show dark passage through the doorway
+    ctx.fillStyle='rgba(0,0,0,0.4)';ctx.fillRect(doorX+1,wallY+1,doorW-2,TILE-2);
+    // Open gate leaf hinged to the left jamb
+    ctx.fillStyle='#5a5a5a';
+    for(let b=0;b<3;b++)ctx.fillRect(doorX+2+b*4,wallY+3,2,TILE-6);
+  }
+  // Door jamb pillars (always drawn)
+  ctx.fillStyle='#4a4a4a';ctx.fillRect(doorX-4,wallY,5,TILE);ctx.fillRect(doorX+doorW-1,wallY,5,TILE);
+  ctx.fillStyle='#5a5a5a';ctx.fillRect(doorX-3,wallY+2,2,TILE-4);ctx.fillRect(doorX+doorW,wallY+2,2,TILE-4);
 }
 
 // ── EXIT SIGN ─────────────────────────────────────────────────────────────────
@@ -993,7 +1109,7 @@ function drawDoorways(wx,wy){
         const pulse=0.4+0.3*Math.sin(Date.now()/300);
         ctx.fillStyle=`rgba(240,192,64,${pulse})`;
         ctx.font='6px "Press Start 2P"';ctx.textAlign='center';
-        ctx.fillText('[A] USE KEY',dx+dw/2,dy-6);ctx.textAlign='left';
+        ctx.fillText('USE SKELETON KEY',dx+dw/2,dy-6);ctx.textAlign='left';
       }
     }
     // Arch pillars always drawn (open or closed)
@@ -1063,6 +1179,7 @@ function drawWorld(){
   drawStorage(wx,wy);
   drawBanquetHall(wx,wy);
   drawDungeon(wx,wy);
+  drawPrisonWall(wx,wy);
 
   // Doorway arches
   drawDoorways(wx,wy);
@@ -1119,6 +1236,11 @@ function getNearestInteractable(){
   if(!treasuryOpen){
     const dd=distToTile(TREASURY_DOOR.tx,TREASURY_DOOR.ty);
     if(dd<bestD){bestD=dd;best={type:'treasury_door',obj:TREASURY_DOOR};}
+  }
+  // Prison door interactable — only show prompt when the cell is still locked
+  if(!prisonOpen){
+    const pd=distToTile(PRISON_DOOR.tx,PRISON_DOOR.ty);
+    if(pd<bestD){bestD=pd;best={type:'prison_door',obj:PRISON_DOOR};}
   }
   // Kayak pickup — only available after trade and before collection
   if(kayakEarned&&!kayakCollected){
@@ -1192,6 +1314,7 @@ function handleA(){
   }
   if(activeInteractable){
     if(activeInteractable.type==='treasury_door'){tryOpenTreasury();return;}
+    if(activeInteractable.type==='prison_door'){tryOpenPrison();return;}
     if(activeInteractable.type==='vault_door'){openVaultDial();return;}
     if(activeInteractable.type==='kayak_pickup'){collectKayak();return;}
     if(activeInteractable.type==='kayak_locked'){
@@ -1257,7 +1380,7 @@ const ITEMS=[
 const ITEM_DETAILS={
   'old-compass':  {desc:'An old compass from Dr. Mallard at The Lake. Rumored to point toward hidden treasure.', action:{label:'ACTIVATE COMPASS',fn:'activateCompass'}},
   'first-edition':{desc:"A rare first-edition from the Library's restricted collection. Contains clues for those who seek them.", action:{label:'READ BOOK',fn:'openBook'}},
-  'skeleton-key': {desc:'A master key of unknown origin. Opens locks that others cannot.'},
+  'skeleton-key': {desc:'A master key of unknown origin. Stand beside a locked door, then press UNLOCK to open it.'},
   'holy-grail':   {desc:'The Holy Grail — the ultimate prize of Castle Anthrax.'},
   'sword':        {desc:'A sword from the Erebor Mountain swordsmith, given only to those who proved their qualifications.'},
   'blue-kayak':   {desc:'A fine blue kayak. A gift from King Lyn, traded for a piece of artwork.'},
@@ -1441,7 +1564,16 @@ function renderItemDetail(id){
   var has=GameState.hasItem(id);
   if(!item)return;
   var actionBtn='';
-  if(detail&&detail.action&&has){
+  // Skeleton Key: show an "Unlock Door" button only when the player is standing
+  // next to a still-locked door. Which door opens is resolved at click time.
+  if(id==='skeleton-key'&&has){
+    var nearDoor=nearestLockedDoor();
+    if(nearDoor){
+      actionBtn='<button id="inv-action-btn" style="margin-top:14px;padding:10px 16px;background:var(--gold);border:1.5px solid var(--gold);color:#1a1208;font-family:\'Press Start 2P\',monospace;font-size:8px;cursor:pointer;border-radius:2px;width:100%;">UNLOCK '+nearDoor.label+'</button>';
+    } else {
+      actionBtn='<div style="margin-top:14px;font-family:\'VT323\',monospace;font-size:15px;color:var(--ui-dim);text-align:center;line-height:1.4;">Stand beside a locked door to use this key.</div>';
+    }
+  } else if(detail&&detail.action&&has){
     actionBtn='<button id="inv-action-btn" style="margin-top:14px;padding:10px 16px;background:var(--ui-bg);border:1.5px solid var(--gold);color:var(--gold);font-family:\'Press Start 2P\',monospace;font-size:8px;cursor:pointer;border-radius:2px;width:100%;">'+detail.action.label+'</button>';
   }
   panel.innerHTML='<div style="font-size:28px;text-align:center;margin-bottom:10px;">'+(has?item.icon:'❓')+'</div>'
@@ -1450,7 +1582,9 @@ function renderItemDetail(id){
     +'<div style="width:100%;height:1px;background:rgba(240,192,64,0.15);margin-bottom:12px;"></div>'
     +'<div style="font-family:\'VT323\',monospace;font-size:16px;color:var(--ui-text);line-height:1.5;">'+(has&&detail?detail.desc:has?'A collected item.':'Not yet found. Keep exploring.')+'</div>'
     +actionBtn;
-  if(detail&&detail.action&&has){
+  if(id==='skeleton-key'&&has&&nearestLockedDoor()){
+    document.getElementById('inv-action-btn').addEventListener('click',function(){useSkeletonKey();});
+  } else if(detail&&detail.action&&has){
     var fn=detail.action.fn;
     document.getElementById('inv-action-btn').addEventListener('click',function(){window[fn]();});
   }
