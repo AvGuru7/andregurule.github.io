@@ -236,151 +236,136 @@ const TILE=48, WORLD_W=56, WORLD_H=40;
 const PW=WORLD_W*TILE, PH=WORLD_H*TILE;
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// MAZE LAYOUT
-// Strategy: five named chambers scattered far apart, connected ONLY through a
-// web of 1-2 tile wide tunnels that wind, double-back, branch into dead ends,
-// and force players to explore to find the right path.
+// MAZE LAYOUT  (redesigned — moderate difficulty, mixed corridor widths)
+// Strategy: FOUR named chambers in the four corner regions, plus the entrance,
+// connected only through THREE junction crossroads via winding tunnels of MIXED
+// width — 2-wide "arteries" off the entrance that narrow to 1-wide "squeezes"
+// near each chamber — with several dead-end pockets to disorient.
 //
-// CHAMBERS (interior rect — walls are 1 tile thick all round, handled by drawing):
-//   entrance       x:25, y:1,  w:6,  h:5   — spawn here, north exit to world map
-//   junction-a     x:10, y:9,  w:5,  h:5   — first major fork, no NPC
-//   junction-b     x:38, y:8,  w:5,  h:5   — second fork, east side
-//   junction-c     x:22, y:22, w:5,  h:5   — deep central junction
-//   junction-d     x:6,  y:30, w:5,  h:5   — southwest dead-zone
-//   forge-room     x:44, y:20, w:9,  h:8   — JIMMY (large, hard to find)
-//   dragon-hall    x:2,  y:2,  w:10, h:10  — DARRELL (northwest corner, long route)
-//   bat-cave       x:42, y:31, w:9,  h:7   — BATMAN (southeast corner)
-//   treasury       x:20, y:33, w:8,  h:6   — DEATH CHAMBER (south-central)
+// CHAMBERS (interior rect — walls are implicit: any tile NOT in a rect is wall):
+//   entrance       x:26, y:1,  w:6,  h:5   — spawn at tile (28,3); exit-shaft north
+//   dragon-hall    x:2,  y:2,  w:10, h:10  — DARRELL  @ (7,7)   (NW corner)
+//   forge-room     x:43, y:20, w:10, h:9   — JIMMY    @ (47,24) (E side; hardest to find)
+//   bat-cave       x:42, y:31, w:9,  h:7   — BATMAN   @ (46,35) (SE corner)
+//   treasury       x:19, y:33, w:8,  h:6   — GAS DEATH CHAMBER (S-central; tempting "prize")
 //
-// TUNNELS (1-2 tiles wide — ALL connections between chambers are via tunnels):
+// JUNCTIONS (no NPC — pure decision points):
+//   junction-a     x:11, y:9,  w:5,  h:5   — west-central fork
+//   junction-b     x:35, y:9,  w:5,  h:5   — east-central fork
+//   junction-c     x:22, y:23, w:5,  h:5   — deep central fork
 //
-// The key design principle: every chamber connects to at least one junction
-// via a winding tunnel. Junctions connect to other junctions via tunnels.
-// Junctions connect to chambers via tunnels. No chamber connects directly
-// to another chamber — must go via tunnel+junction or long tunnel.
-// Several false tunnels dead-end to disorient.
+// Design principle: no chamber connects directly to another — every route runs
+// chamber → tunnel → junction → tunnel → chamber. Jimmy (the main quest reward)
+// sits at the end of the longest wind; the gas chamber is a short, tempting
+// detour off junction-c so players wander into it expecting treasure.
+//
+// ── CONNECTIVITY VERIFICATION (flood-fill from spawn tile 28,3) ──────────────────
+// This layout was flood-fill-verified before commit. Result: exactly 2 connected
+// components — (1) the full maze: spawn, exit-shaft, all 4 chambers, all 3
+// junctions, and every dead-end pocket are mutually reachable (731 tiles); and
+// (2) the west-escape stub (16 tiles), which is ISOLATED ON PURPOSE — it is a
+// teleport-redirect trigger (see updatePlayer: tx<=1 && ty 18-19 → world map),
+// not a walkable connection.
+//
+// ⚠ WHEN EDITING THIS ARRAY: re-run a flood-fill from (28,3) and confirm every
+// chamber + the exit-shaft land in the same component, and that no NEW isolated
+// pocket appears (an isolated pocket = a dead end the player can never reach, or
+// worse, a sealed chamber). An off-by-one on a tunnel end silently breaks a path.
+// Dead ends must branch OFF the main component (be reachable), just not loop back.
 // ═══════════════════════════════════════════════════════════════════════════════
 
 const WALKABLE_RECTS=[
-  // ── NAMED CHAMBERS ────────────────────────────────────────────────────────
-  {id:'entrance',    x:25, y:1,  w:6,  h:5},
-  {id:'junction-a',  x:10, y:9,  w:5,  h:5},
-  {id:'junction-b',  x:38, y:8,  w:5,  h:5},
-  {id:'junction-c',  x:22, y:22, w:5,  h:5},
-  {id:'junction-d',  x:6,  y:30, w:5,  h:5},
-  {id:'forge-room',  x:44, y:20, w:9,  h:8},
-  {id:'dragon-hall', x:2,  y:2,  w:10, h:10},
-  {id:'bat-cave',    x:42, y:31, w:9,  h:7},
-  {id:'treasury',    x:20, y:33, w:8,  h:6},
+  // ── NAMED CHAMBERS (four corners + entrance) ──────────────────────────────
+  {id:'entrance',    x:26, y:1,  w:6,  h:5},   // spawn (28,3)
+  {id:'dragon-hall', x:2,  y:2,  w:10, h:10},  // DARRELL  (7,7)
+  {id:'forge-room',  x:43, y:20, w:10, h:9},   // JIMMY    (47,24)
+  {id:'bat-cave',    x:42, y:31, w:9,  h:7},   // BATMAN   (46,35)
+  {id:'treasury',    x:19, y:33, w:8,  h:6},   // GAS DEATH (contains 22,35)
+
+  // ── JUNCTION CROSSROADS (no NPC) ──────────────────────────────────────────
+  {id:'junction-a',  x:11, y:9,  w:5,  h:5},   // west-central fork
+  {id:'junction-b',  x:35, y:9,  w:5,  h:5},   // east-central fork
+  {id:'junction-c',  x:22, y:23, w:5,  h:5},   // deep central fork
 
   // ── EXIT SHAFT (entrance → world map, north edge) ─────────────────────────
   {id:'exit-shaft',  x:27, y:0,  w:2,  h:2},
 
   // ═════════════════════════════════════════════════════════════════════════
-  // TUNNELS — named with 't' prefix. All 1-2 tiles wide.
-  // Each segment is a horizontal or vertical run. Corners connect them.
+  // TUNNELS — 't' prefix. MIXED WIDTH: 2-wide arteries, 1-wide squeezes.
   // ═════════════════════════════════════════════════════════════════════════
 
-  // ── entrance → junction-a  (goes left, then drops down) ──────────────────
-  {id:'t-ea-1', x:18, y:4,  w:7,  h:2},  // west run from entrance
-  {id:'t-ea-2', x:18, y:6,  w:2,  h:4},  // drop south
-  {id:'t-ea-3', x:14, y:10, w:4,  h:2},  // jog east into junction-a south wall (connects at x:14,y:10 to junc-a x:10,y:9 bottom)
-  // Actually connect from bottom of junction-a:
-  {id:'t-ea-4', x:12, y:14, w:2,  h:3},  // exit south of junction-a into tunnel below
+  // ── entrance → junction-a  (west artery, 2-wide) ─────────────────────────
+  {id:'t-ew-1', x:18, y:3,  w:8,  h:2},  // west run from entrance
+  {id:'t-ew-2', x:18, y:5,  w:2,  h:4},  // drop south
+  {id:'t-ew-3', x:12, y:9,  w:7,  h:2},  // east into junction-a
 
-  // ── entrance → junction-b  (goes right, long winding east path) ───────────
-  {id:'t-eb-1', x:31, y:3,  w:2,  h:5},  // east from entrance, drop down
-  {id:'t-eb-2', x:33, y:7,  w:6,  h:2},  // east run
-  {id:'t-eb-3', x:38, y:7,  w:2,  h:2},  // into junction-b top
+  // ── entrance → junction-b  (east artery, 2-wide) ─────────────────────────
+  {id:'t-ee-1', x:32, y:3,  w:2,  h:4},  // east-side drop
+  {id:'t-ee-2', x:32, y:5,  w:6,  h:2},  // east run
+  {id:'t-ee-3', x:36, y:7,  w:2,  h:2},  // into junction-b top
 
-  // ── junction-a → junction-c  (long south wind) ────────────────────────────
-  {id:'t-ac-1', x:12, y:17, w:2,  h:4},  // south from junction-a
-  {id:'t-ac-2', x:12, y:21, w:11, h:2},  // east run
-  {id:'t-ac-3', x:22, y:22, w:2,  h:1},  // enter junction-c top (already covered by junction-c rect)
+  // ── junction-a → dragon-hall  (NW, artery then squeeze) ──────────────────
+  {id:'t-ad-1', x:11, y:6,  w:2,  h:3},  // north from junc-a
+  {id:'t-ad-2', x:7,  y:6,  w:4,  h:2},  // west jog
+  {id:'t-ad-3', x:7,  y:4,  w:2,  h:2},  // north into dragon-hall
 
-  // ── junction-b → junction-c  (drops south, zigs west) ────────────────────
-  {id:'t-bc-1', x:40, y:13, w:2,  h:5},  // south from junction-b
-  {id:'t-bc-2', x:32, y:17, w:8,  h:2},  // west run
-  {id:'t-bc-3', x:32, y:19, w:2,  h:4},  // south drop
-  {id:'t-bc-4', x:27, y:22, w:5,  h:2},  // enter junction-c east side
-  // (junction-c is at x:22,y:22 so east side is x:27,y:22 — connects)
+  // ── junction-a → junction-c  (long south wind, mixed) ────────────────────
+  {id:'t-ac-1', x:12, y:14, w:2,  h:5},  // south from junc-a
+  {id:'t-ac-2', x:12, y:18, w:11, h:2},  // east run
+  {id:'t-ac-3', x:22, y:20, w:2,  h:3},  // south into junc-c top
 
-  // ── junction-b → forge-room  (northeast long path) ────────────────────────
-  {id:'t-bf-1', x:43, y:10, w:2,  h:8},  // south from junction-b right side
-  {id:'t-bf-2', x:43, y:18, w:2,  h:3},  // continue to forge top
+  // ── junction-a → SW deep artery → junction-c west  (alt branching route) ──
+  {id:'t-aw-0', x:8,  y:12, w:4,  h:3},  // bridge junc-a bottom down-west
+  {id:'t-aw-1', x:8,  y:14, w:2,  h:9},  // long south climb (west side)
+  {id:'t-aw-2', x:8,  y:21, w:8,  h:2},  // east run
+  {id:'t-aw-4', x:16, y:23, w:6,  h:1},  // 1-wide squeeze into junc-c west
 
-  // ── junction-c → forge-room  (eastern path, long wind) ───────────────────
-  {id:'t-cf-1', x:27, y:24, w:2,  h:4},  // south from junction-c
-  {id:'t-cf-2', x:29, y:27, w:14, h:2},  // east long run
-  {id:'t-cf-3', x:43, y:24, w:2,  h:4},  // north up to forge bottom
+  // ── junction-b → junction-c  (drop & zig, 1-wide squeeze) ────────────────
+  {id:'t-bc-1', x:36, y:14, w:1,  h:5},  // squeeze south
+  {id:'t-bc-2', x:27, y:18, w:10, h:1},  // squeeze west run
+  {id:'t-bc-3', x:27, y:18, w:1,  h:5},  // south drop
+  {id:'t-bc-5', x:26, y:23, w:1,  h:2},  // into junc-c east
 
-  // ── junction-c → treasury  (south, then more south) ──────────────────────
-  {id:'t-ct-1', x:24, y:27, w:2,  h:7},  // south from junction-c bottom
+  // ── junction-b → forge-room  (east artery, 2-wide) ───────────────────────
+  {id:'t-bf-1', x:39, y:10, w:2,  h:2},  // east from junc-b
+  {id:'t-bf-3', x:41, y:11, w:5,  h:2},  // connector east run
+  {id:'t-bf-2', x:44, y:11, w:2,  h:9},  // south into forge top
 
-  // ── junction-c → junction-d  (southwest long wind) ───────────────────────
-  {id:'t-cd-1', x:15, y:24, w:7,  h:2},  // west from junction-c
-  {id:'t-cd-2', x:15, y:26, w:2,  h:6},  // south drop
-  {id:'t-cd-3', x:11, y:32, w:4,  h:2},  // west run to junction-d east
-  // junction-d at x:6,y:30 — east wall is x:11, so this aligns
+  // ── junction-c → forge-room  (long SE wind, 1-wide squeeze) ──────────────
+  {id:'t-cf-1', x:26, y:26, w:2,  h:2},  // east from junc-c
+  {id:'t-cf-2', x:28, y:27, w:14, h:1},  // long east squeeze
+  {id:'t-cf-3', x:41, y:24, w:2,  h:4},  // north into forge bottom
 
-  // ── junction-d → treasury  (east underground path) ────────────────────────
-  {id:'t-dt-1', x:8,  y:35, w:2,  h:4},  // south from junction-d
-  {id:'t-dt-2', x:8,  y:38, w:14, h:2},  // east run to treasury west
-  // treasury at x:20,y:33, west wall x:20 — we need y to match
-  {id:'t-dt-3', x:20, y:36, w:2,  h:3},  // north up into treasury bottom (ty 36→38 in world)
+  // ── junction-c → treasury (GAS)  (short tempting detour south) ───────────
+  {id:'t-ct-1', x:22, y:28, w:2,  h:5},  // south into treasury top
 
-  // ── junction-d → dragon-hall  (north, very long climb) ───────────────────
-  {id:'t-dd-1', x:6,  y:14, w:2,  h:16}, // long north climb from junction-d top
-  {id:'t-dd-2', x:6,  y:12, w:6,  h:2},  // east run
-  // dragon-hall at x:2,y:2 — south wall is y:12, so enter from below-east
-  {id:'t-dd-3', x:8,  y:8,  w:2,  h:4},  // north into dragon-hall bottom-right area
-  // connect to dragon hall interior
-  {id:'t-dd-4', x:8,  y:2,  w:2,  h:6},  // already inside dragon-hall? No — let tunnel reach x:8 inside
+  // ── junction-c → bat-cave  (SE long route) ───────────────────────────────
+  {id:'t-cb-1', x:24, y:28, w:1,  h:4},  // south
+  {id:'t-cb-2', x:24, y:31, w:10, h:1},  // east run
+  {id:'t-cb-3', x:33, y:31, w:1,  h:5},  // south drop
+  {id:'t-cb-4', x:33, y:35, w:9,  h:2},  // east to bat-cave west
 
-  // ── junction-a → dragon-hall  (northwest short-ish path) ─────────────────
-  {id:'t-ad-1', x:10, y:7,  w:2,  h:2},  // north from junction-a top
-  {id:'t-ad-2', x:6,  y:5,  w:4,  h:2},  // west jog
-  {id:'t-ad-3', x:6,  y:3,  w:2,  h:2},  // north into dragon-hall east bottom
+  // ── DEAD ENDS — branch off the maze, never loop back ─────────────────────
+  // Dead end 1: short stub off the entrance west run, curls down & stops
+  {id:'dead-1',  x:20, y:5,  w:6,  h:2},
+  {id:'dead-1b', x:24, y:7,  w:2,  h:3},
 
-  // ── junction-d → bat-cave  (very long southeast path) ────────────────────
-  {id:'t-db-1', x:11, y:31, w:2,  h:2},  // east from junction-d (right side at x:11)
-  {id:'t-db-2', x:13, y:31, w:18, h:2},  // long east run
-  {id:'t-db-3', x:31, y:31, w:2,  h:5},  // south drop
-  {id:'t-db-4', x:33, y:35, w:10, h:2},  // east run to bat-cave west wall
-  // bat-cave at x:42,y:31 — west wall x:42, align via y:35→32
+  // Dead end 2: off junction-b east — promising, curves south, then stops
+  {id:'dead-2',  x:41, y:8,  w:8,  h:2},
+  {id:'dead-2b', x:47, y:10, w:2,  h:6},
+  {id:'dead-2c', x:43, y:15, w:4,  h:2},
 
-  // ── bat-cave entry from south path ────────────────────────────────────────
-  {id:'t-db-5', x:42, y:33, w:2,  h:3},  // up into bat-cave south wall
+  // Dead end 3: off junction-c east edge, short stub
+  {id:'dead-3',  x:27, y:24, w:6,  h:2},
 
-  // ── DEAD ENDS — false paths to disorient ──────────────────────────────────
-  // Dead end 1: heads south from entrance but hits a wall
-  {id:'dead-1a', x:25, y:6,  w:2,  h:5},
-  {id:'dead-1b', x:20, y:11, w:7,  h:2},
-  {id:'dead-1c', x:20, y:9,  w:2,  h:2},  // ends here — no connection
+  // Dead end 4: off the SW artery, drops south & stops
+  {id:'dead-4',  x:13, y:24, w:6,  h:2},
+  {id:'dead-4b', x:13, y:26, w:2,  h:4},
 
-  // Dead end 2: off junction-b going east into nothing
-  {id:'dead-2a', x:43, y:8,  w:8,  h:2},
-  {id:'dead-2b', x:50, y:8,  w:2,  h:6},
-  {id:'dead-2c', x:48, y:13, w:4,  h:2},  // dead end pocket
-  {id:'dead-2d', x:48, y:15, w:4,  h:3},  // end room
-
-  // Dead end 3: off junction-c going east, promising but dead
-  {id:'dead-3a', x:27, y:23, w:7,  h:2},
-  {id:'dead-3b', x:34, y:19, w:2,  h:6},
-  {id:'dead-3c', x:35, y:19, w:5,  h:4},  // dead end pocket
-
-  // Dead end 4: off the dragon-hall south route, goes east and stops
-  {id:'dead-4a', x:14, y:17, w:6,  h:2},
-  {id:'dead-4b', x:20, y:17, w:4,  h:5},
-  {id:'dead-4c', x:24, y:20, w:2,  h:2},  // pocket
-
-  // Dead end 5: west escape tunnel (loops back to world map)
+  // West escape — ISOLATED ON PURPOSE: redirect trigger to world map
+  // (see updatePlayer: tx<=1 && ty 18-19). Not a walkable connection.
   {id:'west-escape', x:0, y:18, w:4, h:2},
   {id:'t-we-1',      x:4, y:16, w:2, h:4},
-
-  // Dead end 6: south from junction-d deep south, dead end
-  {id:'dead-6a', x:6, y:35, w:2, h:4},
-  {id:'dead-6b', x:3, y:38, w:5, h:2},
 ];
 
 // Build a fast lookup grid
@@ -399,15 +384,14 @@ function isWalkable(tx,ty){return tx>=0&&ty>=0&&tx<WORLD_W&&ty<WORLD_H&&WALK[ty*
 
 // Named chamber lookup (just the primary named rooms, for HUD)
 const CHAMBERS=[
-  {id:'entrance',    label:'⛰ MOUNTAIN ENTRANCE', x:25, y:1,  w:6,  h:5},
-  {id:'junction-a',  label:'⛰ TUNNEL CROSSROADS',  x:10, y:9,  w:5,  h:5},
-  {id:'junction-b',  label:'⛰ EAST CROSSROADS',    x:38, y:8,  w:5,  h:5},
-  {id:'junction-c',  label:'⛰ DEEP CROSSROADS',    x:22, y:22, w:5,  h:5},
-  {id:'junction-d',  label:'⛰ LOWER DEPTHS',       x:6,  y:30, w:5,  h:5},
-  {id:'forge-room',  label:'🔥 THE FORGE',          x:44, y:20, w:9,  h:8},
+  {id:'entrance',    label:'⛰ MOUNTAIN ENTRANCE', x:26, y:1,  w:6,  h:5},
+  {id:'junction-a',  label:'⛰ TUNNEL CROSSROADS',  x:11, y:9,  w:5,  h:5},
+  {id:'junction-b',  label:'⛰ EAST CROSSROADS',    x:35, y:9,  w:5,  h:5},
+  {id:'junction-c',  label:'⛰ DEEP CROSSROADS',    x:22, y:23, w:5,  h:5},
+  {id:'forge-room',  label:'🔥 THE FORGE',          x:43, y:20, w:10, h:9},
   {id:'dragon-hall', label:'🐉 DRAGON HALL',        x:2,  y:2,  w:10, h:10},
   {id:'bat-cave',    label:'🦇 THE BAT CAVE',       x:42, y:31, w:9,  h:7},
-  {id:'treasury',    label:'💀 TREASURE CHAMBER',   x:20, y:33, w:8,  h:6},
+  {id:'treasury',    label:'💀 TREASURE CHAMBER',   x:19, y:33, w:8,  h:6},
 ];
 function getChamberAt(tx,ty){return CHAMBERS.find(c=>tx>=c.x&&tx<c.x+c.w&&ty>=c.y&&ty<c.y+c.h)||null;}
 
