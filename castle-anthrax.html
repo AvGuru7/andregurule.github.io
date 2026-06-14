@@ -176,6 +176,12 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
   </div>
 </div>
 
+<!-- Stand book (Library combination clue: iron = element 26). Single-image, styled like the First Edition modal. -->
+<div id="standbook-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:600;align-items:center;justify-content:center;flex-direction:column;gap:12px;">
+  <img id="standbook-img" src="images/book-26-right.png" alt="An open book" style="max-width:96vw;max-height:calc(100vh - 140px);border:2px solid var(--gold);display:block;image-rendering:auto;">
+  <button id="standbook-close" style="background:var(--ui-bg);border:1px solid rgba(240,192,64,0.4);color:var(--ui-dim);font-family:'Press Start 2P',monospace;font-size:8px;padding:8px 14px;cursor:pointer;">&#10005; CLOSE</button>
+</div>
+
 <div id="vault-dial-overlay" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(6,4,14,0.97);z-index:700;align-items:center;justify-content:center;flex-direction:column;gap:0;">
   <canvas id="vault-dial-canvas" style="image-rendering:pixelated;"></canvas>
   <div id="vault-dial-hint" style="font-family:'VT323',monospace;font-size:clamp(14px,2.5vw,18px);color:var(--ui-dim);text-align:center;margin-top:8px;line-height:1.7;"></div>
@@ -300,6 +306,8 @@ function isWalkable(tx,ty){
     if(tx===PRISON.doorL||tx===PRISON.doorR) return prisonOpen; // doorway: open only when unlocked
     return false; // solid wall
   }
+  // Library furniture (bookshelves + reading stand) are solid — walk around them
+  if(isLibrarySolid(tx,ty)) return false;
   for(const r of ROOMS) if(tx>=r.x&&tx<r.x+r.w&&ty>=r.y&&ty<r.y+r.h) return true;
   for(const c of CORRIDORS) if(tx>=c.x&&tx<c.x+c.w&&ty>=c.y&&ty<c.y+c.h) return true;
   return false;
@@ -312,8 +320,8 @@ const NPCS=[{
   id:'lyn', label:'👑 KING LYN', title:'KING LYN',
   tx:20, ty:5,   // center of throne room
   dialogs:[
-    {body:"Greetings, traveller. I am King Lyn, ruler of Castle Anthrax. Welcome to my domain."},
-    {body:"Do you have any artwork to trade? I have a fine Blue Kayak sitting in storage that I would part with for a worthy piece."},
+    {body:"HALT! You stand before Lyn, Sovereign of Castle Anthrax, Keeper of the Drafty Hall, Vanquisher of... well, several quite frightening moths. State your business, and do try to be impressed."},
+    {body:"You seek passage to the waters? Ahh. It happens that I possess a Blue Kayak of UNSPEAKABLE majesty, currently languishing in a cupboard. Bring me a shrubbery, I mean an art piece, worthy of my walls, and the vessel is yours."},
   ],
   dialogIdx:0,
 }];
@@ -327,16 +335,16 @@ let kayakEarned=false; // set from GameState after initialisation
 // Called when player presses A on the last Lyn dialog line
 function handleLynTrade(){
   if(kayakEarned){
-    showInlineDialog('KING LYN','The kayak awaits you in storage. Take good care of it.','[B] Close');
+    showInlineDialog('KING LYN','The vessel is already yours, awaiting you in the storage room. Do guard it well — it is, after all, of UNSPEAKABLE majesty.','[B] Close');
     return;
   }
   if(GameState.hasItem('artwork')){
     GameState.consumeItem('artwork');
     GameState.unlock('kayak-earned');
     kayakEarned=true;
-    showInlineDialog('KING LYN','A fine choice! I shall take this artwork. The Blue Kayak is yours — find it in the storage room.','[B] Close');
+    showInlineDialog('KING LYN','MAGNIFICENT! A piece truly worthy of my walls. The Blue Kayak is yours — you shall find it in the storage room. Use it wisely, noble traveller.','[B] Close');
   } else {
-    showInlineDialog('KING LYN','Alas, you carry no artwork. Bring me a worthy piece and we shall trade.','[B] Close');
+    showInlineDialog('KING LYN','Alas! You arrive empty-handed before a KING. Return with art worthy of my walls — or a shrubbery, I shall not be picky — and we shall trade.','[B] Close');
   }
 }
 
@@ -387,6 +395,7 @@ const SIGNS=[
    title:'EXIT CASTLE', body:'Leave Castle Anthrax and return to the world map?',
    links:[{label:'◀ RETURN TO WORLD MAP', href:'world.html#spawn=story', local:true}]},
   {id:'library_sign',  label:'📚 LIBRARY',      tx:7,  ty:12, title:'LIBRARY / STUDY',  body:'Shelves of ancient tomes, scrolls of lore, and the quiet scratch of a quill. Knowledge lives here.', links:[]},
+  {id:'library_stand', label:'📖 OPEN BOOK',     tx:6,  ty:6,  title:'OPEN BOOK',        body:'', standbook:true, links:[]},
   {id:'throne_sign',   label:'👑 THRONE ROOM',  tx:20, ty:12, title:'THRONE ROOM',       body:"The seat of King Lyn's power. The golden throne watches all who enter.", links:[]},
   {id:'treasury_sign', label:'💰 TREASURY',     tx:33, ty:12, title:'THE TREASURY',       body:'Coffers of gold, gemstones, and locked chests. The wealth of many campaigns rests here.', links:[]},
   {id:'armory_sign',   label:'⚔ ARMORY',        tx:7,  ty:17, title:'ARMORY',             body:'Swords, shields, and armor line the walls. Every knight must be prepared.', links:[]},
@@ -417,6 +426,33 @@ const PRISON={
   doorL:41, doorR:42,  // doorway columns in the prison wall
   wallRow:23,          // the wall row dividing the cell from the rest of the dungeon
 };
+
+// ── Library furniture (combination clue 3: iron = element 26) ──────────────────
+// Three bookshelves on adjacent walls (back/north, left/west, right/east) plus a
+// reading stand. All occupy solid tiles the player must walk around (see isWalkable).
+// Library interior is cols 3–10, rows 3–10 (room is cols 2–11, rows 2–11; door bottom @ cols 6,7).
+const LIB_SHELVES=[
+  {wall:'back',  row:3,  c0:4, c1:9},  // north wall: cols 4–9 (stops at last book; corners 3 & 10 left open)
+  {wall:'left',  col:3,  r0:5, r1:8},  // west wall: rows 5–8
+  {wall:'right', col:10, r0:5, r1:8},  // east wall: rows 5–8
+];
+// Reading stand — 2 tiles wide × 1 tall, centered on the room axis (cols 6–7),
+// in line with the back-wall shelf. Both tiles are solid (see isWalkable).
+const LIB_STAND={tx:6, ty:6, w:2, h:1};
+// Build the set of solid library tiles once, as "tx,ty" keys.
+const LIB_SOLID_TILES=(function(){
+  const s=new Set();
+  LIB_SHELVES.forEach(sh=>{
+    if(sh.wall==='back'){for(let c=sh.c0;c<=sh.c1;c++)s.add(c+','+sh.row);}
+    else{for(let r=sh.r0;r<=sh.r1;r++)s.add(sh.col+','+r);}
+  });
+  for(let c=LIB_STAND.tx;c<LIB_STAND.tx+LIB_STAND.w;c++)
+    for(let r=LIB_STAND.ty;r<LIB_STAND.ty+LIB_STAND.h;r++)
+      s.add(c+','+r);
+  return s;
+})();
+function isLibrarySolid(tx,ty){return LIB_SOLID_TILES.has(tx+','+ty);}
+
 const PRISON_DOOR={
   id:'prison_door',
   label:'🔒 PRISON DOOR',
@@ -652,35 +688,79 @@ function drawThroneRoom(wx,wy){
 function drawLibrary(wx,wy){
   const r=ROOMS[0];
   const rx=r.x*TILE-wx,ry=r.y*TILE-wy,rw=r.w*TILE,rh=r.h*TILE;
-  // Bookcase rows — back wall and sides
   const bookColors=['#8b2020','#205080','#206020','#806020','#602080','#804020','#208080'];
-  // Back wall shelves
-  for(let shelf=0;shelf<3;shelf++){
-    const sy=ry+TILE*1.2+shelf*TILE*2.2;
-    ctx.fillStyle='#3a2810';ctx.fillRect(rx+TILE*0.5,sy,rw-TILE,8);
-    for(let book=0;book<14;book++){
-      const bx=rx+TILE*0.6+book*14;
-      const bh=28+Math.sin(book*1.3)*8;
-      ctx.fillStyle=bookColors[book%bookColors.length];ctx.fillRect(bx,sy-bh,12,bh);
-      ctx.fillStyle='rgba(255,255,255,0.15)';ctx.fillRect(bx,sy-bh,3,bh);
-      ctx.fillStyle='rgba(0,0,0,0.2)';ctx.fillRect(bx+10,sy-bh,2,bh);
+
+  // Helper: draw a row of book spines filling a pixel rect (horizontal shelf)
+  function booksH(px,py,wpx,h){
+    ctx.fillStyle='#3a2810';ctx.fillRect(px,py,wpx,h);              // shelf backing
+    const n=Math.max(1,Math.floor(wpx/14));
+    for(let b=0;b<n;b++){
+      const bx=px+2+b*14, bh=h-6-Math.abs(Math.sin(b*1.3))*6;
+      ctx.fillStyle=bookColors[b%bookColors.length];ctx.fillRect(bx,py+(h-bh)-2,12,bh);
+      ctx.fillStyle='rgba(255,255,255,0.15)';ctx.fillRect(bx,py+(h-bh)-2,3,bh);
+      ctx.fillStyle='rgba(0,0,0,0.2)';ctx.fillRect(bx+10,py+(h-bh)-2,2,bh);
     }
-    ctx.fillStyle='#5a4020';ctx.fillRect(rx+TILE*0.5,sy,rw-TILE,6);
+    ctx.fillStyle='#5a4020';ctx.fillRect(px,py+h-4,wpx,4);          // shelf lip
   }
-  // Reading desk
-  const deskX=rx+rw/2-28,deskY=ry+rh-TILE*2.5;
-  ctx.fillStyle='#4a3010';ctx.fillRect(deskX,deskY,56,36);
-  ctx.fillStyle='#6a4820';ctx.fillRect(deskX+3,deskY+3,50,30);
-  // Open book on desk
-  ctx.fillStyle='#e8dfc0';ctx.fillRect(deskX+8,deskY+5,18,24);ctx.fillRect(deskX+30,deskY+5,18,24);
-  ctx.fillStyle='#5a3010';ctx.fillRect(deskX+26,deskY+5,4,24);
+  // Helper: draw book spines in a vertical shelf (side walls), spines facing inward
+  function booksV(px,py,wpx,hpx){
+    ctx.fillStyle='#3a2810';ctx.fillRect(px,py,wpx,hpx);
+    const n=Math.max(1,Math.floor(hpx/14));
+    for(let b=0;b<n;b++){
+      const by=py+2+b*14, bw=wpx-6-Math.abs(Math.sin(b*1.3))*6;
+      ctx.fillStyle=bookColors[b%bookColors.length];ctx.fillRect(px+2,by,bw,12);
+      ctx.fillStyle='rgba(255,255,255,0.15)';ctx.fillRect(px+2,by,bw,3);
+      ctx.fillStyle='rgba(0,0,0,0.2)';ctx.fillRect(px+2,by+10,bw,2);
+    }
+    ctx.fillStyle='#5a4020';ctx.fillRect(px+wpx-4,py,4,hpx);
+  }
+
+  // Draw each shelf aligned to its solid tiles
+  LIB_SHELVES.forEach(sh=>{
+    if(sh.wall==='back'){
+      const px=(sh.c0)*TILE-wx, py=(sh.row)*TILE-wy;
+      const wpx=(sh.c1-sh.c0+1)*TILE;
+      booksH(px+2,py+TILE*0.15,wpx-4,TILE*0.78);
+    } else { // left / right vertical shelves
+      const px=(sh.col)*TILE-wx, py=(sh.r0)*TILE-wy;
+      const hpx=(sh.r1-sh.r0+1)*TILE;
+      booksV(px+TILE*0.12,py+2,TILE*0.76,hpx-4);
+    }
+  });
+
+  // Reading stand (2×1 solid footprint) with the open book on top — the iron clue.
+  const sx=LIB_STAND.tx*TILE-wx, sy=LIB_STAND.ty*TILE-wy;
+  const fw=LIB_STAND.w*TILE, fcx=sx+fw/2;   // footprint width + centre x
+  // base / pedestal (wider, spanning the footprint)
+  ctx.fillStyle='#4a3010';ctx.fillRect(sx+TILE*0.3,sy+TILE*0.92,fw-TILE*0.6,TILE*0.12);  // base
+  ctx.fillStyle='#3a2010';ctx.fillRect(fcx-TILE*0.18,sy+TILE*0.5,TILE*0.36,TILE*0.46);    // post
+  // slanted desktop spanning most of the footprint
+  ctx.fillStyle='#5a3a18';ctx.fillRect(sx+TILE*0.2,sy+TILE*0.3,fw-TILE*0.4,TILE*0.3);
+  ctx.fillStyle='#6a4820';ctx.fillRect(sx+TILE*0.24,sy+TILE*0.33,fw-TILE*0.48,TILE*0.06); // top edge highlight
+  // open book — two cream pages with a central spine, centered on the footprint
+  const bw=fw*0.7, bh=TILE*0.34, bx0=fcx-bw/2, by0=sy+TILE*0.2, half=bw/2;
+  ctx.fillStyle='#e8dfc0';
+  ctx.fillRect(bx0,by0,half-1,bh);
+  ctx.fillRect(fcx+1,by0,half-1,bh);
+  ctx.fillStyle='#5a3010';ctx.fillRect(fcx-1.5,by0,3,bh);            // spine
   ctx.fillStyle='#3a2010';
-  for(let line=0;line<6;line++){ctx.fillRect(deskX+10,deskY+8+line*3,14,1);ctx.fillRect(deskX+32,deskY+8+line*3,14,1);}
-  // Candle on desk
-  ctx.fillStyle='#e8dfc0';ctx.fillRect(deskX+48,deskY+4,4,14);
-  torch(deskX+50,deskY+4,false);
-  // Desk legs
-  ctx.fillStyle='#3a2010';ctx.fillRect(deskX+4,deskY+36,6,12);ctx.fillRect(deskX+46,deskY+36,6,12);
+  for(let line=0;line<6;line++){
+    const ly=by0+bh*0.18+line*bh*0.14;
+    ctx.fillRect(bx0+bw*0.06,ly,half*0.8,1);
+    ctx.fillRect(fcx+bw*0.04,ly,half*0.8,1);
+  }
+  // candle at the right edge of the stand
+  ctx.fillStyle='#e8dfc0';ctx.fillRect(sx+fw-TILE*0.3,sy+TILE*0.16,4,12);
+  torch(sx+fw-TILE*0.3+2,sy+TILE*0.16,false);
+  // soft inspect prompt when player is near (proximity measured to footprint centre)
+  const standCx=(LIB_STAND.tx+LIB_STAND.w/2)*TILE, standCy=(LIB_STAND.ty+0.5)*TILE;
+  const pdx=Math.abs(playerX+TILE/2-standCx), pdy=Math.abs(playerY+TILE/2-standCy);
+  if(pdx<TILE*2.6&&pdy<TILE*2.4){
+    const pulse=0.4+0.3*Math.sin(Date.now()/300);
+    ctx.fillStyle=`rgba(240,192,64,${pulse})`;
+    ctx.font='6px "Press Start 2P"';ctx.textAlign='center';
+    ctx.fillText('[A] READ',fcx,sy-4);ctx.textAlign='left';
+  }
 }
 
 function drawTreasury(wx,wy){
@@ -1388,6 +1468,7 @@ function showZoneLabel(label){
 function hideZoneLabel(){document.getElementById('zone-label').style.opacity='0';}
 
 function handleA(){
+  if(standbookOpen){closeStandbook();return;}
   if(inscriptionOpen){closeInscription();return;}
   if(vaultDialOpen){dialConfirm();return;}
   if(menuOpen){menuSelectCurrent();return;}
@@ -1418,10 +1499,11 @@ function handleA(){
       return;
     }
     if(activeInteractable.type==='sign'&&activeInteractable.obj.inscription){openInscription();return;}
+    if(activeInteractable.type==='sign'&&activeInteractable.obj.standbook){openStandbook();return;}
     openDialog(activeInteractable);
   }
 }
-function handleB(){if(menuOpen){closeMenu();return;}if(inventoryOpen){closeInventory();return;}if(vaultDialOpen){closeVaultDial();return;}if(inscriptionOpen){closeInscription();return;}if(dialogOpen){closeDialog();return;}if(compassActive){compassActive=false;return;}}
+function handleB(){if(menuOpen){closeMenu();return;}if(inventoryOpen){closeInventory();return;}if(vaultDialOpen){closeVaultDial();return;}if(standbookOpen){closeStandbook();return;}if(inscriptionOpen){closeInscription();return;}if(dialogOpen){closeDialog();return;}if(compassActive){compassActive=false;return;}}
 
 function openDialog(interactable){
   dialogOpen=true;
@@ -1590,6 +1672,18 @@ function drawInscription(){
   const ay=topY+markH/2, ax=w*0.62;
   x.fillStyle='rgba(240,192,64,0.85)';
   x.beginPath();x.moveTo(ax-w*0.03,ay);x.lineTo(ax+w*0.02,ay-h*0.08);x.lineTo(ax+w*0.02,ay+h*0.08);x.closePath();x.fill();
+}
+
+// ── STAND BOOK OVERLAY (Library iron clue) ───────────────────────────────────
+let standbookOpen=false;
+function openStandbook(){
+  standbookOpen=true;
+  if(dialogOpen)closeDialog();
+  document.getElementById('standbook-modal').style.display='flex';
+}
+function closeStandbook(){
+  standbookOpen=false;
+  document.getElementById('standbook-modal').style.display='none';
 }
 
 // ── FIRST EDITION BOOK ───────────────────────────────────────────────────────
@@ -2112,6 +2206,8 @@ window.addEventListener('load',function(){
   document.getElementById('book-next').addEventListener('click',function(){bookPageNav(1);});
   document.getElementById('book-close').addEventListener('click',function(){closeBook();});
   document.getElementById('inscription-overlay').addEventListener('click',function(){closeInscription();});
+  document.getElementById('standbook-close').addEventListener('click',function(){closeStandbook();});
+  document.getElementById('standbook-modal').addEventListener('click',function(e){if(e.target.id!=='standbook-img')closeStandbook();});
   window.addEventListener('resize',function(){if(inscriptionOpen)drawInscription();});
 });
 requestAnimationFrame(gameLoop);
