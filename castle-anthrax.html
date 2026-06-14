@@ -382,7 +382,8 @@ const SIGNS=[
   {id:'throne_sign',   label:'👑 THRONE ROOM',  tx:20, ty:12, title:'THRONE ROOM',       body:"The seat of King Lyn's power. The golden throne watches all who enter.", links:[]},
   {id:'treasury_sign', label:'💰 TREASURY',     tx:33, ty:12, title:'THE TREASURY',       body:'Coffers of gold, gemstones, and locked chests. The wealth of many campaigns rests here.', links:[]},
   {id:'armory_sign',   label:'⚔ ARMORY',        tx:7,  ty:17, title:'ARMORY',             body:'Swords, shields, and armor line the walls. Every knight must be prepared.', links:[]},
-  {id:'banquet_sign',  label:'🍖 BANQUET HALL', tx:30, ty:17, title:'BANQUET HALL',       body:'A grand hall for feasts. Long tables once groaned under the weight of roasted meats and fine wines.', links:[]},
+  {id:'banquet_sign',  label:'🍖 BANQUET HALL', tx:30, ty:17, title:'BANQUET HALL',       body:'A grand hall for feasts. The great table at its center is carved with a single bold mark and rows of arrows.', links:[]},
+  {id:'banquet_table', label:'🍷 THE TABLE',     tx:30, ty:25, title:'THE FEAST TABLE',    body:'A bold V is carved deep into the wood at the center of the table, flanked by rows of arrows pointing to the right.', links:[]},
   {id:'dungeon_sign',  label:'⛓ DUNGEON',       tx:42, ty:17, title:'THE DUNGEON',        body:'Cold stone, dripping water, iron bars. Not all who descend return. You have been warned.', links:[]},
 ];
 
@@ -531,6 +532,10 @@ pCtx.imageSmoothingEnabled=false;
 // Preload Blue Kayak image
 const kayakImg=new Image();
 kayakImg.src='images/blue-kayak.png';
+
+// Banquet Hall feast table — painted V + rightward chevrons (combination clue: 5).
+const tableImg=new Image();
+tableImg.src='images/table-v.png';
 
 function ctrlHeight(){const c=document.getElementById('nes-controller');return c?c.offsetHeight+16:0;}
 function resize(){canvas.width=window.innerWidth;canvas.height=window.innerHeight-ctrlHeight();ctx.imageSmoothingEnabled=false;}
@@ -875,27 +880,62 @@ function drawStorage(wx,wy){
 function drawBanquetHall(wx,wy){
   const r=ROOMS[5];
   const rx=r.x*TILE-wx,ry=r.y*TILE-wy,rw=r.w*TILE,rh=r.h*TILE;
-  // Long table
-  ctx.fillStyle='#5a3810';ctx.fillRect(rx+TILE*0.8,ry+TILE*1.5,rw-TILE*1.6,TILE*7);
-  ctx.fillStyle='#7a5228';ctx.fillRect(rx+TILE*1,ry+TILE*1.7,rw-TILE*2,TILE*6.6);
-  // Legs
-  ctx.fillStyle='#3a2008';ctx.fillRect(rx+TILE+8,ry+TILE*8.1,8,TILE*0.8);ctx.fillRect(rx+rw-TILE-16,ry+TILE*8.1,8,TILE*0.8);
-  // Benches
-  ctx.fillStyle='#4a2a08';ctx.fillRect(rx+TILE*0.2,ry+TILE*2,TILE*0.5,TILE*6);ctx.fillRect(rx+rw-TILE*0.7,ry+TILE*2,TILE*0.5,TILE*6);
-  // Food & candles
-  const items=[
-    [rx+TILE*2,ry+TILE*2.8,'#cc3300',10],[rx+TILE*3.5,ry+TILE*3.2,'#ddaa22',7],
-    [rx+TILE*5,ry+TILE*2.6,'#226622',8],[rx+TILE*6.5,ry+TILE*3,'#884422',11],
-    [rx+TILE*8,ry+TILE*2.8,'#cc8822',7],[rx+TILE*2.5,ry+TILE*5.5,'#cc3300',9],
-    [rx+TILE*4.5,ry+TILE*5,'#226622',7],[rx+TILE*7,ry+TILE*5.5,'#884422',10],
-  ];
-  items.forEach(([ix,iy,c,rad])=>{ctx.fillStyle=c;ctx.beginPath();ctx.arc(ix,iy,rad,0,Math.PI*2);ctx.fill();});
-  for(let ci=0;ci<5;ci++){
-    const cx2=rx+TILE*2+ci*TILE*1.6;
-    ctx.fillStyle='#e8dfc0';ctx.fillRect(cx2-2,ry+TILE*4.2,4,12);
-    torch(cx2,ry+TILE*4.2,false);
+
+  // ── Table: 6 tiles wide, height matched to the image's aspect ratio ──
+  // (image is 1280×720; height = width × 720/1280 = 3.375 tiles tall)
+  const tw=TILE*6;
+  const imgAspect=(tableImg.naturalHeight&&tableImg.naturalWidth)
+    ? tableImg.naturalHeight/tableImg.naturalWidth : 720/1280;
+  const th=tw*imgAspect;
+  const tx0=rx+rw/2-tw/2, ty0=ry+rh/2-th/2;
+  const tcx=tx0+tw/2, tcy=ty0+th/2;   // table center
+
+  if(tableImg.complete&&tableImg.naturalWidth>0){
+    // Painted table sprite (V + rightward chevrons baked in)
+    ctx.save();
+    ctx.imageSmoothingEnabled=false;
+    ctx.drawImage(tableImg, tx0, ty0, tw, th);
+    ctx.restore();
+  } else {
+    // Fallback: simple wooden table with a gold V flanked by right-pointing chevrons
+    ctx.fillStyle='#5a3810';ctx.fillRect(tx0-6,ty0-6,tw+12,th+12);
+    ctx.fillStyle='#7a5228';ctx.fillRect(tx0,ty0,tw,th);
+    // V
+    ctx.fillStyle='#d8b24a';ctx.font='bold '+Math.round(th*0.5)+'px Palatino,Georgia,serif';
+    ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('V',tcx,tcy);
+    ctx.textBaseline='alphabetic';
+    // Right-pointing chevrons ( > ) — two on each side of the V
+    const chW=TILE*0.34, chH=th*0.30, chGap=TILE*0.5;
+    ctx.strokeStyle='#d8b24a';ctx.lineWidth=Math.max(3,Math.round(th*0.05));
+    ctx.lineCap='round';ctx.lineJoin='round';
+    function chevron(cx){
+      ctx.beginPath();
+      ctx.moveTo(cx-chW/2, tcy-chH/2);
+      ctx.lineTo(cx+chW/2, tcy);
+      ctx.lineTo(cx-chW/2, tcy+chH/2);
+      ctx.stroke();
+    }
+    const vHalf=TILE*0.85;   // clearance from the V center to the first chevron
+    [-1,-2].forEach(i=>chevron(tcx - vHalf + (i+1)*chGap)); // left pair, still pointing right
+    [1,2].forEach(i=>chevron(tcx + vHalf + (i-1)*chGap));   // right pair
   }
-  // Fireplace
+
+  // benches along north & south long sides
+  ctx.fillStyle='#4a2a08';
+  ctx.fillRect(tx0+TILE*0.5,ty0-TILE*0.4,tw-TILE,TILE*0.32);
+  ctx.fillRect(tx0+TILE*0.5,ty0+th+TILE*0.08,tw-TILE,TILE*0.32);
+
+  // ── Candle sconces — moved to the CENTER of the EAST wall ──
+  // (previously a horizontal chandelier on the south wall)
+  const ewx=rx+rw-TILE*0.5;               // just inside the east wall
+  ctx.fillStyle='#c8a000';ctx.fillRect(ewx-3,ry+rh/2-26,6,52);   // vertical bracket
+  for(let ci=0;ci<5;ci++){
+    const ly=ry+rh/2-22+ci*11;
+    ctx.fillStyle='#c8a000';ctx.fillRect(ewx-2,ly-1,TILE*0.35+(ci%2)*5,2);  // arm
+    torch(ewx-Math.round(TILE*0.35)-(ci%2)*5,ly,false);
+  }
+
+  // ── Fireplace (kept) — west wall ──
   ctx.fillStyle='#2a1a08';ctx.fillRect(rx+TILE*0.3,ry+TILE*4,TILE*0.9,TILE*2.5);
   const ft=Math.sin(Date.now()/90)*1.5;
   ctx.fillStyle='#ff4400';ctx.fillRect(rx+TILE*0.4,ry+TILE*4.3,TILE*0.7,TILE*1.8);
@@ -904,9 +944,6 @@ function drawBanquetHall(wx,wy){
   ctx.save();const fg=ctx.createRadialGradient(rx+TILE*0.75,ry+TILE*5,5,rx+TILE*0.75,ry+TILE*5,50);
   fg.addColorStop(0,'rgba(255,100,0,0.18)');fg.addColorStop(1,'rgba(255,100,0,0)');
   ctx.fillStyle=fg;ctx.fillRect(rx,ry+TILE*3.5,TILE*2,TILE*3);ctx.restore();
-  // Chandelier — south wall
-  ctx.fillStyle='#c8a000';ctx.fillRect(rx+rw/2-24,ry+rh-TILE*1.0,48,6);
-  for(let ci=0;ci<5;ci++){const lx=rx+rw/2-20+ci*10;ctx.fillStyle='#c8a000';ctx.fillRect(lx-1,ry+rh-TILE*1.0,2,TILE*0.4+ci%2*6);torch(lx,ry+rh-TILE*0.6,false);}
 }
 
 function drawDungeon(wx,wy){
