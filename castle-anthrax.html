@@ -159,7 +159,15 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
 </div>
 
 <div id="book-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:600;align-items:center;justify-content:center;flex-direction:column;gap:12px;">
-  <canvas id="book-canvas" style="max-width:96vw;max-height:calc(100vh - 160px);border:2px solid var(--gold);"></canvas>
+  <div id="book-stage" style="position:relative;">
+    <canvas id="book-canvas" style="max-width:96vw;max-height:calc(100vh - 160px);border:2px solid var(--gold);display:block;"></canvas>
+    <!-- Combination-log overlay: shown only on the LOG page, layered over the canvas -->
+    <div id="book-log-overlay" style="display:none;position:absolute;inset:0;padding:7% 9% 6%;overflow:auto;flex-direction:column;align-items:center;color:#2a1004;font-family:'VT323',monospace;">
+      <div id="book-log-title" style="font-family:'Press Start 2P',monospace;font-size:clamp(8px,1.4vw,11px);color:#3a1a04;text-align:center;margin-bottom:8px;letter-spacing:0.5px;">&mdash; Lock Combination &mdash;</div>
+      <div id="book-log-instr" style="font-size:clamp(15px,2.6vw,20px);line-height:1.35;text-align:center;max-width:440px;margin-bottom:clamp(12px,2.4vh,20px);color:#2a1004;">There are three numbers that you will need to complete this quest. Log the numbers here and decide if the number is right or left.</div>
+      <div id="book-log-rows" style="display:flex;flex-direction:column;gap:clamp(10px,2vh,16px);width:100%;max-width:340px;"></div>
+    </div>
+  </div>
   <div style="display:flex;gap:12px;align-items:center;">
     <button id="book-prev" style="background:var(--ui-bg);border:1px solid var(--gold);color:var(--gold);font-family:'Press Start 2P',monospace;font-size:8px;padding:8px 14px;cursor:pointer;">&#9664; PREV</button>
     <span id="book-page-label" style="font-family:'Press Start 2P',monospace;font-size:8px;color:var(--ui-dim);"></span>
@@ -465,6 +473,24 @@ const GameState={
   visited:_p.get('visited')?_p.get('visited').split(',').filter(Boolean):[],
   unlocked:_p.get('unlocked')?_p.get('unlocked').split(',').filter(Boolean):[],
   items:_p.get('items')?_p.get('items').split(',').filter(Boolean):[],
+  // Combination-log notes the player records in the First Edition.
+  // Persisted as a single param: "num:dir;num:dir;num:dir" (dir is '', 'L', or 'R').
+  log:(function(){
+    const raw=_p.get('log');
+    const blank=[{num:'',dir:''},{num:'',dir:''},{num:'',dir:''}];
+    if(!raw)return blank;
+    const parts=raw.split(';');
+    for(let i=0;i<3;i++){
+      const seg=parts[i]||'';
+      const ci=seg.indexOf(':');
+      const num=(ci>=0?seg.slice(0,ci):seg).replace(/[^0-9]/g,'').slice(0,2);
+      const dRaw=ci>=0?seg.slice(ci+1):'';
+      const dir=(dRaw==='L'||dRaw==='R')?dRaw:'';
+      blank[i]={num:num,dir:dir};
+    }
+    return blank;
+  })(),
+  encodeLog(){return this.log.map(e=>(e.num||'')+':'+(e.dir||'')).join(';');},
   hasItem(id){return this.items.includes(id);},
   collectItem(id,pts){
     if(this.items.includes(id))return false;
@@ -474,7 +500,7 @@ const GameState={
   },
   consumeItem(id){this.items=this.items.filter(i=>i!==id);},
   unlock(key){if(!this.unlocked.includes(key))this.unlocked.push(key);},
-  toParams(){return new URLSearchParams({points:this.points,visited:this.visited.join(','),unlocked:this.unlocked.join(','),items:this.items.join(',')}).toString();},
+  toParams(){return new URLSearchParams({points:this.points,visited:this.visited.join(','),unlocked:this.unlocked.join(','),items:this.items.join(','),log:this.encodeLog()}).toString();},
   withState(href){
     const [base,hash]=href.split('#');
     const sep=base.includes('?')?'&':'?';
@@ -1379,7 +1405,7 @@ const ITEMS=[
 ];
 const ITEM_DETAILS={
   'old-compass':  {desc:'An old compass from Dr. Mallard at The Lake. Rumored to point toward hidden treasure.', action:{label:'ACTIVATE COMPASS',fn:'activateCompass'}},
-  'first-edition':{desc:"A rare first-edition from the Library's restricted collection. Contains clues for those who seek them.", action:{label:'READ BOOK',fn:'openBook'}},
+  'first-edition':{desc:"A rare first-edition from the Library's restricted collection. Contains clues for those who seek them \u2014 and a blank page for logging the lock combination.", action:{label:'READ BOOK',fn:'openBook'}},
   'skeleton-key': {desc:'A master key of unknown origin. Stand beside a locked door, then press UNLOCK to open it.'},
   'holy-grail':   {desc:'The Holy Grail — the ultimate prize of Castle Anthrax.'},
   'sword':        {desc:'A sword from the Erebor Mountain swordsmith, given only to those who proved their qualifications.'},
@@ -1441,7 +1467,11 @@ function drawCompassOverlay(){
 
 // ── FIRST EDITION BOOK ───────────────────────────────────────────────────────
 var bookCurrentPage=0;
-var BOOK_PAGES=['cover','clue','map'];
+var BOOK_PAGES=['cover','clue','log','map'];
+// Player-logged combination notes — backed by GameState.log so they persist across
+// navigation via the URL state. num: string of up to 2 digits; dir: '', 'L', or 'R'.
+var bookLog=GameState.log;
+var bookLogBuilt=false;
 function openBook(){closeInventory();bookCurrentPage=0;document.getElementById('book-modal').style.display='flex';renderBookPage();}
 function closeBook(){document.getElementById('book-modal').style.display='none';}
 function bookPageNav(dir){bookCurrentPage=Math.max(0,Math.min(BOOK_PAGES.length-1,bookCurrentPage+dir));renderBookPage();}
@@ -1454,6 +1484,69 @@ function wrapBookText(c,text,x,y,maxW,lh){
   }
   c.fillText(line,x,y);
 }
+function buildBookLogRows(){
+  var wrap=document.getElementById('book-log-rows');
+  wrap.innerHTML='';
+  for(var i=0;i<3;i++){
+    (function(idx){
+      var row=document.createElement('div');
+      row.style.cssText='display:flex;align-items:center;gap:clamp(8px,2vw,14px);justify-content:center;';
+
+      // Ordinal label
+      var lbl=document.createElement('div');
+      lbl.textContent=(idx+1)+'.';
+      lbl.style.cssText="font-family:'Press Start 2P',monospace;font-size:clamp(8px,1.4vw,11px);color:#5a2c08;width:18px;flex-shrink:0;";
+      row.appendChild(lbl);
+
+      // Two-digit number field (accepts 1 or 2 digits)
+      var inp=document.createElement('input');
+      inp.type='text';inp.inputMode='numeric';inp.maxLength=2;
+      inp.value=bookLog[idx].num;
+      inp.placeholder='--';
+      inp.style.cssText="width:clamp(54px,11vw,68px);text-align:center;font-family:'Press Start 2P',monospace;font-size:clamp(11px,2vw,15px);color:#2a1004;background:rgba(255,250,235,0.85);border:2px solid #8a5a1c;border-radius:4px;padding:clamp(6px,1.2vh,9px) 0;outline:none;";
+      inp.addEventListener('input',function(){
+        this.value=this.value.replace(/[^0-9]/g,'').slice(0,2);
+        bookLog[idx].num=this.value;
+      });
+      inp.addEventListener('focus',function(){this.style.borderColor='#d49a30';});
+      inp.addEventListener('blur',function(){this.style.borderColor='#8a5a1c';});
+      row.appendChild(inp);
+
+      // Right / Left toggle — neutral by default
+      var tg=document.createElement('div');
+      tg.style.cssText='display:flex;border:2px solid #8a5a1c;border-radius:4px;overflow:hidden;flex-shrink:0;';
+      function makeBtn(val,text){
+        var b=document.createElement('button');
+        b.type='button';b.textContent=text;
+        b.style.cssText="font-family:'Press Start 2P',monospace;font-size:clamp(6px,1.1vw,8px);padding:clamp(7px,1.3vh,10px) clamp(8px,1.6vw,12px);border:none;cursor:pointer;background:rgba(255,250,235,0.6);color:#5a2c08;transition:background 0.1s,color 0.1s;";
+        b.addEventListener('click',function(){
+          // toggle off if re-tapping the active direction (return to neutral)
+          bookLog[idx].dir = (bookLog[idx].dir===val) ? '' : val;
+          paint();
+        });
+        return b;
+      }
+      var bL=makeBtn('L','LEFT');
+      var bR=makeBtn('R','RIGHT');
+      var sep=document.createElement('div');
+      sep.style.cssText='width:2px;background:#8a5a1c;';
+      function paint(){
+        [['L',bL],['R',bR]].forEach(function(p){
+          var active=bookLog[idx].dir===p[0];
+          p[1].style.background=active?'#c8982a':'rgba(255,250,235,0.6)';
+          p[1].style.color=active?'#fff':'#5a2c08';
+        });
+      }
+      tg.appendChild(bL);tg.appendChild(sep);tg.appendChild(bR);
+      paint();
+      row.appendChild(tg);
+
+      wrap.appendChild(row);
+    })(i);
+  }
+  bookLogBuilt=true;
+}
+
 function renderBookPage(){
   var bc=document.getElementById('book-canvas');
   var w=Math.min(window.innerWidth*0.92,520);
@@ -1490,6 +1583,11 @@ function renderBookPage(){
     bx.textAlign='center';bx.fillStyle='rgba(80,40,10,0.4)';
     bx.font=Math.round(w*0.025)+'px Palatino,Georgia,serif';
     bx.fillText('\u2014 Page II \u2014',mid,h*0.92);
+  } else if(page==='log'){
+    // Blank parchment — the HTML overlay (#book-log-overlay) renders the form on top.
+    bx.textAlign='center';bx.fillStyle='rgba(80,40,10,0.4)';
+    bx.font=Math.round(w*0.025)+'px Palatino,Georgia,serif';
+    bx.fillText('\u2014 Page III \u2014',mid,h*0.92);
   } else {
     bx.textAlign='center';bx.fillStyle='#3a1a04';
     bx.font='bold '+Math.round(w*0.036)+'px Palatino,Georgia,serif';
@@ -1507,7 +1605,17 @@ function renderBookPage(){
     bx.fillText('Erebor Mountain interior chart will appear here',mid,my+mh/2+16);
     bx.textAlign='center';bx.fillStyle='rgba(80,40,10,0.4)';
     bx.font=Math.round(w*0.025)+'px Palatino,Georgia,serif';
-    bx.fillText('\u2014 Page III \u2014',mid,h*0.92);
+    bx.fillText('\u2014 Page IV \u2014',mid,h*0.92);
+  }
+  // Show the combination-log HTML form only on the log page; size it to the canvas's
+  // displayed size (client rect), since CSS max-width/height may scale the canvas down.
+  var logOv=document.getElementById('book-log-overlay');
+  if(page==='log'){
+    if(!bookLogBuilt)buildBookLogRows();
+    logOv.style.width=bc.clientWidth+'px';logOv.style.height=bc.clientHeight+'px';
+    logOv.style.display='flex';
+  } else {
+    logOv.style.display='none';
   }
   document.getElementById('book-page-label').textContent=(bookCurrentPage+1)+' / '+BOOK_PAGES.length;
   document.getElementById('book-prev').disabled=bookCurrentPage===0;
@@ -1601,6 +1709,8 @@ function menuSelectCurrent(){if(menuItems[menuIdx])menuItems[menuIdx].click();}
 
 // ── INPUT ─────────────────────────────────────────────────────────────────────
 document.addEventListener('keydown',e=>{
+  // Don't steal keys while the player is typing into a text field (e.g. the combination log).
+  if(document.activeElement&&document.activeElement.tagName==='INPUT')return;
   if(vaultDialOpen){
     if(e.key==='ArrowLeft'||e.key==='a'||e.key==='A'){dialSpin(-1);e.preventDefault();return;}
     if(e.key==='ArrowRight'||e.key==='d'||e.key==='D'){dialSpin(1);e.preventDefault();return;}
