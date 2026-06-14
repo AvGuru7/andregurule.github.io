@@ -216,6 +216,23 @@
   .inv-detail-page{margin-bottom:clamp(10px,1.8vh,16px);}
   .inv-detail-page-heading{font-size:clamp(6px,0.9vw,8px);color:#a09070;letter-spacing:2px;margin-bottom:6px;}
   .inv-detail-page-body{font-family:'VT323',monospace;font-size:clamp(14px,2.2vw,18px);color:var(--ui-text);line-height:1.5;}
+
+  /* ── Photo Spot overlay — Andre's real lake photos ── */
+  #photo-overlay{position:fixed;top:0;left:0;right:0;background:rgba(10,8,24,0.97);backdrop-filter:blur(4px);z-index:500;display:none;flex-direction:column;align-items:center;justify-content:center;}
+  #photo-overlay.open{display:flex;}
+  #photo-frame{width:min(92vw,820px);max-height:78vh;display:flex;flex-direction:column;align-items:center;}
+  #photo-title{font-size:clamp(8px,1.5vw,12px);color:var(--gold);letter-spacing:2px;margin-bottom:clamp(8px,1.4vh,14px);text-align:center;}
+  #photo-stage{position:relative;width:100%;display:flex;align-items:center;justify-content:center;}
+  #photo-img{max-width:100%;max-height:56vh;border:3px solid var(--gold);border-radius:4px;box-shadow:0 0 24px rgba(240,192,64,0.25);image-rendering:auto;background:#0d0a18;}
+  .photo-arrow{position:absolute;top:50%;transform:translateY(-50%);background:rgba(13,10,24,0.85);border:2px solid var(--gold);color:var(--gold);font-family:'Press Start 2P',monospace;font-size:clamp(10px,1.8vw,16px);width:clamp(34px,5vw,44px);height:clamp(34px,5vw,44px);border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;user-select:none;}
+  .photo-arrow:hover{background:rgba(240,192,64,0.18);}
+  .photo-arrow.hidden{visibility:hidden;}
+  #photo-prev{left:clamp(-6px,-1vw,6px);}
+  #photo-next{right:clamp(-6px,-1vw,6px);}
+  #photo-caption{font-family:'VT323',monospace;font-size:clamp(15px,2.4vw,20px);color:var(--ui-text);line-height:1.4;margin-top:clamp(8px,1.4vh,14px);text-align:center;min-height:1.4em;max-width:90%;}
+  #photo-count{font-family:'VT323',monospace;font-size:clamp(12px,1.8vw,15px);color:#a09070;letter-spacing:2px;margin-top:6px;}
+  #photo-close{margin-top:clamp(12px,2vh,18px);background:var(--gold);color:#1a1208;border:none;font-family:'Press Start 2P',monospace;font-size:clamp(7px,1.1vw,10px);letter-spacing:1px;padding:clamp(8px,1.4vh,12px) clamp(16px,2.5vw,26px);border-radius:3px;cursor:pointer;}
+  #photo-close:hover{box-shadow:0 0 14px rgba(240,192,64,0.6);}
 </style>
 </head>
 <body>
@@ -308,6 +325,21 @@
         <div id="inv-detail-pages"></div>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- Photo Spot overlay -->
+<div id="photo-overlay">
+  <div id="photo-frame">
+    <div id="photo-title"></div>
+    <div id="photo-stage">
+      <button id="photo-prev" class="photo-arrow" aria-label="Previous photo">◀</button>
+      <img id="photo-img" alt="">
+      <button id="photo-next" class="photo-arrow" aria-label="Next photo">▶</button>
+    </div>
+    <div id="photo-caption"></div>
+    <div id="photo-count"></div>
+    <button id="photo-close">CLOSE</button>
   </div>
 </div>
 
@@ -666,6 +698,72 @@ const LANDING = { nx: 0.60, ny: 0.98, r: 36 };
 const FISH_ITEM = { nx: 0.32, ny: 0.62, r: 30 }; // southwest
 
 // ─────────────────────────────────────────────
+//  PHOTO SPOTS — Andre's real Lake Tahoe photos
+//  Not part of the game; purely a place to share pictures.
+//  Each spot: a camera beacon on the water. Paddle near and
+//  press A / tap to open a gallery overlay (◀ ▶ to browse).
+//  To add a spot: append an object with nx/ny (normalized
+//  position), a title, and a photos[] array of {src, caption}.
+//  Put the image files in the repo images/ folder.
+// ─────────────────────────────────────────────
+const PHOTO_SPOTS = [
+  {
+    id: 'sierra-shore',
+    nx: 0.84, ny: 0.52,           // near Sierra Bear (east shore), just off the bank in open water
+    r: 30,
+    title: '📷 EAST SHORE — MY PHOTOS',
+    photos: [
+      { src: 'images/tahoe-photo-1.jpg', caption: 'Caption for photo 1' },
+      { src: 'images/tahoe-photo-2.jpg', caption: 'Caption for photo 2' },
+      { src: 'images/tahoe-photo-3.jpg', caption: 'Caption for photo 3' },
+    ]
+  }
+];
+
+let photoOpen = false;
+let activePhotoSpot = null;
+let photoIndex = 0;
+
+function openPhotoSpot(spot) {
+  activePhotoSpot = spot;
+  photoIndex = 0;
+  photoOpen = true;
+  document.getElementById('photo-title').textContent = spot.title;
+  document.getElementById('photo-overlay').classList.add('open');
+  renderPhoto();
+}
+
+function renderPhoto() {
+  if (!activePhotoSpot) return;
+  const photos = activePhotoSpot.photos;
+  const p = photos[photoIndex];
+  const img = document.getElementById('photo-img');
+  img.src = p.src;
+  img.alt = p.caption || '';
+  document.getElementById('photo-caption').textContent = p.caption || '';
+  document.getElementById('photo-count').textContent =
+    photos.length > 1 ? `${photoIndex + 1} / ${photos.length}` : '';
+  const prev = document.getElementById('photo-prev');
+  const next = document.getElementById('photo-next');
+  const multi = photos.length > 1;
+  prev.classList.toggle('hidden', !multi);
+  next.classList.toggle('hidden', !multi);
+}
+
+function photoStep(delta) {
+  if (!activePhotoSpot) return;
+  const n = activePhotoSpot.photos.length;
+  photoIndex = (photoIndex + delta + n) % n;
+  renderPhoto();
+}
+
+function closePhotoSpot() {
+  photoOpen = false;
+  activePhotoSpot = null;
+  document.getElementById('photo-overlay').classList.remove('open');
+}
+
+// ─────────────────────────────────────────────
 //  DECORATIONS (trees, boulders, cabins)
 //  All defined in normalized coords so they scale
 // ─────────────────────────────────────────────
@@ -709,6 +807,14 @@ let fishBobOffset = 0;
 // ─────────────────────────────────────────────
 const keys = {};
 document.addEventListener('keydown', e => {
+  // Photo overlay captures input while open
+  if (photoOpen) {
+    if (e.key === 'Escape' || e.key === 'b' || e.key === 'B') { closePhotoSpot(); return; }
+    if (e.key === 'ArrowLeft')  { photoStep(-1); e.preventDefault(); return; }
+    if (e.key === 'ArrowRight') { photoStep( 1); e.preventDefault(); return; }
+    if (e.key === 'Enter' || e.key === ' ' || e.key === 'a' || e.key === 'A') { closePhotoSpot(); e.preventDefault(); return; }
+    return;
+  }
   keys[e.key] = true;
   if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) e.preventDefault();
   if (e.key === 'm' || e.key === 'M') toggleMenu();
@@ -753,6 +859,7 @@ document.addEventListener('mouseup', () => {
 document.getElementById('btnA').addEventListener('click', handleInteract);
 document.getElementById('btnSelect').addEventListener('click', toggleInventory);
 document.getElementById('btnB').addEventListener('click', () => {
+  if (photoOpen) { closePhotoSpot(); return; }
   if (inventoryOpen) { closeInventory(); return; }
   if (activeDialog && activeDialog.npcId === 'fisherman' && currentDialogMode === 'intro'
       && activeDialog.pageIndex >= dialogPages.length - 1) {
@@ -768,6 +875,15 @@ document.getElementById('menuClose').addEventListener('click', closeMenu);
 document.getElementById('btnStart').addEventListener('click', handleInteract);
 
 canvas.addEventListener('click', handleInteract);
+
+// Photo overlay controls
+document.getElementById('photo-prev').addEventListener('click', e => { e.stopPropagation(); photoStep(-1); });
+document.getElementById('photo-next').addEventListener('click', e => { e.stopPropagation(); photoStep(1); });
+document.getElementById('photo-close').addEventListener('click', closePhotoSpot);
+document.getElementById('photo-overlay').addEventListener('click', e => {
+  // Tap on the dark backdrop (outside the frame) closes
+  if (e.target.id === 'photo-overlay') closePhotoSpot();
+});
 
 // ─────────────────────────────────────────────
 //  MENU
@@ -885,7 +1001,17 @@ function showFlashDialog(speaker, ...pages) {
 // ─────────────────────────────────────────────
 function handleInteract() {
   if (menuOpen) { closeMenu(); return; }
+  if (photoOpen) { closePhotoSpot(); return; }
   if (activeDialog) { advanceDialog(); return; }
+
+  // Check photo spots (Andre's real photos — not a game item)
+  for (const spot of PHOTO_SPOTS) {
+    const sp = lakePoint(spot.nx, spot.ny);
+    if (Math.hypot(playerX - sp.x, playerY - sp.y) < spot.r + 24) {
+      openPhotoSpot(spot);
+      return;
+    }
+  }
 
   // Check boat landing exit
   const lp = lakePoint(LANDING.nx, LANDING.ny);
@@ -931,7 +1057,7 @@ function navigate(href) {
 //  UPDATE
 // ─────────────────────────────────────────────
 function update(dt) {
-  if (menuOpen || activeDialog || inventoryOpen) return;
+  if (menuOpen || activeDialog || inventoryOpen || photoOpen) return;
 
   let dx = 0, dy = 0;
   if (keys['ArrowUp']    || keys['w']) { dy = -1; playerDir = 'up'; }
@@ -1514,6 +1640,30 @@ function drawInteractPrompt(x, y, label) {
   ctx.restore();
 }
 
+// Camera beacon marking a photo spot (pulsing gold ring + camera glyph)
+function drawPhotoBeacon(x, y) {
+  const t = Date.now() * 0.003;
+  ctx.save();
+  // Pulsing ring
+  const pulse = 14 + Math.sin(t) * 4;
+  ctx.strokeStyle = 'rgba(240,192,64,' + (0.5 + 0.3 * Math.sin(t)) + ')';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(x, y, pulse, 0, Math.PI * 2);
+  ctx.stroke();
+  // Dark disc behind glyph for legibility on bright water
+  ctx.fillStyle = 'rgba(13,10,24,0.6)';
+  ctx.beginPath();
+  ctx.arc(x, y, 11, 0, Math.PI * 2);
+  ctx.fill();
+  // Camera glyph
+  ctx.font = '16px serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('📷', x, y + 1);
+  ctx.restore();
+}
+
 // ─────────────────────────────────────────────
 //  MAIN DRAW
 // ─────────────────────────────────────────────
@@ -1634,6 +1784,24 @@ function draw() {
     if (!activeDialog && !menuOpen) {
       const dist = Math.hypot(playerX - np.x, playerY - np.y);
       if (dist < 65) drawInteractPrompt(np.x, np.y, npc.label);
+    }
+  }
+
+  // ── PHOTO SPOTS (camera beacons) ──
+  for (const spot of PHOTO_SPOTS) {
+    const sp = lakePoint(spot.nx, spot.ny);
+    drawPhotoBeacon(sp.x, sp.y);
+    if (!activeDialog && !menuOpen && !photoOpen) {
+      if (Math.hypot(playerX - sp.x, playerY - sp.y) < spot.r + 24) {
+        ctx.save();
+        const alpha = 0.5 + 0.4 * Math.sin(Date.now() * 0.004);
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = '#f0c040';
+        ctx.font = '8px "Press Start 2P", monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('▲ VIEW PHOTOS', sp.x, sp.y - 30);
+        ctx.restore();
+      }
     }
   }
 
