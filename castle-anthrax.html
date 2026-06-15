@@ -182,6 +182,12 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
   <button id="standbook-close" style="background:var(--ui-bg);border:1px solid rgba(240,192,64,0.4);color:var(--ui-dim);font-family:'Press Start 2P',monospace;font-size:8px;padding:8px 14px;cursor:pointer;">&#10005; CLOSE</button>
 </div>
 
+<!-- Memorial Wall (Armory) — a RED HERRING clue: reads as "5 Left" but the true 5 is Right (Banquet Hall). -->
+<div id="memorial-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:600;align-items:center;justify-content:center;flex-direction:column;gap:12px;">
+  <img id="memorial-img" src="images/memorial-5-left.png" alt="A memorial wall of five shields" style="max-width:96vw;max-height:calc(100vh - 140px);border:2px solid var(--gold);display:block;image-rendering:auto;">
+  <button id="memorial-close" style="background:var(--ui-bg);border:1px solid rgba(240,192,64,0.4);color:var(--ui-dim);font-family:'Press Start 2P',monospace;font-size:8px;padding:8px 14px;cursor:pointer;">&#10005; CLOSE</button>
+</div>
+
 <div id="vault-dial-overlay" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(6,4,14,0.97);z-index:700;align-items:center;justify-content:center;flex-direction:column;gap:0;">
   <canvas id="vault-dial-canvas" style="image-rendering:pixelated;"></canvas>
   <div id="vault-dial-hint" style="font-family:'VT323',monospace;font-size:clamp(14px,2.5vw,18px);color:var(--ui-dim);text-align:center;margin-top:8px;line-height:1.7;"></div>
@@ -377,6 +383,8 @@ const VAULT_DOOR={id:'vault_door', label:'🔐 VAULT DOOR', tx:37, ty:6};
 let vaultDialOpen=false;
 let vaultDialNum=0;        // current dial number 0-39
 let vaultDialStep=0;       // which combo step we're on (0,1,2)
+let lastSpinDir='';        // direction of the most recent turn this step: '', 'left', or 'right'
+let vaultSuccessPending=false;  // true after a correct combo, while the success message shows
 let vaultStrikes=0;        // permanent for session
 let vaultUnlocked=false;   // once combo solved
 let vaultFlashTimer=0;     // frames of red flash remaining
@@ -399,6 +407,7 @@ const SIGNS=[
   {id:'throne_sign',   label:'👑 THRONE ROOM',  tx:20, ty:12, title:'THRONE ROOM',       body:"The seat of King Lyn's power. The golden throne watches all who enter.", links:[]},
   {id:'treasury_sign', label:'💰 TREASURY',     tx:33, ty:12, title:'THE TREASURY',       body:'Coffers of gold, gemstones, and locked chests. The wealth of many campaigns rests here.', links:[]},
   {id:'armory_sign',   label:'⚔ ARMORY',        tx:7,  ty:17, title:'ARMORY',             body:'Swords, shields, and armor line the walls. Every knight must be prepared.', links:[]},
+  {id:'memorial_wall', label:'🛡 MEMORIAL WALL', tx:3,  ty:21, title:'MEMORIAL WALL',      body:'', memorial:true, links:[]},
   {id:'banquet_sign',  label:'🍖 BANQUET HALL', tx:30, ty:17, title:'BANQUET HALL',       body:'A grand hall for feasts. The great table at its center is carved with a single bold mark and rows of arrows.', links:[]},
   {id:'banquet_table', label:'🍷 THE TABLE',     tx:30, ty:25, title:'THE FEAST TABLE',    body:'A bold V is carved deep into the wood at the center of the table, flanked by rows of arrows pointing to the right.', links:[]},
   {id:'dungeon_sign',  label:'⛓ DUNGEON',       tx:42, ty:17, title:'THE DUNGEON',        body:'Cold stone, dripping water, iron bars. Not all who descend return. You have been warned.', links:[]},
@@ -897,6 +906,30 @@ function drawArmory(wx,wy){
   ctx.fillRect(rx+rw/2-18,ry+TILE*7.5,36,6);
   // Torches in armory
   torch(rx+TILE,ry+TILE*0.4,false);torch(rx+rw-TILE,ry+TILE*0.4,false);
+
+  // ── Memorial Wall on the WEST wall (red-herring clue: reads as 5 Left) ──
+  // Five small shield plaques mounted against the west wall, centered on the
+  // memorial interact tile (3,21). Inspecting opens the full memorial image.
+  const memSign=SIGNS.find(s=>s.id==='memorial_wall');
+  const mwx=rx+TILE*0.18;                       // just inside the west wall
+  const mcy=memSign.ty*TILE-wy+TILE*0.5;        // vertical centre on the interact tile
+  for(let i=0;i<5;i++){
+    const my=mcy-TILE*2+i*TILE;                 // five shields stacked vertically
+    ctx.fillStyle='#c8c8d0';                    // silver shield
+    ctx.fillRect(mwx,my-7,16,12);
+    ctx.beginPath();ctx.moveTo(mwx,my+5);ctx.lineTo(mwx+8,my+11);ctx.lineTo(mwx+16,my+5);ctx.closePath();ctx.fill();
+    ctx.fillStyle='#c8a000';                    // gold rim
+    ctx.fillRect(mwx,my-7,16,2);ctx.fillRect(mwx,my-7,2,12);ctx.fillRect(mwx+14,my-7,2,12);
+    ctx.fillStyle='rgba(255,255,255,0.18)';ctx.fillRect(mwx+1,my-6,5,10);
+  }
+  // pulsing inspect prompt when the player is near
+  const mpx=Math.abs(playerX-memSign.tx*TILE), mpy=Math.abs(playerY-memSign.ty*TILE);
+  if(mpx<TILE*2.4&&mpy<TILE*2.6){
+    const pulse=0.4+0.3*Math.sin(Date.now()/300);
+    ctx.fillStyle=`rgba(240,192,64,${pulse})`;
+    ctx.font='6px "Press Start 2P"';ctx.textAlign='center';
+    ctx.fillText('[A] INSPECT',mwx+8,mcy-TILE*2.4);ctx.textAlign='left';
+  }
 }
 
 function drawStorage(wx,wy){
@@ -1468,7 +1501,9 @@ function showZoneLabel(label){
 function hideZoneLabel(){document.getElementById('zone-label').style.opacity='0';}
 
 function handleA(){
+  if(vaultSuccessPending){enterVault();return;}
   if(standbookOpen){closeStandbook();return;}
+  if(memorialOpen){closeMemorial();return;}
   if(inscriptionOpen){closeInscription();return;}
   if(vaultDialOpen){dialConfirm();return;}
   if(menuOpen){menuSelectCurrent();return;}
@@ -1500,10 +1535,11 @@ function handleA(){
     }
     if(activeInteractable.type==='sign'&&activeInteractable.obj.inscription){openInscription();return;}
     if(activeInteractable.type==='sign'&&activeInteractable.obj.standbook){openStandbook();return;}
+    if(activeInteractable.type==='sign'&&activeInteractable.obj.memorial){openMemorial();return;}
     openDialog(activeInteractable);
   }
 }
-function handleB(){if(menuOpen){closeMenu();return;}if(inventoryOpen){closeInventory();return;}if(vaultDialOpen){closeVaultDial();return;}if(standbookOpen){closeStandbook();return;}if(inscriptionOpen){closeInscription();return;}if(dialogOpen){closeDialog();return;}if(compassActive){compassActive=false;return;}}
+function handleB(){if(vaultSuccessPending){enterVault();return;}if(menuOpen){closeMenu();return;}if(inventoryOpen){closeInventory();return;}if(vaultDialOpen){closeVaultDial();return;}if(standbookOpen){closeStandbook();return;}if(memorialOpen){closeMemorial();return;}if(inscriptionOpen){closeInscription();return;}if(dialogOpen){closeDialog();return;}if(compassActive){compassActive=false;return;}}
 
 function openDialog(interactable){
   dialogOpen=true;
@@ -1531,7 +1567,7 @@ function openDialog(interactable){
 function closeDialog(){dialogOpen=false;document.getElementById('dialog-box').style.display='none';}
 
 // ── MENU ──────────────────────────────────────────────────────────────────────
-function toggleMenu(){menuOpen?closeMenu():openMenu();}
+function toggleMenu(){if(vaultSuccessPending)return;menuOpen?closeMenu():openMenu();}
 function openMenu(){
   if(dialogOpen)closeDialog();menuOpen=true;
   document.getElementById('menu-overlay').style.display='flex';
@@ -1684,6 +1720,18 @@ function openStandbook(){
 function closeStandbook(){
   standbookOpen=false;
   document.getElementById('standbook-modal').style.display='none';
+}
+
+// ── MEMORIAL WALL OVERLAY (Armory — red-herring "5 Left") ────────────────────
+let memorialOpen=false;
+function openMemorial(){
+  memorialOpen=true;
+  if(dialogOpen)closeDialog();
+  document.getElementById('memorial-modal').style.display='flex';
+}
+function closeMemorial(){
+  memorialOpen=false;
+  document.getElementById('memorial-modal').style.display='none';
 }
 
 // ── FIRST EDITION BOOK ───────────────────────────────────────────────────────
@@ -1845,6 +1893,7 @@ function renderBookPage(){
 
 // ── INVENTORY RENDER ─────────────────────────────────────────────────────────
 function openInventory(){
+  if(vaultSuccessPending)return;
   if(dialogOpen)closeDialog();
   if(menuOpen)closeMenu();
   inventoryOpen=true;
@@ -2000,6 +2049,7 @@ function openVaultDial(){
   vaultDialOpen=true;
   vaultDialNum=0;
   vaultDialStep=0;
+  lastSpinDir='';
   dialogOpen=false;
   document.getElementById('dialog-box').style.display='none';
   const overlay=document.getElementById('vault-dial-overlay');
@@ -2015,36 +2065,43 @@ function closeVaultDial(){
   vaultDialOpen=false;
   vaultDialNum=0;
   vaultDialStep=0;
+  lastSpinDir='';
   document.getElementById('vault-dial-overlay').style.display='none';
 }
 
 function dialSpin(dir){
   // dir: +1 = clockwise (right), -1 = counter-clockwise (left)
   vaultDialNum=(vaultDialNum+dir+40)%40;
+  lastSpinDir = dir>0 ? 'right' : 'left';   // remember the direction of the most recent turn
   renderVaultDial();
 }
 
 function dialConfirm(){
   const expected=VAULT_COMBO[vaultDialStep];
-  if(vaultDialNum===expected.n){
+  if(vaultDialNum===expected.n && lastSpinDir===expected.dir){
     vaultDialStep++;
     if(vaultDialStep===3){
-      // SUCCESS
+      // SUCCESS — celebratory beat, then the player advances into the vault.
       vaultUnlocked=true;
+      lastSpinDir='';
       closeVaultDial();
-      // Navigate to vault page with state
-      setTimeout(()=>{
-        window.location.href=GameState.withState('vault.html');
-      },600);
+      vaultSuccessPending=true;
+      showInlineDialog(
+        '✓ THE VAULT OPENS',
+        "A deep CLUNK echoes through the chamber. Ancient gears grind, stone scrapes against stone, and the secret door swings slowly inward — revealing the true treasure room beyond. Well done, brave soul: you read the clues, weighed truth against deception, and turned the dial true. (And perhaps you noticed — 5 · 12 · 26, the day this little world first began to take shape.)",
+        '[A] Enter the treasure room'
+      );
     } else {
       vaultDialNum=0;
+      lastSpinDir='';   // each number must be approached from its own deliberate turn
       renderVaultDial();
     }
   } else {
-    // WRONG — increment strikes
+    // WRONG — either the number or the turn direction was incorrect
     vaultStrikes++;
     vaultDialStep=0;
     vaultDialNum=0;
+    lastSpinDir='';
     closeVaultDial();
     if(vaultStrikes>=3){
       // Three strikes — dramatic final sequence then redirect
@@ -2063,6 +2120,15 @@ function dialConfirm(){
       showInlineDialog(msgs[mi],msgs[mi+1],'[B] Try again');
     }
   }
+}
+
+// Advance from the success message into the true treasure room (vault page).
+function enterVault(){
+  if(!vaultSuccessPending)return;
+  vaultSuccessPending=false;
+  dialogOpen=false;
+  document.getElementById('dialog-box').style.display='none';
+  window.location.href=GameState.withState('vault.html');
 }
 
 function renderVaultDial(){
@@ -2155,6 +2221,20 @@ function renderVaultDial(){
   c.fillText(String(vaultDialNum).padStart(2,'0'),cx,cy+dr+32);
   c.textBaseline='alphabetic';
 
+  // Last-turn direction indicator — shows which way the player most recently spun,
+  // and whether it matches the direction this step requires. Makes the (now-enforced)
+  // direction rule legible: the player can see their turn registered before locking in.
+  if(vaultDialStep<3){
+    const need=VAULT_COMBO[vaultDialStep].dir;        // 'right' or 'left'
+    const turned=lastSpinDir;                          // '', 'left', or 'right'
+    let label, col;
+    if(!turned){ label='( turn the dial )'; col='rgba(200,180,100,0.5)'; }
+    else if(turned===need){ label=(turned==='right'?'▶ TURNED RIGHT':'◀ TURNED LEFT')+'  ✓'; col='#40c080'; }
+    else { label=(turned==='right'?'▶ TURNED RIGHT':'◀ TURNED LEFT')+'  ✗'; col='#cc4040'; }
+    c.fillStyle=col;c.font='6px "Press Start 2P"';c.textAlign='center';
+    c.fillText(label, cx, cy+dr+58);
+  }
+
   // Strike indicators
   const siY=H-36;
   c.fillStyle='rgba(240,192,64,0.6)';c.font='6px "Press Start 2P"';c.textAlign='center';
@@ -2208,6 +2288,8 @@ window.addEventListener('load',function(){
   document.getElementById('inscription-overlay').addEventListener('click',function(){closeInscription();});
   document.getElementById('standbook-close').addEventListener('click',function(){closeStandbook();});
   document.getElementById('standbook-modal').addEventListener('click',function(e){if(e.target.id!=='standbook-img')closeStandbook();});
+  document.getElementById('memorial-close').addEventListener('click',function(){closeMemorial();});
+  document.getElementById('memorial-modal').addEventListener('click',function(e){if(e.target.id!=='memorial-img')closeMemorial();});
   window.addEventListener('resize',function(){if(inscriptionOpen)drawInscription();});
 });
 requestAnimationFrame(gameLoop);
