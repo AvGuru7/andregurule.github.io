@@ -578,6 +578,7 @@ function useSkeletonKey(){
   const door=nearestLockedDoor();
   if(!door) return; // button shouldn't be visible, but guard anyway
   door.setOpen();
+  GameState.unlock(door.key+'-open'); // persist THIS door's open state across navigation
   showZoneLabel(door.open);
   closeInventory();
 }
@@ -650,9 +651,10 @@ const GameState={
     return base+sep+this.toParams()+(hash?'#'+hash:'');
   }
 };
-// Restore treasury door state from URL params
-treasuryOpen=GameState.unlocked.includes('skeleton-key');
-prisonOpen=GameState.unlocked.includes('skeleton-key');
+// Restore door state from per-door unlock flags. Merely HAVING the Skeleton Key
+// must NOT open the doors — the player has to actually use it on each door.
+treasuryOpen=GameState.unlocked.includes('treasury-open');
+prisonOpen=GameState.unlocked.includes('prison-open');
 kayakEarned=GameState.unlocked.includes('kayak-earned');
 kayakCollected=GameState.unlocked.includes('kayak-collected');
 
