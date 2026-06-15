@@ -205,13 +205,13 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
 
 <!-- Stand book (Library combination clue: iron = element 26). Single-image, styled like the First Edition modal. -->
 <div id="standbook-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:600;align-items:center;justify-content:center;flex-direction:column;gap:12px;">
-  <img id="standbook-img" src="images/book-26-right.png" alt="An open book" style="max-width:96vw;max-height:calc(100vh - 140px);border:2px solid var(--gold);display:block;image-rendering:auto;">
+  <img id="standbook-img" src="images/book-26-right.png" alt="An open book" style="max-width:92vw;max-height:82%;border:2px solid var(--gold);display:block;image-rendering:auto;">
   <button id="standbook-close" style="background:var(--ui-bg);border:1px solid rgba(240,192,64,0.4);color:var(--ui-dim);font-family:'Press Start 2P',monospace;font-size:8px;padding:8px 14px;cursor:pointer;">&#10005; CLOSE</button>
 </div>
 
 <!-- Memorial Wall (Armory) — a RED HERRING clue: reads as "5 Left" but the true 5 is Right (Banquet Hall). -->
 <div id="memorial-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:600;align-items:center;justify-content:center;flex-direction:column;gap:12px;">
-  <img id="memorial-img" src="images/memorial-5-left.png" alt="A memorial wall of five shields" style="max-width:96vw;max-height:calc(100vh - 140px);border:2px solid var(--gold);display:block;image-rendering:auto;">
+  <img id="memorial-img" src="images/memorial-5-left.png" alt="A memorial wall of five shields" style="max-width:92vw;max-height:82%;border:2px solid var(--gold);display:block;image-rendering:auto;">
   <button id="memorial-close" style="background:var(--ui-bg);border:1px solid rgba(240,192,64,0.4);color:var(--ui-dim);font-family:'Press Start 2P',monospace;font-size:8px;padding:8px 14px;cursor:pointer;">&#10005; CLOSE</button>
 </div>
 
@@ -1981,7 +1981,9 @@ function openStandbook(){
   standbookOpen=true;
   standbookClue=(activeInteractable&&activeInteractable.obj)?activeInteractable.obj.recordClue:null;
   if(dialogOpen)closeDialog();
-  document.getElementById('standbook-modal').style.display='flex';
+  const m=document.getElementById('standbook-modal');
+  m.style.bottom=ctrlHeight()+'px'; // keep the modal clear of the NES controller
+  m.style.display='flex';
 }
 function closeStandbook(){
   standbookOpen=false;
@@ -1994,7 +1996,9 @@ let memorialOpen=false;
 function openMemorial(){
   memorialOpen=true;
   if(dialogOpen)closeDialog();
-  document.getElementById('memorial-modal').style.display='flex';
+  const m=document.getElementById('memorial-modal');
+  m.style.bottom=ctrlHeight()+'px'; // keep the modal clear of the NES controller
+  m.style.display='flex';
 }
 function closeMemorial(){
   memorialOpen=false;
