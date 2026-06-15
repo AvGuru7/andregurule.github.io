@@ -830,7 +830,7 @@ const JIMMY={id:'jimmy',label:'🔨 JIMMY THE SWORDSMITH',title:'JIMMY THE SWORD
     {body:"*clang clang* Huh?! Don't sneak up on a man at his anvil! Name's Jimmy. Best swordsmith this mountain ever had."},
     {body:"Most folks can't even find the forge. Takes a good head on your shoulders to navigate these tunnels. I respect that."},
     {body:"This is the Outward Blade. The finest steel I've ever drawn from the forge. But I've learned something at this anvil that most smiths never do — and I won't pass the blade to anyone who hasn't learned it too."},
-    {body:"The iron in this blade is the same iron element that runs in the blood of every man I might raise it against. Answer me this",isRiddle:true},
+    {body:"The iron in this blade is the same iron element that runs in the blood of every man I might raise it against. Answer me this ...",isRiddle:true},
   ],dialogIdx:0};
 
 function drawJimmy(wx,wy){
@@ -1047,7 +1047,7 @@ function handleJimmyRiddle(){
   }
   dialogOpen=true;
   document.getElementById('dialog-title').textContent='JIMMY THE SWORDSMITH — RIDDLE';
-  document.getElementById('dialog-body').textContent='To lead by the sword, I must never set it down — my strength lasts only as long as my grip. But there is a way to lead that needs no blade at all: to look at another and see not an obstacle, not a tool, but a person who matters as much as I do. Seen this way, the quarrel may dissolve before it begins. Name the shift in seeing that lays the sword down for good.';
+  document.getElementById('dialog-body').textContent='To lead by the sword, I must never set it down, but my strength lasts only as long as my grip. However, there is a way to lead that needs no blade at all. To look at another and see not an obstacle, not a tool, but a person who matters as much as I do. Seen this way, the quarrel may dissolve before it begins. Name the shift in seeing that lays the sword down for good.';
   const linksEl=document.getElementById('dialog-links');linksEl.innerHTML='';
 
   // Hint line
