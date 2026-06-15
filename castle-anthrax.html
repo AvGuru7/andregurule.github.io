@@ -42,6 +42,7 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
 .menu-item:hover,.menu-item:active,.menu-item.selected{color:var(--gold);border-left-color:var(--gold);background:rgba(240,192,64,0.06);}
 .menu-item-icon{font-size:12px;width:20px;text-align:center;flex-shrink:0;}
 #menu-divider{height:1px;background:rgba(240,192,64,0.18);margin:clamp(8px,1.5vh,14px) 0;}
+.menu-kayak-lock{font-size:clamp(4px,0.65vw,5px);color:#886644;margin-left:6px;vertical-align:middle;}
 #menu-close-hint{text-align:center;margin-top:clamp(12px,2vh,20px);font-size:clamp(5px,0.8vw,7px);color:var(--ui-dim);}
 .hint-badge-sm{background:#222;border:1.5px solid #555;color:#aaa;padding:1px 5px;border-radius:2px;font-size:inherit;}
 @media(pointer:fine){body{cursor:none;}#cursor{position:fixed;width:12px;height:12px;border:2px solid var(--gold);pointer-events:none;z-index:9999;transform:translate(-50%,-50%);}}
@@ -99,6 +100,26 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
     padding:0 clamp(6px,2vw,16px);
   }
 }
+/* ── HALL OF LEGENDS — leaderboard overlay (read-only) ──────────────────── */
+#lb-overlay{position:fixed;inset:0;z-index:700;display:none;flex-direction:column;align-items:center;justify-content:center;background:rgba(6,5,14,0.96);backdrop-filter:blur(5px);padding:clamp(16px,4vw,40px);overflow-y:auto;}
+#lb-overlay.active{display:flex;}
+#lb-overlay .lb-title{font-family:'Press Start 2P',monospace;font-size:clamp(12px,2.6vw,20px);color:var(--gold);letter-spacing:2px;text-align:center;margin-bottom:clamp(6px,1.5vh,12px);text-shadow:0 0 16px rgba(240,192,64,0.6);animation:lbPulse 1.4s ease-in-out infinite;}
+@keyframes lbPulse{0%,100%{opacity:1}50%{opacity:0.65}}
+#lb-overlay .lb-sub{font-family:'VT323',monospace;font-size:clamp(15px,2.6vw,21px);color:var(--ui-text);text-align:center;margin-bottom:clamp(14px,3vh,26px);line-height:1.4;max-width:560px;}
+#lb-table-wrap{width:min(620px,94vw);max-height:54vh;overflow-y:auto;border:3px solid var(--gold2);background:rgba(10,8,20,0.6);margin-bottom:clamp(14px,3vh,24px);}
+#lb-table{width:100%;border-collapse:collapse;font-family:'VT323',monospace;}
+#lb-table th{position:sticky;top:0;background:var(--ui-bg);color:var(--gold);font-family:'Press Start 2P',monospace;font-size:clamp(6px,1.1vw,9px);letter-spacing:1px;padding:clamp(9px,1.5vh,13px) clamp(8px,1.5vw,14px);text-align:left;border-bottom:2px solid var(--gold2);}
+#lb-table th.num,#lb-table td.num{text-align:right;}
+#lb-table td{font-size:clamp(16px,2.8vw,21px);color:var(--ui-text);padding:clamp(7px,1.3vh,11px) clamp(8px,1.5vw,14px);border-bottom:1px solid rgba(240,192,64,0.1);}
+#lb-table tr:nth-child(even) td{background:rgba(240,192,64,0.03);}
+#lb-table .rank-1{color:var(--gold);font-weight:bold;}
+#lb-table .rank-2{color:#cfd4dc;}
+#lb-table .rank-3{color:#cd9b5a;}
+#lb-overlay .lb-loading,#lb-overlay .lb-error{font-family:'VT323',monospace;font-size:clamp(16px,3vw,20px);color:var(--ui-dim);text-align:center;padding:30px;}
+#lb-overlay .lb-error{color:#cc6677;}
+#lb-overlay .lb-btn{font-family:'Press Start 2P',monospace;font-size:clamp(8px,1.4vw,11px);color:var(--ui-bg);background:var(--gold);border:none;padding:clamp(11px,1.8vh,15px) clamp(20px,4vw,34px);cursor:pointer;letter-spacing:1px;touch-action:manipulation;transition:background 0.1s,transform 0.06s;}
+#lb-overlay .lb-btn:hover{background:#fff3a0;}
+#lb-overlay .lb-btn:active{transform:translateY(2px);}
 </style>
 </head>
 <body>
@@ -127,12 +148,18 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
   <div id="menu-box">
     <div id="menu-title">NAVIGATION</div>
     <a class="menu-item" href="world.html#spawn=story"><span class="menu-item-icon">🗺</span> WORLD MAP</a>
-    <a class="menu-item selected" href="castle-anthrax.html"><span class="menu-item-icon">🏰</span><span id="menu-cursor">▶ </span>CASTLE ANTHRAX</a>
-    <a class="menu-item" href="andregurule-library.html"><span class="menu-item-icon">⚔</span> HALL OF RECORDS</a>
-    <a class="menu-item" href="https://www.andregurule.com/hobbies" target="_blank"><span class="menu-item-icon">🏕</span> HOBBIES</a>
-    <a class="menu-item" href="https://www.andregurule.com/blog" target="_blank"><span class="menu-item-icon">📜</span> BLOG</a>
+    <a class="menu-item" href="hall-of-records.html"><span class="menu-item-icon">⚔</span> HALL OF RECORDS</a>
+    <a class="menu-item selected" href="castle-anthrax.html"><span class="menu-item-icon">📖</span><span id="menu-cursor">▶ </span>CASTLE ANTHRAX</a>
+    <a class="menu-item" href="erebor-mountain.html"><span class="menu-item-icon">⛰</span> EREBOR MOUNTAIN</a>
+    <a class="menu-item" href="andregurule-library.html"><span class="menu-item-icon">📜</span> LIBRARY</a>
+    <span id="menu-lake-tahoe" class="menu-item" style="opacity:0.4;cursor:default;pointer-events:none;">
+      <span class="menu-item-icon">🏔</span> LAKE TAHOE <span class="menu-kayak-lock">[🚣 need kayak]</span>
+    </span>
+    <span id="menu-the-lake" class="menu-item" style="opacity:0.4;cursor:default;pointer-events:none;">
+      <span class="menu-item-icon">🌊</span> THE LAKE <span class="menu-kayak-lock">[🚣 need kayak]</span>
+    </span>
     <div id="menu-divider"></div>
-    <a class="menu-item" href="vault.html" data-href="vault.html"><span class="menu-item-icon">🏆</span> HALL OF LEGENDS</a>
+    <a class="menu-item" href="#" onclick="event.preventDefault();openLeaderboard();"><span class="menu-item-icon">🏆</span> HALL OF LEGENDS</a>
     <a class="menu-item" href="https://linkedin.com/in/andregurule" target="_blank"><span class="menu-item-icon">💼</span> LINKEDIN</a>
     <div id="menu-close-hint">
       <span class="hint-badge-sm">B</span> or <span class="hint-badge-sm">MENU</span> to close &nbsp;·&nbsp;
@@ -238,7 +265,68 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
   <div id="ctrl-hint">D-PAD / ARROW KEYS · A=TALK · B=CLOSE · MENU=NAV</div>
 </div>
 
+<!-- ── HALL OF LEGENDS — leaderboard overlay (read-only) ─────────────────── -->
+<div id="lb-overlay">
+  <div class="lb-title">🏆 HALL OF LEGENDS 🏆</div>
+  <div class="lb-sub">Top adventurers who claimed the Grail</div>
+  <div id="lb-table-wrap">
+    <div class="lb-loading" id="lb-loading">Loading scores…</div>
+    <table id="lb-table" style="display:none;">
+      <thead><tr><th class="num">#</th><th>NAME</th><th class="num">SCORE</th></tr></thead>
+      <tbody id="lb-body"></tbody>
+    </table>
+  </div>
+  <button class="lb-btn" type="button" onclick="closeLeaderboard()">CONTINUE</button>
+</div>
+
 <script>
+// ── HALL OF LEGENDS — leaderboard overlay (read-only) ───────────────────────
+const SUPABASE_URL = 'https://kfcbodswxjhqzauonxdx.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_7SJwq7QIS-N4fRvgUj09Xw_Wa7LzC2t';
+const LEADERBOARD_ENABLED = true;
+
+async function fetchLeaderboard(){
+  if(!LEADERBOARD_ENABLED) return [];
+  try{
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/leaderboard?select=id,name,score&order=score.desc,created_at.asc&limit=25`,
+      {headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`}}
+    );
+    if(!res.ok) return [];
+    return await res.json();
+  }catch(e){console.error('Leaderboard fetch failed:',e);return [];}
+}
+function lbEscapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function leaderboardOpen(){return document.getElementById('lb-overlay').classList.contains('active');}
+async function openLeaderboard(){
+  if(typeof menuOpen!=='undefined'&&menuOpen&&typeof closeMenu==='function')closeMenu();
+  const ov=document.getElementById('lb-overlay');
+  const loading=document.getElementById('lb-loading');
+  const table=document.getElementById('lb-table');
+  ov.classList.add('active');
+  loading.style.display='block';loading.textContent='Loading scores…';loading.className='lb-loading';
+  table.style.display='none';
+  const rows=await fetchLeaderboard();
+  if(!rows.length){
+    loading.className='lb-loading';
+    loading.textContent='No scores yet — be the first to claim the Grail!';
+    return;
+  }
+  const body=document.getElementById('lb-body');body.innerHTML='';
+  rows.forEach((r,i)=>{
+    const tr=document.createElement('tr');
+    const rankCls=i<3?('rank-'+(i+1)):'';
+    tr.innerHTML='<td class="num '+rankCls+'">'+(i+1)+'</td>'
+      +'<td class="'+rankCls+'">'+lbEscapeHtml(r.name)+'</td>'
+      +'<td class="num '+rankCls+'">'+r.score+'</td>';
+    body.appendChild(tr);
+  });
+  loading.style.display='none';
+  table.style.display='table';
+}
+function closeLeaderboard(){document.getElementById('lb-overlay').classList.remove('active');}
+
+
 // ── WORLD SIZE ────────────────────────────────────────────────────────────────
 const TILE=48, WORLD_W=48, WORLD_H=32;
 const PW=WORLD_W*TILE, PH=WORLD_H*TILE;
@@ -1471,7 +1559,7 @@ function getRoomAt2(tx,ty){return ROOMS.find(r=>tx>=r.x&&tx<r.x+r.w&&ty>=r.y&&ty
 
 // ── PLAYER UPDATE ─────────────────────────────────────────────────────────────
 function updatePlayer(){
-  if(dialogOpen||menuOpen||inventoryOpen||vaultDialOpen) return;
+  if(dialogOpen||menuOpen||inventoryOpen||vaultDialOpen||leaderboardOpen()) return;
   const SPEED=3;let dx=0,dy=0;
   if(keys.up){dy=-SPEED;facing='up';}if(keys.down){dy=SPEED;facing='down';}
   if(keys.left){dx=-SPEED;facing='left';}if(keys.right){dx=SPEED;facing='right';}
@@ -1502,6 +1590,7 @@ function hideZoneLabel(){document.getElementById('zone-label').style.opacity='0'
 
 function handleA(){
   if(vaultSuccessPending){enterVault();return;}
+  if(leaderboardOpen()){closeLeaderboard();return;}
   if(standbookOpen){closeStandbook();return;}
   if(memorialOpen){closeMemorial();return;}
   if(inscriptionOpen){closeInscription();return;}
@@ -1539,7 +1628,7 @@ function handleA(){
     openDialog(activeInteractable);
   }
 }
-function handleB(){if(vaultSuccessPending){enterVault();return;}if(menuOpen){closeMenu();return;}if(inventoryOpen){closeInventory();return;}if(vaultDialOpen){closeVaultDial();return;}if(standbookOpen){closeStandbook();return;}if(memorialOpen){closeMemorial();return;}if(inscriptionOpen){closeInscription();return;}if(dialogOpen){closeDialog();return;}if(compassActive){compassActive=false;return;}}
+function handleB(){if(vaultSuccessPending){enterVault();return;}if(leaderboardOpen()){closeLeaderboard();return;}if(menuOpen){closeMenu();return;}if(inventoryOpen){closeInventory();return;}if(vaultDialOpen){closeVaultDial();return;}if(standbookOpen){closeStandbook();return;}if(memorialOpen){closeMemorial();return;}if(inscriptionOpen){closeInscription();return;}if(dialogOpen){closeDialog();return;}if(compassActive){compassActive=false;return;}}
 
 function openDialog(interactable){
   dialogOpen=true;
@@ -1568,10 +1657,31 @@ function closeDialog(){dialogOpen=false;document.getElementById('dialog-box').st
 
 // ── MENU ──────────────────────────────────────────────────────────────────────
 function toggleMenu(){if(vaultSuccessPending)return;menuOpen?closeMenu():openMenu();}
+function _renderWaterMenuItem(id,icon,label,href){
+  const hasKayak=GameState.hasItem('blue-kayak');
+  const el=document.getElementById(id);
+  if(!el)return;
+  if(hasKayak){
+    el.outerHTML=`<a id="${id}" class="menu-item" href="${GameState.withState(href)}"><span class="menu-item-icon">${icon}</span> ${label}</a>`;
+  } else {
+    el.outerHTML=`<span id="${id}" class="menu-item" style="opacity:0.4;cursor:default;pointer-events:none;"><span class="menu-item-icon">${icon}</span> ${label} <span class="menu-kayak-lock">[🚣 need kayak]</span></span>`;
+  }
+}
 function openMenu(){
+  if(vaultSuccessPending)return;
   if(dialogOpen)closeDialog();menuOpen=true;
+  _renderWaterMenuItem('menu-lake-tahoe','🏔','LAKE TAHOE','lake-tahoe.html');
+  _renderWaterMenuItem('menu-the-lake','🌊','THE LAKE','the-lake.html');
+  // Rewrite all local (non-external) menu links to carry state forward
+  document.querySelectorAll('#menu-box a.menu-item[href]').forEach(a=>{
+    const href=a.getAttribute('href');
+    if(href&&!href.startsWith('http')&&!href.startsWith('//')){
+      const base=href.split('?')[0];
+      a.href=GameState.withState(base);
+    }
+  });
   document.getElementById('menu-overlay').style.display='flex';
-  menuItems=Array.from(document.querySelectorAll('.menu-item'));menuIdx=0;updateMenuCursor();
+  menuItems=Array.from(document.querySelectorAll('#menu-box .menu-item[href]'));menuIdx=0;updateMenuCursor();
   document.getElementById('menu-btn').classList.add('pressed');
 }
 function closeMenu(){menuOpen=false;document.getElementById('menu-overlay').style.display='none';document.getElementById('menu-btn').classList.remove('pressed');}
@@ -1981,6 +2091,10 @@ function menuSelectCurrent(){if(menuItems[menuIdx])menuItems[menuIdx].click();}
 document.addEventListener('keydown',e=>{
   // Don't steal keys while the player is typing into a text field (e.g. the combination log).
   if(document.activeElement&&document.activeElement.tagName==='INPUT')return;
+  if(leaderboardOpen()){
+    if(e.key==='Enter'||e.key===' '||e.key==='a'||e.key==='A'||e.key==='Escape'||e.key==='b'||e.key==='B'){closeLeaderboard();e.preventDefault();}
+    return;
+  }
   if(vaultDialOpen){
     if(e.key==='ArrowLeft'||e.key==='a'||e.key==='A'){dialSpin(-1);e.preventDefault();return;}
     if(e.key==='ArrowRight'||e.key==='d'||e.key==='D'){dialSpin(1);e.preventDefault();return;}
