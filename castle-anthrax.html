@@ -169,7 +169,7 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
   </div>
 </div>
 
-<div id="inventory-overlay" style="position:fixed;top:0;left:0;right:0;background:rgba(10,8,24,0.95);backdrop-filter:blur(4px);z-index:500;display:none;flex-direction:column;">
+<div id="inventory-overlay" style="position:fixed;top:0;left:0;right:0;background:rgba(10,8,24,0.95);backdrop-filter:blur(4px);z-index:650;display:none;flex-direction:column;">
   <div style="flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:10px 18px 8px;border-bottom:1px solid rgba(240,192,64,0.25);">
     <div style="font-size:clamp(9px,1.8vw,13px);color:var(--gold);letter-spacing:2px;">★ INVENTORY ★</div>
     <div id="inv-points-banner" style="font-family:'VT323',monospace;font-size:clamp(14px,2.5vw,18px);color:#a0d8ff;"></div>
@@ -185,7 +185,7 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
   </div>
 </div>
 
-<div id="book-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:600;align-items:center;justify-content:center;flex-direction:column;gap:12px;">
+<div id="book-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:650;align-items:center;justify-content:center;flex-direction:column;gap:12px;">
   <div id="book-stage" style="position:relative;">
     <canvas id="book-canvas" style="max-width:96vw;max-height:calc(100vh - 160px);border:2px solid var(--gold);display:block;"></canvas>
     <!-- Combination-log overlay: shown only on the LOG page, layered over the canvas -->
@@ -204,13 +204,13 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
 </div>
 
 <!-- Stand book (Library combination clue: iron = element 26). Single-image, styled like the First Edition modal. -->
-<div id="standbook-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:600;align-items:center;justify-content:center;flex-direction:column;gap:12px;">
+<div id="standbook-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:650;align-items:center;justify-content:center;flex-direction:column;gap:12px;">
   <img id="standbook-img" src="images/book-26-right.png" alt="An open book" style="max-width:92vw;max-height:82%;border:2px solid var(--gold);display:block;image-rendering:auto;">
   <button id="standbook-close" style="background:var(--ui-bg);border:1px solid rgba(240,192,64,0.4);color:var(--ui-dim);font-family:'Press Start 2P',monospace;font-size:8px;padding:8px 14px;cursor:pointer;">&#10005; CLOSE</button>
 </div>
 
 <!-- Memorial Wall (Armory) — a RED HERRING clue: reads as "5 Left" but the true 5 is Right (Banquet Hall). -->
-<div id="memorial-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:600;align-items:center;justify-content:center;flex-direction:column;gap:12px;">
+<div id="memorial-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:650;align-items:center;justify-content:center;flex-direction:column;gap:12px;">
   <img id="memorial-img" src="images/memorial-5-left.png" alt="A memorial wall of five shields" style="max-width:92vw;max-height:82%;border:2px solid var(--gold);display:block;image-rendering:auto;">
   <button id="memorial-close" style="background:var(--ui-bg);border:1px solid rgba(240,192,64,0.4);color:var(--ui-dim);font-family:'Press Start 2P',monospace;font-size:8px;padding:8px 14px;cursor:pointer;">&#10005; CLOSE</button>
 </div>
@@ -2023,7 +2023,9 @@ var bookLogBuilt=false;
 function openBook(){
   closeInventory();
   bookCurrentPage=BOOK_LOG_ONLY?BOOK_LOG_INDEX:0;
-  document.getElementById('book-modal').style.display='flex';
+  var bm=document.getElementById('book-modal');
+  bm.style.bottom=ctrlHeight()+'px'; // keep the book and its controls clear of the NES controller
+  bm.style.display='flex';
   // Hide page-flip controls in log-only mode so only the combination page shows.
   var disp=BOOK_LOG_ONLY?'none':'';
   document.getElementById('book-prev').style.display=disp;
@@ -2108,7 +2110,9 @@ function buildBookLogRows(){
 function renderBookPage(){
   var bc=document.getElementById('book-canvas');
   var w=Math.min(window.innerWidth*0.92,520);
-  var h=Math.min(window.innerHeight-160,400);
+  // Subtract the controller height plus room for the nav-button row, so the book
+  // and its PREV/NEXT/CLOSE controls always fit in the area above the controller.
+  var h=Math.min(window.innerHeight-ctrlHeight()-120,400);
   bc.width=w;bc.height=h;
   var bx=bc.getContext('2d');
   var pg=bx.createLinearGradient(0,0,w,h);
