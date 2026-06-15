@@ -580,8 +580,20 @@ function useSkeletonKey(){
   if(!door) return; // button shouldn't be visible, but guard anyway
   door.setOpen();
   GameState.unlock(door.key+'-open'); // persist THIS door's open state across navigation
-  showZoneLabel(door.open);
   closeInventory();
+  if(door.key==='treasury'){
+    // The vault itself is hidden — guide the player to use the Old Compass to find it.
+    const hasCompass=GameState.hasItem('old-compass');
+    showInlineDialog(
+      '✓ THE TREASURY OPENS',
+      hasCompass
+        ? "The heavy door swings open onto the Treasury. Somewhere within these walls a vault lies hidden \u2014 but its door is unmarked. Open your inventory (SELECT / I), select the Old Compass, and ACTIVATE it. Its needle will point you to the hidden vault."
+        : "The heavy door swings open onto the Treasury. Somewhere within these walls a vault lies hidden \u2014 but its door is unmarked, and you have no way to find it. Seek the Old Compass; they say its needle points toward hidden treasure.",
+      '[B] Close'
+    );
+  } else {
+    showZoneLabel(door.open);
+  }
 }
 
 // Pressing A at a locked door no longer opens it directly — it points the player
@@ -943,7 +955,11 @@ function drawTreasury(wx,wy){
   });
 
   // ── VAULT DOOR (east wall, tx:37 → screen-right edge of treasury) ─────────
-  {
+  // The vault is a HIDDEN room: the door is drawn only once it has been
+  // discovered — i.e. the vault is already open, or the player is actively using
+  // the Old Compass, whose needle leads them to this exact spot. Until then this
+  // stretch of wall renders as plain stone, so the room can't be found by sight.
+  if(vaultUnlocked || compassActive || nearVaultTile()){
     const vx=r.x*TILE+r.w*TILE-TILE-wx; // right-interior column
     const vy=r.y*TILE+TILE*1.5-wy;
     const vw=TILE*0.85, vh=TILE*1.6;
@@ -1616,7 +1632,9 @@ function updatePlayer(){
   const nearest=getNearestInteractable();
   if(nearest!==activeInteractable){
     activeInteractable=nearest;
-    if(nearest) showZoneLabel(nearest.obj.label);
+    // The vault door is intentionally unmarked — no label, so the player must
+    // rely on the Old Compass to locate the hidden vault. It stays interactable.
+    if(nearest&&nearest.type!=='vault_door') showZoneLabel(nearest.obj.label);
     else hideZoneLabel();
   }
   const room=getRoomAt2(Math.floor(playerX/TILE),Math.floor(playerY/TILE));
@@ -1769,6 +1787,15 @@ let compassActive=false;
 
 // ── COMPASS OVERLAY ──────────────────────────────────────────────────────────
 const COMPASS_TARGET={tx:37,ty:6};
+// True when the player has reached the hidden vault's location (treasury open).
+// Used so the door stays revealed once they've arrived, even if they dismiss the
+// compass — it should only re-hide when they walk away again.
+function nearVaultTile(){
+  if(!treasuryOpen)return false;
+  const dx=Math.abs(playerX-(VAULT_DOOR.tx*TILE+TILE/2));
+  const dy=Math.abs(playerY-(VAULT_DOOR.ty*TILE+TILE/2));
+  return dx<TILE*1.6 && dy<TILE*2.2;
+}
 function activateCompass(){compassActive=true;closeInventory();}
 function drawCompassOverlay(){
   if(!compassActive||!GameState.hasItem('old-compass'))return;
