@@ -285,7 +285,7 @@ const GameState={
 // The anon public key is SAFE to expose client-side (RLS policies restrict access).
 const SUPABASE_URL = 'https://kfcbodswxjhqzauonxdx.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_7SJwq7QIS-N4fRvgUj09Xw_Wa7LzC2t';
-const LB_MAX_SCORE = 355; // total points available — used as a sanity cap
+const LB_MAX_SCORE = 455; // total points available — used as a sanity cap (must match Supabase valid_score constraint)
 
 // Set true once you've filled in SUPABASE_URL/KEY above.
 const LEADERBOARD_ENABLED = true;
@@ -297,6 +297,7 @@ let lbFromQuest = false; // true when leaderboard follows quest completion
 async function submitScore(name, score){
   if(!LEADERBOARD_ENABLED) return null;
   try{
+    const payload = {name:String(name).slice(0,12), score:Math.min(Math.max(0,score|0),LB_MAX_SCORE)};
     const res = await fetch(`${SUPABASE_URL}/rest/v1/leaderboard`,{
       method:'POST',
       headers:{
@@ -305,12 +306,17 @@ async function submitScore(name, score){
         'Content-Type':'application/json',
         'Prefer':'return=representation'
       },
-      body:JSON.stringify({name:String(name).slice(0,12), score:Math.min(Math.max(0,score|0),LB_MAX_SCORE)})
+      body:JSON.stringify(payload)
     });
-    if(!res.ok) return null;
+    if(!res.ok){
+      const errBody = await res.text();
+      console.error('Score submit rejected:', res.status, res.statusText, errBody, 'payload:', payload);
+      window.__lbLastError = res.status + ' ' + res.statusText + ' — ' + errBody;
+      return null;
+    }
     const rows = await res.json();
     return (rows && rows[0] && rows[0].id) ? rows[0].id : true;
-  }catch(e){console.error('Score submit failed:',e);return null;}
+  }catch(e){console.error('Score submit failed:',e);window.__lbLastError=String(e);return null;}
 }
 
 async function fetchLeaderboard(){
@@ -391,8 +397,13 @@ async function openLeaderboard(fromQuest){
   }
   const rows=await fetchLeaderboard();
   if(!rows.length){
-    loading.className='lb-loading';
-    loading.textContent='No scores yet — you could be the first!';
+    if(lbFromQuest && window.__lbLastError){
+      loading.className='lb-error';
+      loading.textContent='Score could not be saved: '+window.__lbLastError;
+    } else {
+      loading.className='lb-loading';
+      loading.textContent='No scores yet — you could be the first!';
+    }
     return;
   }
   const body=document.getElementById('lb-body');body.innerHTML='';
