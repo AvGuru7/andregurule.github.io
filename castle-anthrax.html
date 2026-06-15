@@ -491,15 +491,15 @@ const SIGNS=[
    title:'EXIT CASTLE', body:'Leave Castle Anthrax and return to the world map?',
    links:[{label:'◀ RETURN TO WORLD MAP', href:'world.html#spawn=story', local:true}]},
   {id:'library_sign',  label:'📚 LIBRARY',      tx:7,  ty:12, title:'LIBRARY / STUDY',  body:'Shelves of ancient tomes, scrolls of lore, and the quiet scratch of a quill. Knowledge lives here.', links:[]},
-  {id:'library_stand', label:'📖 OPEN BOOK',     tx:6,  ty:6,  title:'OPEN BOOK',        body:'', standbook:true, links:[]},
+  {id:'library_stand', label:'📖 OPEN BOOK',     tx:6,  ty:6,  title:'OPEN BOOK',        body:'', standbook:true, recordClue:{num:'26',dir:'R'}, links:[]},
   {id:'throne_sign',   label:'👑 THRONE ROOM',  tx:20, ty:12, title:'THRONE ROOM',       body:"The seat of King Lyn's power. The golden throne watches all who enter.", links:[]},
   {id:'treasury_sign', label:'💰 TREASURY',     tx:33, ty:12, title:'THE TREASURY',       body:'Coffers of gold, gemstones, and locked chests. The wealth of many campaigns rests here.', links:[]},
   {id:'armory_sign',   label:'⚔ ARMORY',        tx:7,  ty:17, title:'ARMORY',             body:'Swords, shields, and armor line the walls. Every knight must be prepared.', links:[]},
   {id:'memorial_wall', label:'🛡 MEMORIAL WALL', tx:3,  ty:21, title:'MEMORIAL WALL',      body:'', memorial:true, links:[]},
   {id:'banquet_sign',  label:'🍖 BANQUET HALL', tx:30, ty:17, title:'BANQUET HALL',       body:'A grand hall for feasts. The great table at its center is carved with a single bold mark and rows of arrows.', links:[]},
-  {id:'banquet_table', label:'🍷 THE TABLE',     tx:30, ty:25, title:'THE FEAST TABLE',    body:'A bold V is carved deep into the wood at the center of the table, flanked by rows of arrows pointing to the right.', links:[]},
+  {id:'banquet_table', label:'🍷 THE TABLE',     tx:30, ty:25, title:'THE FEAST TABLE',    body:'A bold V is carved deep into the wood at the center of the table, flanked by rows of arrows pointing to the right.', recordClue:{num:'5',dir:'R'}, links:[]},
   {id:'dungeon_sign',  label:'⛓ DUNGEON',       tx:42, ty:17, title:'THE DUNGEON',        body:'Cold stone, dripping water, iron bars. Not all who descend return. You have been warned.', links:[]},
-  {id:'prison_inscription', label:'🪨 CARVED WALL', tx:41, ty:26, title:'CELL INSCRIPTION', body:'', inscription:true, links:[]},
+  {id:'prison_inscription', label:'🪨 CARVED WALL', tx:41, ty:26, title:'CELL INSCRIPTION', body:'', inscription:true, recordClue:{num:'12',dir:'L'}, links:[]},
 ];
 
 // ── TREASURY LOCKED DOOR ──────────────────────────────────────────────────────
@@ -669,15 +669,18 @@ function devGrantAll(){
   // [id, points] for every item in the quest (points are idempotent —
   // collectItem won't double-count if some were already picked up).
   const ALL_ITEMS=[
-    ['holy-grail',50],['skeleton-key',30],['sword',25],['cert-badge',20],
+    // holy-grail intentionally EXCLUDED — must be earned to test the leaderboard
+    ['skeleton-key',30],['sword',25],['cert-badge',20],
     ['first-edition',20],['fishing-rod',15],['artwork',10],['bread',10],
     ['old-compass',10],['blue-kayak',15],['sapphire',75],['ruby',75],
     ['tahoe-fish',25],['gold-coin',100]
   ];
   ALL_ITEMS.forEach(([id,pts])=>GameState.collectItem(id,pts));
   // Secret/flag unlocks used for gating and door persistence.
-  ['skeleton-key','treasury-open','prison-open','kayak-earned',
-   'kayak-collected','g14','future','holy-grail'].forEach(k=>GameState.unlock(k));
+  // NOTE: 'treasury-open'/'prison-open' are intentionally NOT granted here —
+  // the doors stay locked so you can still test the Skeleton Key unlock flow.
+  ['skeleton-key','kayak-earned',
+   'kayak-collected','g14','future'].forEach(k=>GameState.unlock(k));
   // Pre-fill the combo log so the vault is solvable on sight: 5R / 12L / 26R.
   GameState.log=[{num:'5',dir:'R'},{num:'12',dir:'L'},{num:'26',dir:'R'}];
   // Persist into the URL and reload so the new state takes effect everywhere.
@@ -1629,6 +1632,7 @@ function hideZoneLabel(){document.getElementById('zone-label').style.opacity='0'
 function handleA(){
   if(vaultSuccessPending){enterVault();return;}
   if(leaderboardOpen()){closeLeaderboard();return;}
+  if(recordPromptOpen){ if(GameState.hasItem('first-edition')) confirmRecordClue(); else declineRecordClue(); return; }
   if(standbookOpen){closeStandbook();return;}
   if(memorialOpen){closeMemorial();return;}
   if(inscriptionOpen){closeInscription();return;}
@@ -1663,10 +1667,11 @@ function handleA(){
     if(activeInteractable.type==='sign'&&activeInteractable.obj.inscription){openInscription();return;}
     if(activeInteractable.type==='sign'&&activeInteractable.obj.standbook){openStandbook();return;}
     if(activeInteractable.type==='sign'&&activeInteractable.obj.memorial){openMemorial();return;}
+    if(activeInteractable.type==='sign'&&activeInteractable.obj.recordClue){showClueSign(activeInteractable.obj);return;}
     openDialog(activeInteractable);
   }
 }
-function handleB(){if(vaultSuccessPending){enterVault();return;}if(leaderboardOpen()){closeLeaderboard();return;}if(menuOpen){closeMenu();return;}if(inventoryOpen){closeInventory();return;}if(vaultDialOpen){closeVaultDial();return;}if(standbookOpen){closeStandbook();return;}if(memorialOpen){closeMemorial();return;}if(inscriptionOpen){closeInscription();return;}if(dialogOpen){closeDialog();return;}if(compassActive){compassActive=false;return;}}
+function handleB(){if(vaultSuccessPending){enterVault();return;}if(leaderboardOpen()){closeLeaderboard();return;}if(recordPromptOpen){declineRecordClue();return;}if(menuOpen){closeMenu();return;}if(inventoryOpen){closeInventory();return;}if(vaultDialOpen){closeVaultDial();return;}if(standbookOpen){closeStandbook();return;}if(memorialOpen){closeMemorial();return;}if(inscriptionOpen){closeInscription();return;}if(dialogOpen){closeDialog();return;}if(compassActive){compassActive=false;return;}}
 
 function openDialog(interactable){
   dialogOpen=true;
@@ -1806,8 +1811,78 @@ function drawCompassOverlay(){
 // Carved into the cell's south wall: 12 tally marks (grouped 5-5-2) and a
 // skeleton whose left arm points left — the combination clue (12, Left).
 let inscriptionOpen=false;
+// Clue stashed when a clue overlay opens, consumed by its close handler so the
+// record prompt knows which {num,dir} the player just inspected.
+var inscriptionClue=null, standbookClue=null;
+// ── RECORD-CLUE PROMPT ───────────────────────────────────────────────────────
+// After inspecting a real combination clue, ask the player whether to log the
+// number in their First Edition. recordPendingClue holds the {num,dir} awaiting
+// a Yes/No answer; handleA/handleB consult recordPromptOpen to route the choice.
+var recordPromptOpen=false;
+var recordPendingClue=null;
+function promptRecordClue(clue){
+  if(!clue)return;
+  recordPendingClue=clue;
+  recordPromptOpen=true;
+  dialogOpen=true;
+  document.getElementById('dialog-title').textContent='📖 RECORD THE NUMBER?';
+  var owns=GameState.hasItem('first-edition');
+  var body=owns
+    ? 'You\'ve found a number that may be part of the vault combination. Record it in your First Edition?'
+    : 'This looks like part of the vault combination — but you have no book to record it in. Seek the First Edition in the Scroll Library.';
+  document.getElementById('dialog-body').textContent=body;
+  var linksEl=document.getElementById('dialog-links');linksEl.innerHTML='';
+  var hint=document.createElement('span');
+  hint.style.cssText='font-family:VT323,monospace;font-size:16px;color:#a09070;display:block;margin-top:4px;';
+  hint.textContent=owns?'[A] Yes, record it   [B] No':'[B] Close';
+  linksEl.appendChild(hint);
+  document.getElementById('dialog-box').style.display='block';
+  document.getElementById('zone-label').style.opacity='0';
+}
+// Writes the pending clue into the log: fills the slot whose number already
+// matches, else the first empty slot, else does nothing if all three are full.
+function confirmRecordClue(){
+  var clue=recordPendingClue;
+  recordPromptOpen=false;recordPendingClue=null;
+  closeDialog();
+  if(!clue||!GameState.hasItem('first-edition'))return;
+  var slot=-1;
+  for(var i=0;i<3;i++){ if(bookLog[i].num===clue.num){slot=i;break;} }
+  if(slot<0){ for(var j=0;j<3;j++){ if(!bookLog[j].num){slot=j;break;} } }
+  if(slot<0)slot=0; // all full — overwrite the first (lets the player re-record)
+  bookLog[slot].num=clue.num;
+  bookLog[slot].dir=clue.dir;
+  bookLogBuilt=false; // force the log rows to rebuild from the updated values
+  openBook();         // jump straight to the log page so the entry is visible
+}
+function declineRecordClue(){
+  recordPromptOpen=false;recordPendingClue=null;
+  closeDialog();
+}
+// For a plain-dialog clue sign (e.g. the banquet table): show its description and
+// offer to record in one dialog. Reuses the record-prompt routing in handleA/B.
+function showClueSign(sign){
+  recordPendingClue=sign.recordClue;
+  recordPromptOpen=true;
+  dialogOpen=true;
+  document.getElementById('dialog-title').textContent=sign.title||'CLUE';
+  var owns=GameState.hasItem('first-edition');
+  var body=sign.body?sign.body+'  ':'';
+  body+=owns?'Record this number in your First Edition?'
+            :'This may be part of the vault combination — but you have no book to record it in.';
+  document.getElementById('dialog-body').textContent=body;
+  var linksEl=document.getElementById('dialog-links');linksEl.innerHTML='';
+  var hint=document.createElement('span');
+  hint.style.cssText='font-family:VT323,monospace;font-size:16px;color:#a09070;display:block;margin-top:4px;';
+  hint.textContent=owns?'[A] Yes, record it   [B] No':'[B] Close';
+  linksEl.appendChild(hint);
+  document.getElementById('dialog-box').style.display='block';
+  document.getElementById('zone-label').style.opacity='0';
+}
+
 function openInscription(){
   inscriptionOpen=true;
+  inscriptionClue=(activeInteractable&&activeInteractable.obj)?activeInteractable.obj.recordClue:null;
   if(dialogOpen)closeDialog();
   document.getElementById('inscription-overlay').style.display='flex';
   drawInscription();
@@ -1815,6 +1890,7 @@ function openInscription(){
 function closeInscription(){
   inscriptionOpen=false;
   document.getElementById('inscription-overlay').style.display='none';
+  if(inscriptionClue){var c=inscriptionClue;inscriptionClue=null;promptRecordClue(c);}
 }
 function drawInscription(){
   const c=document.getElementById('inscription-canvas');
@@ -1862,12 +1938,14 @@ function drawInscription(){
 let standbookOpen=false;
 function openStandbook(){
   standbookOpen=true;
+  standbookClue=(activeInteractable&&activeInteractable.obj)?activeInteractable.obj.recordClue:null;
   if(dialogOpen)closeDialog();
   document.getElementById('standbook-modal').style.display='flex';
 }
 function closeStandbook(){
   standbookOpen=false;
   document.getElementById('standbook-modal').style.display='none';
+  if(standbookClue){var c=standbookClue;standbookClue=null;promptRecordClue(c);}
 }
 
 // ── MEMORIAL WALL OVERLAY (Armory — red-herring "5 Left") ────────────────────
@@ -1885,11 +1963,26 @@ function closeMemorial(){
 // ── FIRST EDITION BOOK ───────────────────────────────────────────────────────
 var bookCurrentPage=0;
 var BOOK_PAGES=['cover','clue','log','map'];
+// In the castle, the First Edition opens straight to the Lock Combination page
+// (Page III) and the page-flip navigation is hidden — the player only ever sees
+// the log. Set false elsewhere to restore the full multi-page book.
+var BOOK_LOG_ONLY=true;
+var BOOK_LOG_INDEX=BOOK_PAGES.indexOf('log');
 // Player-logged combination notes — backed by GameState.log so they persist across
 // navigation via the URL state. num: string of up to 2 digits; dir: '', 'L', or 'R'.
 var bookLog=GameState.log;
 var bookLogBuilt=false;
-function openBook(){closeInventory();bookCurrentPage=0;document.getElementById('book-modal').style.display='flex';renderBookPage();}
+function openBook(){
+  closeInventory();
+  bookCurrentPage=BOOK_LOG_ONLY?BOOK_LOG_INDEX:0;
+  document.getElementById('book-modal').style.display='flex';
+  // Hide page-flip controls in log-only mode so only the combination page shows.
+  var disp=BOOK_LOG_ONLY?'none':'';
+  document.getElementById('book-prev').style.display=disp;
+  document.getElementById('book-next').style.display=disp;
+  document.getElementById('book-page-label').style.display=disp;
+  renderBookPage();
+}
 function closeBook(){document.getElementById('book-modal').style.display='none';}
 function bookPageNav(dir){bookCurrentPage=Math.max(0,Math.min(BOOK_PAGES.length-1,bookCurrentPage+dir));renderBookPage();}
 function wrapBookText(c,text,x,y,maxW,lh){
