@@ -1059,7 +1059,7 @@ section { margin-bottom: clamp(48px,8vh,80px); }
       <p>You have decoded the message: <strong style="color:#60e090;">SEEK THE MOUNTAIN FORGE</strong><br><br>
       The swordsmith awaits in Erebor Mountain. Prove your qualifications and claim your sword.<br><br>
       ★ Certification Badge added to your inventory!</p>
-      <button id="badge-close-btn" onclick="closeCipher()">✕ CLOSE</button>
+      <button id="badge-close-btn" onclick="closeBadge()">✕ CLOSE</button>
     </div>
   </div>
 </div>
@@ -1234,6 +1234,13 @@ function openCipher() {
 
 function closeCipher() {
   document.getElementById('cipher-overlay').classList.remove('open');
+}
+
+function closeBadge() {
+  // After the badge is awarded, CLOSE should simply dismiss the overlay and
+  // return the player to the page — never open the navigation menu.
+  document.getElementById('cipher-overlay').classList.remove('open');
+  closeMenu();
 }
 
 function checkCipher() {
