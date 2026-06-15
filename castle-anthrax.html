@@ -960,9 +960,12 @@ function drawTreasury(wx,wy){
   // the Old Compass, whose needle leads them to this exact spot. Until then this
   // stretch of wall renders as plain stone, so the room can't be found by sight.
   if(vaultUnlocked || compassActive || nearVaultTile()){
-    const vx=r.x*TILE+r.w*TILE-TILE-wx; // right-interior column
-    const vy=r.y*TILE+TILE*1.5-wy;
     const vw=TILE*0.85, vh=TILE*1.6;
+    const vx=r.x*TILE+r.w*TILE-TILE-wx; // right-interior column
+    // Anchor vertically to the actual interactable/compass tile (VAULT_DOOR.ty),
+    // centering the door body on that tile, so the graphic and the [A] OPEN spot
+    // line up. (Previously vy was hardcoded to the room top, landing ~2 tiles north.)
+    const vy=VAULT_DOOR.ty*TILE+TILE/2-vh/2-wy;
     // Door frame
     ctx.fillStyle='#3a3a3a';ctx.fillRect(vx-4,vy-4,vw+8,vh+8);
     // Door body
