@@ -285,7 +285,7 @@ const GameState={
 // The anon public key is SAFE to expose client-side (RLS policies restrict access).
 const SUPABASE_URL = 'https://kfcbodswxjhqzauonxdx.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_7SJwq7QIS-N4fRvgUj09Xw_Wa7LzC2t';
-const LB_MAX_SCORE = 455; // total points available — used as a sanity cap (must match Supabase valid_score constraint)
+const LB_MAX_SCORE = 480; // total points available (14 items) — used as a sanity cap (must match Supabase valid_score constraint)
 
 // Set true once you've filled in SUPABASE_URL/KEY above.
 const LEADERBOARD_ENABLED = true;
@@ -1011,6 +1011,7 @@ const ITEMS=[
   {id:'first-edition', icon:'📖', label:'First Edition',        category:'collectible', points:20, page:'Scroll Library'},
   {id:'fishing-rod',   icon:'🎣', label:'Fishing Rod',          category:'collectible', points:15, page:'Lake Tahoe'},
   {id:'tahoe-fish',    icon:'🐟', label:'Tahoe Trout',          category:'collectible', points:25, page:'Lake Tahoe'},
+  {id:'gold-coin',     icon:'🪙', label:'Gold Coin',            category:'collectible', points:100, page:'Erebor Mountain'},
   {id:'blue-kayak',    icon:'🚣', label:'Blue Kayak',           category:'quest',       points:15, page:'Castle Anthrax'},
   {id:'artwork',       icon:'🖼️', label:'Artwork',              category:'collectible', points:10, page:'Town Square'},
   {id:'bread',         icon:'🍞', label:'Bread',                category:'collectible', points:10, page:'Town Square'},
