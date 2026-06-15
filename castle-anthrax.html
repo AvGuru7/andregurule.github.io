@@ -658,6 +658,42 @@ prisonOpen=GameState.unlocked.includes('prison-open');
 kayakEarned=GameState.unlocked.includes('kayak-earned');
 kayakCollected=GameState.unlocked.includes('kayak-collected');
 
+// ───────────────────────────────────────────────────────────────────
+// DEV CHEAT (temporary, for testing) — grants every item + unlock so
+// you don't have to run the whole quest. Trigger either way:
+//   • In the browser console:  devGrantAll()
+//   • In-game keyboard combo:   Shift + D
+// It rewrites the URL with full state and reloads, so every page you
+// navigate to afterward also has everything. REMOVE before shipping.
+function devGrantAll(){
+  // [id, points] for every item in the quest (points are idempotent —
+  // collectItem won't double-count if some were already picked up).
+  const ALL_ITEMS=[
+    ['holy-grail',50],['skeleton-key',30],['sword',25],['cert-badge',20],
+    ['first-edition',20],['fishing-rod',15],['artwork',10],['bread',10],
+    ['old-compass',10],['blue-kayak',15],['sapphire',75],['ruby',75],
+    ['tahoe-fish',25],['gold-coin',100]
+  ];
+  ALL_ITEMS.forEach(([id,pts])=>GameState.collectItem(id,pts));
+  // Secret/flag unlocks used for gating and door persistence.
+  ['skeleton-key','treasury-open','prison-open','kayak-earned',
+   'kayak-collected','g14','future','holy-grail'].forEach(k=>GameState.unlock(k));
+  // Pre-fill the combo log so the vault is solvable on sight: 5R / 12L / 26R.
+  GameState.log=[{num:'5',dir:'R'},{num:'12',dir:'L'},{num:'26',dir:'R'}];
+  // Persist into the URL and reload so the new state takes effect everywhere.
+  const url=window.location.pathname+'?'+GameState.toParams()+window.location.hash;
+  window.location.href=url;
+}
+window.devGrantAll=devGrantAll;
+window.addEventListener('keydown',function(e){
+  if(e.shiftKey&&(e.key==='D'||e.key==='d')){
+    if(document.activeElement&&document.activeElement.tagName==='INPUT')return;
+    e.preventDefault();
+    devGrantAll();
+  }
+});
+// ───────────────────────────────────────────────────────────────────
+
 let camX=0,camY=0;
 let playerX=22*TILE,playerY=29*TILE;  // spawn at exit sign bottom
 let facing='up',moving=false,frame=0,frameTimer=0;
