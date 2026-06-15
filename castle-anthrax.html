@@ -472,6 +472,7 @@ let vaultDialOpen=false;
 let vaultDialNum=0;        // current dial number 0-39
 let vaultDialStep=0;       // which combo step we're on (0,1,2)
 let lastSpinDir='';        // direction of the most recent turn this step: '', 'left', or 'right'
+let vaultEntries=[];       // running list of locked-in numbers, for on-screen verification
 let vaultSuccessPending=false;  // true after a correct combo, while the success message shows
 let vaultStrikes=0;        // permanent for session
 let vaultUnlocked=false;   // once combo solved
@@ -2308,6 +2309,7 @@ function openVaultDial(){
   vaultDialNum=0;
   vaultDialStep=0;
   lastSpinDir='';
+  vaultEntries=[];
   dialogOpen=false;
   document.getElementById('dialog-box').style.display='none';
   const overlay=document.getElementById('vault-dial-overlay');
@@ -2324,6 +2326,7 @@ function closeVaultDial(){
   vaultDialNum=0;
   vaultDialStep=0;
   lastSpinDir='';
+  vaultEntries=[];
   document.getElementById('vault-dial-overlay').style.display='none';
 }
 
@@ -2336,6 +2339,8 @@ function dialSpin(dir){
 
 function dialConfirm(){
   const expected=VAULT_COMBO[vaultDialStep];
+  // Record the locked-in number AND the direction turned, for the verification list.
+  vaultEntries.push({n:vaultDialNum, dir:lastSpinDir});
   if(vaultDialNum===expected.n && lastSpinDir===expected.dir){
     vaultDialStep++;
     if(vaultDialStep===3){
@@ -2409,11 +2414,10 @@ function renderVaultDial(){
   c.fillText('VAULT COMBINATION LOCK',W/2,34);
 
   // Step indicator
-  const stepLabels=['TURN RIGHT','TURN LEFT','TURN RIGHT'];
   const stepColors=['#40c080','#4080ff','#f0c040'];
   c.font='7px "Press Start 2P"';
   c.fillStyle=vaultDialStep<3?stepColors[vaultDialStep]:'#f0c040';
-  c.fillText('STEP '+(vaultDialStep+1)+' OF 3  ·  '+stepLabels[Math.min(vaultDialStep,2)],W/2,54);
+  c.fillText('STEP '+(Math.min(vaultDialStep,2)+1)+' OF 3',W/2,54);
 
   // Dial
   const cx=W/2, cy=H*0.46, dr=Math.min(W,H)*0.28;
@@ -2479,18 +2483,31 @@ function renderVaultDial(){
   c.fillText(String(vaultDialNum).padStart(2,'0'),cx,cy+dr+32);
   c.textBaseline='alphabetic';
 
-  // Last-turn direction indicator — shows which way the player most recently spun,
-  // and whether it matches the direction this step requires. Makes the (now-enforced)
-  // direction rule legible: the player can see their turn registered before locking in.
-  if(vaultDialStep<3){
-    const need=VAULT_COMBO[vaultDialStep].dir;        // 'right' or 'left'
-    const turned=lastSpinDir;                          // '', 'left', or 'right'
-    let label, col;
-    if(!turned){ label='( turn the dial )'; col='rgba(200,180,100,0.5)'; }
-    else if(turned===need){ label=(turned==='right'?'▶ TURNED RIGHT':'◀ TURNED LEFT')+'  ✓'; col='#40c080'; }
-    else { label=(turned==='right'?'▶ TURNED RIGHT':'◀ TURNED LEFT')+'  ✗'; col='#cc4040'; }
-    c.fillStyle=col;c.font='6px "Press Start 2P"';c.textAlign='center';
-    c.fillText(label, cx, cy+dr+58);
+  // Entered-numbers verification list — builds up as the player locks in each
+  // number, showing both the number and the direction they turned (L / R).
+  c.font='6px "Press Start 2P"';c.textAlign='center';
+  c.fillStyle='rgba(240,192,64,0.6)';
+  c.fillText('ENTERED',W/2,cy+dr+58);
+  const slotW=42, slotGap=8, totalW=slotW*3+slotGap*2, sx0=W/2-totalW/2, syE=cy+dr+66;
+  for(let i=0;i<3;i++){
+    const bxs=sx0+i*(slotW+slotGap);
+    c.fillStyle='rgba(13,10,24,0.9)';c.fillRect(bxs,syE,slotW,22);
+    const filled=i<vaultEntries.length;
+    c.strokeStyle=filled?'rgba(240,192,64,0.7)':'rgba(240,192,64,0.25)';
+    c.lineWidth=1;c.strokeRect(bxs,syE,slotW,22);
+    c.textBaseline='middle';
+    if(filled){
+      const e=vaultEntries[i];
+      const dl=e.dir==='right'?'R':e.dir==='left'?'L':'';
+      c.fillStyle='#f0c040';c.font='bold 10px "Press Start 2P"';
+      c.fillText(String(e.n).padStart(2,'0'),bxs+slotW/2-5,syE+12);
+      c.fillStyle='rgba(240,192,64,0.7)';c.font='7px "Press Start 2P"';
+      c.fillText(dl,bxs+slotW/2+13,syE+12);
+    } else {
+      c.fillStyle='rgba(240,192,64,0.3)';c.font='bold 10px "Press Start 2P"';
+      c.fillText('--',bxs+slotW/2,syE+12);
+    }
+    c.textBaseline='alphabetic';
   }
 
   // Strike indicators
