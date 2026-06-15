@@ -108,6 +108,7 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
 .menu-item:hover,.menu-item:active,.menu-item.selected{color:var(--gold);border-left-color:var(--gold);background:rgba(240,192,64,0.06);}
 .menu-item-icon{font-size:12px;width:20px;text-align:center;flex-shrink:0;}
 #menu-divider{height:1px;background:rgba(240,192,64,0.18);margin:clamp(8px,1.5vh,14px) 0;}
+.menu-kayak-lock{font-size:clamp(4px,0.65vw,5px);color:#886644;margin-left:6px;vertical-align:middle;}
 #menu-close-hint{text-align:center;margin-top:clamp(12px,2vh,20px);font-size:clamp(5px,0.8vw,7px);color:var(--ui-dim);}
 .hint-badge-sm{background:#222;border:1.5px solid #555;color:#aaa;padding:1px 5px;border-radius:2px;font-size:inherit;}
 #menu-cursor{color:var(--gold);font-size:10px;margin-right:4px;}
@@ -386,6 +387,26 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
 }
 #exit-sign-post{width:6px;height:clamp(20px,3vh,30px);background:linear-gradient(180deg,#8a7040,#5a4820);}
 @keyframes pulse-arrow{0%,100%{opacity:1;transform:translateY(0);}50%{opacity:0.6;transform:translateY(3px);}}
+/* ── HALL OF LEGENDS — leaderboard overlay (read-only) ──────────────────── */
+#lb-overlay{position:fixed;inset:0;z-index:700;display:none;flex-direction:column;align-items:center;justify-content:center;background:rgba(6,5,14,0.96);backdrop-filter:blur(5px);padding:clamp(16px,4vw,40px);overflow-y:auto;}
+#lb-overlay.active{display:flex;}
+#lb-overlay .lb-title{font-family:'Press Start 2P',monospace;font-size:clamp(12px,2.6vw,20px);color:var(--gold);letter-spacing:2px;text-align:center;margin-bottom:clamp(6px,1.5vh,12px);text-shadow:0 0 16px rgba(240,192,64,0.6);animation:lbPulse 1.4s ease-in-out infinite;}
+@keyframes lbPulse{0%,100%{opacity:1}50%{opacity:0.65}}
+#lb-overlay .lb-sub{font-family:'VT323',monospace;font-size:clamp(15px,2.6vw,21px);color:var(--ui-text);text-align:center;margin-bottom:clamp(14px,3vh,26px);line-height:1.4;max-width:560px;}
+#lb-table-wrap{width:min(620px,94vw);max-height:54vh;overflow-y:auto;border:3px solid var(--gold2);background:rgba(10,8,20,0.6);margin-bottom:clamp(14px,3vh,24px);}
+#lb-table{width:100%;border-collapse:collapse;font-family:'VT323',monospace;}
+#lb-table th{position:sticky;top:0;background:var(--ui-bg);color:var(--gold);font-family:'Press Start 2P',monospace;font-size:clamp(6px,1.1vw,9px);letter-spacing:1px;padding:clamp(9px,1.5vh,13px) clamp(8px,1.5vw,14px);text-align:left;border-bottom:2px solid var(--gold2);}
+#lb-table th.num,#lb-table td.num{text-align:right;}
+#lb-table td{font-size:clamp(16px,2.8vw,21px);color:var(--ui-text);padding:clamp(7px,1.3vh,11px) clamp(8px,1.5vw,14px);border-bottom:1px solid rgba(240,192,64,0.1);}
+#lb-table tr:nth-child(even) td{background:rgba(240,192,64,0.03);}
+#lb-table .rank-1{color:var(--gold);font-weight:bold;}
+#lb-table .rank-2{color:#cfd4dc;}
+#lb-table .rank-3{color:#cd9b5a;}
+#lb-overlay .lb-loading,#lb-overlay .lb-error{font-family:'VT323',monospace;font-size:clamp(16px,3vw,20px);color:var(--ui-dim);text-align:center;padding:30px;}
+#lb-overlay .lb-error{color:#cc6677;}
+#lb-overlay .lb-btn{font-family:'Press Start 2P',monospace;font-size:clamp(8px,1.4vw,11px);color:var(--ui-bg);background:var(--gold);border:none;padding:clamp(11px,1.8vh,15px) clamp(20px,4vw,34px);cursor:pointer;letter-spacing:1px;touch-action:manipulation;transition:background 0.1s,transform 0.06s;}
+#lb-overlay .lb-btn:hover{background:#fff3a0;}
+#lb-overlay .lb-btn:active{transform:translateY(2px);}
 </style>
 </head>
 <body>
@@ -439,9 +460,15 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
     <a class="menu-item" id="menu-library" href="andregurule-library.html">
       <span class="menu-item-icon">📜</span> LIBRARY
     </a>
+    <span id="menu-lake-tahoe" class="menu-item" style="opacity:0.4;cursor:default;pointer-events:none;">
+      <span class="menu-item-icon">🏔</span> LAKE TAHOE <span class="menu-kayak-lock">[🚣 need kayak]</span>
+    </span>
+    <span id="menu-the-lake" class="menu-item" style="opacity:0.4;cursor:default;pointer-events:none;">
+      <span class="menu-item-icon">🌊</span> THE LAKE <span class="menu-kayak-lock">[🚣 need kayak]</span>
+    </span>
     <div id="menu-divider"></div>
-    <a class="menu-item" href="vault.html" data-href="vault.html">
-      <span class="menu-item-icon">🏆</span> HALL OF LEGENDS
+    <a class="menu-item" href="#" onclick="event.preventDefault();openLeaderboard();">
+      <span class="menu-item-icon">🏆</span> SCOREBOARD
     </a>
     <a class="menu-item" href="https://linkedin.com/in/andregurule" target="_blank">
       <span class="menu-item-icon">💼</span> LINKEDIN
@@ -557,7 +584,67 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
   <div id="pickup-flash-pts"></div>
 </div>
 
+<!-- ── HALL OF LEGENDS — leaderboard overlay (read-only) ─────────────────── -->
+<div id="lb-overlay">
+  <div class="lb-title">🏆 SCOREBOARD 🏆</div>
+  <div class="lb-sub">Top adventurers who claimed the Grail</div>
+  <div id="lb-table-wrap">
+    <div class="lb-loading" id="lb-loading">Loading scores…</div>
+    <table id="lb-table" style="display:none;">
+      <thead><tr><th class="num">#</th><th>NAME</th><th class="num">SCORE</th></tr></thead>
+      <tbody id="lb-body"></tbody>
+    </table>
+  </div>
+  <button class="lb-btn" type="button" onclick="closeLeaderboard()">CONTINUE</button>
+</div>
+
 <script>
+// ── HALL OF LEGENDS — leaderboard overlay (read-only) ───────────────────────
+// Reuses SUPABASE_URL / SUPABASE_KEY declared below in the art-tracking block.
+const LEADERBOARD_ENABLED = true;
+
+async function fetchLeaderboard(){
+  if(!LEADERBOARD_ENABLED) return [];
+  try{
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/leaderboard?select=id,name,score&order=score.desc,created_at.asc&limit=25`,
+      {headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`}}
+    );
+    if(!res.ok) return [];
+    return await res.json();
+  }catch(e){console.error('Leaderboard fetch failed:',e);return [];}
+}
+function lbEscapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function leaderboardOpen(){return document.getElementById('lb-overlay').classList.contains('active');}
+async function openLeaderboard(){
+  if(typeof menuOpen!=='undefined'&&menuOpen&&typeof closeMenu==='function')closeMenu();
+  const ov=document.getElementById('lb-overlay');
+  const loading=document.getElementById('lb-loading');
+  const table=document.getElementById('lb-table');
+  ov.classList.add('active');
+  loading.style.display='block';loading.textContent='Loading scores…';loading.className='lb-loading';
+  table.style.display='none';
+  const rows=await fetchLeaderboard();
+  if(!rows.length){
+    loading.className='lb-loading';
+    loading.textContent='No scores yet — be the first to claim the Grail!';
+    return;
+  }
+  const body=document.getElementById('lb-body');body.innerHTML='';
+  rows.forEach((r,i)=>{
+    const tr=document.createElement('tr');
+    const rankCls=i<3?('rank-'+(i+1)):'';
+    tr.innerHTML='<td class="num '+rankCls+'">'+(i+1)+'</td>'
+      +'<td class="'+rankCls+'">'+lbEscapeHtml(r.name)+'</td>'
+      +'<td class="num '+rankCls+'">'+r.score+'</td>';
+    body.appendChild(tr);
+  });
+  loading.style.display='none';
+  table.style.display='table';
+}
+function closeLeaderboard(){document.getElementById('lb-overlay').classList.remove('active');}
+
+
 // ── GAME STATE ──
 const _p = new URLSearchParams(window.location.search);
 const GameState = {
@@ -1202,7 +1289,7 @@ function updateCamera(){
 
 // ── UPDATE PLAYER ──
 function updatePlayer(){
-  if(dialogOpen||menuOpen||galleryOpen||inventoryOpen) return;
+  if(dialogOpen||menuOpen||galleryOpen||inventoryOpen||leaderboardOpen()) return;
   const SPEED=3; let dx=0,dy=0;
   if(keys.up){dy=-SPEED;facing='up';}
   if(keys.down){dy=SPEED;facing='down';}
@@ -1491,6 +1578,7 @@ function showPickupFlash(item){
 
 // ── A BUTTON — interact ──
 function handleA(){
+  if(leaderboardOpen()){closeLeaderboard();return;}
   if(menuOpen){menuSelectCurrent();return;}
   if(dialogOpen){closeDialog();return;}
 
@@ -1546,6 +1634,7 @@ function handleA(){
 
 // ── B BUTTON ──
 function handleB(){
+  if(leaderboardOpen()){closeLeaderboard();return;}
   if(artDetailOpen()){closeArtDetail();return;}
   if(menuOpen){closeMenu();return;}
   if(inventoryOpen){closeInventory();return;}
@@ -1555,20 +1644,32 @@ function handleB(){
 
 // ── MENU ──
 function toggleMenu(){if(artDetailOpen()){closeArtDetail();return;}if(galleryOpen){closeGallery();return;}menuOpen?closeMenu():openMenu();}
+function _renderWaterMenuItem(id,icon,label,href){
+  const hasKayak=GameState.hasItem('blue-kayak');
+  const el=document.getElementById(id);
+  if(!el)return;
+  if(hasKayak){
+    el.outerHTML=`<a id="${id}" class="menu-item" href="${GameState.withState(href)}"><span class="menu-item-icon">${icon}</span> ${label}</a>`;
+  } else {
+    el.outerHTML=`<span id="${id}" class="menu-item" style="opacity:0.4;cursor:default;pointer-events:none;"><span class="menu-item-icon">${icon}</span> ${label} <span class="menu-kayak-lock">[🚣 need kayak]</span></span>`;
+  }
+}
 function openMenu(){
   if(dialogOpen)closeDialog();
   menuOpen=true;
   const ov=document.getElementById('menu-overlay');
   ov.style.display='flex';
-  menuItems=Array.from(document.querySelectorAll('.menu-item'));
-  menuIdx=0;updateMenuCursor();
-  document.getElementById('menu-btn').classList.add('pressed');
+  _renderWaterMenuItem('menu-lake-tahoe','🏔','LAKE TAHOE','lake-tahoe.html');
+  _renderWaterMenuItem('menu-the-lake','🌊','THE LAKE','the-lake.html');
   // Rewrite internal nav links with state
   document.getElementById('menu-world').href=GameState.withState('world.html#spawn=town-square');
   document.getElementById('menu-records').href=GameState.withState('hall-of-records.html');
   document.getElementById('menu-anthrax').href=GameState.withState('castle-anthrax.html');
   document.getElementById('menu-erebor').href=GameState.withState('erebor-mountain.html');
   document.getElementById('menu-library').href=GameState.withState('andregurule-library.html');
+  menuItems=Array.from(document.querySelectorAll('#menu-box .menu-item[href]'));
+  menuIdx=0;updateMenuCursor();
+  document.getElementById('menu-btn').classList.add('pressed');
 }
 function closeMenu(){
   menuOpen=false;
@@ -1687,6 +1788,10 @@ function exitToWorld(){
 // ── KEYBOARD ──
 document.addEventListener('keydown',e=>{
   if(document.activeElement&&document.activeElement.tagName==='INPUT') return;
+  if(leaderboardOpen()){
+    if(e.key==='Enter'||e.key===' '||e.key==='a'||e.key==='A'||e.key==='Escape'||e.key==='b'||e.key==='B'){closeLeaderboard();e.preventDefault();}
+    return;
+  }
   if(menuOpen){
     if(e.key==='ArrowUp'||e.key==='w'){menuIdx=Math.max(0,menuIdx-1);updateMenuCursor();e.preventDefault();return;}
     if(e.key==='ArrowDown'||e.key==='s'){menuIdx=Math.min(menuItems.length-1,menuIdx+1);updateMenuCursor();e.preventDefault();return;}
