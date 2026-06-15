@@ -1632,6 +1632,7 @@ function hideZoneLabel(){document.getElementById('zone-label').style.opacity='0'
 function handleA(){
   if(vaultSuccessPending){enterVault();return;}
   if(leaderboardOpen()){closeLeaderboard();return;}
+  if(clueSignIntroOpen){clueSignContinue();return;}
   if(recordPromptOpen){ if(GameState.hasItem('first-edition')) confirmRecordClue(); else declineRecordClue(); return; }
   if(standbookOpen){closeStandbook();return;}
   if(memorialOpen){closeMemorial();return;}
@@ -1671,7 +1672,7 @@ function handleA(){
     openDialog(activeInteractable);
   }
 }
-function handleB(){if(vaultSuccessPending){enterVault();return;}if(leaderboardOpen()){closeLeaderboard();return;}if(recordPromptOpen){declineRecordClue();return;}if(menuOpen){closeMenu();return;}if(inventoryOpen){closeInventory();return;}if(vaultDialOpen){closeVaultDial();return;}if(standbookOpen){closeStandbook();return;}if(memorialOpen){closeMemorial();return;}if(inscriptionOpen){closeInscription();return;}if(dialogOpen){closeDialog();return;}if(compassActive){compassActive=false;return;}}
+function handleB(){if(vaultSuccessPending){enterVault();return;}if(leaderboardOpen()){closeLeaderboard();return;}if(clueSignIntroOpen){clueSignContinue();return;}if(recordPromptOpen){declineRecordClue();return;}if(menuOpen){closeMenu();return;}if(inventoryOpen){closeInventory();return;}if(vaultDialOpen){closeVaultDial();return;}if(standbookOpen){closeStandbook();return;}if(memorialOpen){closeMemorial();return;}if(inscriptionOpen){closeInscription();return;}if(dialogOpen){closeDialog();return;}if(compassActive){compassActive=false;return;}}
 
 function openDialog(interactable){
   dialogOpen=true;
@@ -1820,6 +1821,10 @@ var inscriptionClue=null, standbookClue=null;
 // a Yes/No answer; handleA/handleB consult recordPromptOpen to route the choice.
 var recordPromptOpen=false;
 var recordPendingClue=null;
+// Intro-dialogue state for plain-sign clues (banquet table): shown before the
+// record prompt so the player first learns the table holds a clue.
+var clueSignIntroOpen=false;
+var clueSignPending=null;
 function promptRecordClue(clue){
   if(!clue)return;
   recordPendingClue=clue;
@@ -1862,22 +1867,30 @@ function declineRecordClue(){
 // For a plain-dialog clue sign (e.g. the banquet table): show its description and
 // offer to record in one dialog. Reuses the record-prompt routing in handleA/B.
 function showClueSign(sign){
-  recordPendingClue=sign.recordClue;
-  recordPromptOpen=true;
+  // First step: a simple dialogue noting the table seems to hold a clue.
+  // Closing it (A / B / tap) chains into the standard record prompt, matching
+  // the inscription and stand-book flow.
+  clueSignPending=sign;
+  clueSignIntroOpen=true;
   dialogOpen=true;
   document.getElementById('dialog-title').textContent=sign.title||'CLUE';
-  var owns=GameState.hasItem('first-edition');
   var body=sign.body?sign.body+'  ':'';
-  body+=owns?'Record this number in your First Edition?'
-            :'This may be part of the vault combination — but you have no book to record it in.';
+  body+='The table seems to hold a clue.';
   document.getElementById('dialog-body').textContent=body;
   var linksEl=document.getElementById('dialog-links');linksEl.innerHTML='';
   var hint=document.createElement('span');
   hint.style.cssText='font-family:VT323,monospace;font-size:16px;color:#a09070;display:block;margin-top:4px;';
-  hint.textContent=owns?'[A] Yes, record it   [B] No':'[B] Close';
+  hint.textContent='[A] Continue';
   linksEl.appendChild(hint);
   document.getElementById('dialog-box').style.display='block';
   document.getElementById('zone-label').style.opacity='0';
+}
+// Advances from the intro dialogue to the record prompt.
+function clueSignContinue(){
+  var sign=clueSignPending;
+  clueSignIntroOpen=false;clueSignPending=null;
+  if(sign&&sign.recordClue)promptRecordClue(sign.recordClue);
+  else closeDialog();
 }
 
 function openInscription(){
