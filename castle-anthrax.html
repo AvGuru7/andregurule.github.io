@@ -209,9 +209,9 @@ canvas#world-canvas{position:absolute;top:0;left:0;image-rendering:pixelated;tou
   <button id="standbook-close" style="background:var(--ui-bg);border:1px solid rgba(240,192,64,0.4);color:var(--ui-dim);font-family:'Press Start 2P',monospace;font-size:8px;padding:8px 14px;cursor:pointer;">&#10005; CLOSE</button>
 </div>
 
-<!-- Memorial Wall (Armory) — a RED HERRING clue: reads as "5 Left" but the true 5 is Right (Banquet Hall). -->
+<!-- Sword Wall (Armory) — REAL clue: five swords showing the vault switch sequence; the gold sword (5) is the final switch beneath the Holy Grail. -->
 <div id="memorial-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:650;align-items:center;justify-content:center;flex-direction:column;gap:12px;">
-  <img id="memorial-img" src="images/memorial-5-left.png" alt="A memorial wall of five shields" style="max-width:92vw;max-height:82%;border:2px solid var(--gold);display:block;image-rendering:auto;">
+  <img id="memorial-img" src="images/five-swords.png" alt="A wall of five swords numbered one through five, the fifth ornate and golden" style="max-width:92vw;max-height:82%;border:2px solid var(--gold);display:block;image-rendering:auto;">
   <button id="memorial-close" style="background:var(--ui-bg);border:1px solid rgba(240,192,64,0.4);color:var(--ui-dim);font-family:'Press Start 2P',monospace;font-size:8px;padding:8px 14px;cursor:pointer;">&#10005; CLOSE</button>
 </div>
 
@@ -496,7 +496,7 @@ const SIGNS=[
   {id:'throne_sign',   label:'👑 THRONE ROOM',  tx:20, ty:12, title:'THRONE ROOM',       body:"The seat of King Lyn's power. The golden throne watches all who enter.", links:[]},
   {id:'treasury_sign', label:'💰 TREASURY',     tx:33, ty:12, title:'THE TREASURY',       body:'Coffers of gold, gemstones, and locked chests. The wealth of many campaigns rests here.', links:[]},
   {id:'armory_sign',   label:'⚔ ARMORY',        tx:7,  ty:17, title:'ARMORY',             body:'Swords, shields, and armor line the walls. Every knight must be prepared.', links:[]},
-  {id:'memorial_wall', label:'🛡 MEMORIAL WALL', tx:3,  ty:21, title:'MEMORIAL WALL',      body:'', memorial:true, links:[]},
+  {id:'memorial_wall', label:'⚔ SWORD WALL', tx:3,  ty:21, title:'SWORD WALL',      body:'', memorial:true, links:[]},
   {id:'banquet_sign',  label:'🍖 BANQUET HALL', tx:30, ty:17, title:'BANQUET HALL',       body:'A grand hall for feasts. The great table at its center is carved with a single bold mark and rows of arrows.', links:[]},
   {id:'banquet_table', label:'🍷 THE TABLE',     tx:30, ty:25, title:'THE FEAST TABLE',    body:'A bold V is carved deep into the wood at the center of the table, flanked by rows of arrows pointing to the right.', recordClue:{num:'5',dir:'R'}, links:[]},
   {id:'dungeon_sign',  label:'⛓ DUNGEON',       tx:42, ty:17, title:'THE DUNGEON',        body:'Cold stone, dripping water, iron bars. Not all who descend return. You have been warned.', links:[]},
@@ -1056,20 +1056,34 @@ function drawArmory(wx,wy){
   // Torches in armory
   torch(rx+TILE,ry+TILE*0.4,false);torch(rx+rw-TILE,ry+TILE*0.4,false);
 
-  // ── Memorial Wall on the WEST wall (red-herring clue: reads as 5 Left) ──
-  // Five small shield plaques mounted against the west wall, centered on the
-  // memorial interact tile (3,21). Inspecting opens the full memorial image.
+  // ── Sword Wall on the WEST wall (real clue: vault switch sequence) ──
+  // Five swords mounted against the west wall, centered on the sword-wall
+  // interact tile (3,21). The fifth sword is gold (the final switch beneath
+  // the Holy Grail). Inspecting opens the full five-swords image.
   const memSign=SIGNS.find(s=>s.id==='memorial_wall');
-  const mwx=rx+TILE*0.18;                       // just inside the west wall
+  const mwx=rx+TILE*0.30;                       // just inside the west wall
   const mcy=memSign.ty*TILE-wy+TILE*0.5;        // vertical centre on the interact tile
   for(let i=0;i<5;i++){
-    const my=mcy-TILE*2+i*TILE;                 // five shields stacked vertically
-    ctx.fillStyle='#c8c8d0';                    // silver shield
-    ctx.fillRect(mwx,my-7,16,12);
-    ctx.beginPath();ctx.moveTo(mwx,my+5);ctx.lineTo(mwx+8,my+11);ctx.lineTo(mwx+16,my+5);ctx.closePath();ctx.fill();
-    ctx.fillStyle='#c8a000';                    // gold rim
-    ctx.fillRect(mwx,my-7,16,2);ctx.fillRect(mwx,my-7,2,12);ctx.fillRect(mwx+14,my-7,2,12);
-    ctx.fillStyle='rgba(255,255,255,0.18)';ctx.fillRect(mwx+1,my-6,5,10);
+    const my=mcy-TILE*2+i*TILE;                 // five swords stacked vertically
+    const gold=(i===4);                         // sword 5 is the gold one
+    const blade=gold?'#e0c050':'#c8ccd6';
+    const grip =gold?'#a07820':'#3a2a18';
+    const guard=gold?'#f0c040':'#9a9aa4';
+    // blade (vertical, point up)
+    ctx.fillStyle=blade;
+    ctx.fillRect(mwx+7,my-9,3,18);
+    ctx.beginPath();ctx.moveTo(mwx+7,my-9);ctx.lineTo(mwx+8.5,my-13);ctx.lineTo(mwx+10,my-9);ctx.closePath();ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,0.35)';ctx.fillRect(mwx+7.5,my-9,1,18); // shine
+    // crossguard
+    ctx.fillStyle=guard;ctx.fillRect(mwx+2,my+8,13,2.5);
+    // grip + pommel
+    ctx.fillStyle=grip;ctx.fillRect(mwx+7,my+10,3,7);
+    ctx.fillStyle=guard;ctx.beginPath();ctx.arc(mwx+8.5,my+18,2.4,0,Math.PI*2);ctx.fill();
+    if(gold){ctx.fillStyle='rgba(240,192,64,0.30)';ctx.beginPath();ctx.arc(mwx+8.5,my,16,0,Math.PI*2);ctx.fill();} // gold glow
+    // engraved number
+    ctx.fillStyle=gold?'#f0c040':'#d8d8e0';
+    ctx.font='6px "Press Start 2P"';ctx.textAlign='right';
+    ctx.fillText(String(i+1),mwx-1,my+3);ctx.textAlign='left';
   }
   // pulsing inspect prompt when the player is near
   const mpx=Math.abs(playerX-memSign.tx*TILE), mpy=Math.abs(playerY-memSign.ty*TILE);
@@ -1994,7 +2008,7 @@ function closeStandbook(){
   if(standbookClue){var c=standbookClue;standbookClue=null;promptRecordClue(c);}
 }
 
-// ── MEMORIAL WALL OVERLAY (Armory — red-herring "5 Left") ────────────────────
+// ── SWORD WALL OVERLAY (Armory — vault switch sequence clue) ────────────────────
 let memorialOpen=false;
 function openMemorial(){
   memorialOpen=true;
