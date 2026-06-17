@@ -402,6 +402,8 @@ function isWalkable(tx,ty){
   }
   // Library furniture (bookshelves + reading stand) are solid — walk around them
   if(isLibrarySolid(tx,ty)) return false;
+  // Banquet Hall feast table is solid — walk around it
+  if(isBanquetTableSolid(tx,ty)) return false;
   for(const r of ROOMS) if(tx>=r.x&&tx<r.x+r.w&&ty>=r.y&&ty<r.y+r.h) return true;
   for(const c of CORRIDORS) if(tx>=c.x&&tx<c.x+c.w&&ty>=c.y&&ty<c.y+c.h) return true;
   return false;
@@ -498,7 +500,7 @@ const SIGNS=[
   {id:'armory_sign',   label:'⚔ ARMORY',        tx:7,  ty:17, title:'ARMORY',             body:'Swords, shields, and armor line the walls. Every knight must be prepared.', links:[]},
   {id:'memorial_wall', label:'⚔ SWORD WALL', tx:3,  ty:21, title:'SWORD WALL',      body:'', memorial:true, links:[]},
   {id:'banquet_sign',  label:'🍖 BANQUET HALL', tx:30, ty:17, title:'BANQUET HALL',       body:'A grand hall for feasts. The great table at its center is carved with a single bold mark and rows of arrows.', links:[]},
-  {id:'banquet_table', label:'🍷 THE TABLE',     tx:30, ty:25, title:'THE FEAST TABLE',    body:'A bold V is carved deep into the wood at the center of the table, flanked by rows of arrows pointing to the right.', recordClue:{num:'5',dir:'R'}, links:[]},
+  {id:'banquet_table', label:'🍷 THE TABLE',     tx:30, ty:24, title:'THE FEAST TABLE',    body:'A bold V is carved deep into the wood at the center of the table, flanked by rows of arrows pointing to the right.', recordClue:{num:'5',dir:'R'}, links:[]},
   {id:'dungeon_sign',  label:'⛓ DUNGEON',       tx:42, ty:17, title:'THE DUNGEON',        body:'Cold stone, dripping water, iron bars. Not all who descend return. You have been warned.', links:[]},
   {id:'prison_inscription', label:'🪨 CARVED WALL', tx:41, ty:26, title:'CELL INSCRIPTION', body:'', inscription:true, recordClue:{num:'12',dir:'L'}, links:[]},
 ];
@@ -550,6 +552,19 @@ const LIB_SOLID_TILES=(function(){
   return s;
 })();
 function isLibrarySolid(tx,ty){return LIB_SOLID_TILES.has(tx+','+ty);}
+
+// Banquet Hall feast table — solid footprint (player walks around it).
+// Table sprite is 6 tiles wide × ~3.375 tall, centered in ROOMS[5] (center tile 30,22).
+// Solid block: cols 27–32, rows 21–23 (a clean 6×3). The sign sits just south at 30,24.
+const BANQUET_TABLE={c0:27, c1:32, r0:21, r1:23};
+const BANQUET_TABLE_TILES=(function(){
+  const s=new Set();
+  for(let c=BANQUET_TABLE.c0;c<=BANQUET_TABLE.c1;c++)
+    for(let r=BANQUET_TABLE.r0;r<=BANQUET_TABLE.r1;r++)
+      s.add(c+','+r);
+  return s;
+})();
+function isBanquetTableSolid(tx,ty){return BANQUET_TABLE_TILES.has(tx+','+ty);}
 
 const PRISON_DOOR={
   id:'prison_door',
@@ -1214,6 +1229,18 @@ function drawBanquetHall(wx,wy){
   ctx.fillStyle='#4a2a08';
   ctx.fillRect(tx0+TILE*0.5,ty0-TILE*0.4,tw-TILE,TILE*0.32);
   ctx.fillRect(tx0+TILE*0.5,ty0+th+TILE*0.08,tw-TILE,TILE*0.32);
+
+  // ── Pulsing [A] INSPECT prompt when the player is near the table ──
+  // The sign sits at the table's south edge (30,24); getNearestInteractable uses a
+  // 120px (~2.5 tile) radius, so we gate the prompt on that same distance to the sign.
+  const tblSign=SIGNS.find(s=>s.id==='banquet_table');
+  const bd=Math.hypot(playerX-(tblSign.tx*TILE+TILE/2),playerY-(tblSign.ty*TILE+TILE/2));
+  if(bd<120){
+    const pulse=0.4+0.3*Math.sin(Date.now()/300);
+    ctx.fillStyle=`rgba(240,192,64,${pulse})`;
+    ctx.font='6px "Press Start 2P"';ctx.textAlign='center';
+    ctx.fillText('[A] INSPECT',tcx,ty0-TILE*0.7);ctx.textAlign='left';
+  }
 
   // ── Candle sconces — moved to the CENTER of the EAST wall ──
   // (previously a horizontal chandelier on the south wall)
