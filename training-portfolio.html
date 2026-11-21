@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Training Portfolio — Andre Gurule</title>
-<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&family=VT323&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&family=VT323&family=Inconsolata:wght@400;600&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -214,6 +214,13 @@ section {
   color: var(--gold); font-weight: 700;
 }
 
+.exp-subhead {
+  font-size: 10px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--gold); margin-top: clamp(20px, 3vh, 28px);
+  padding-top: clamp(4px, 1vh, 8px);
+}
+.exp-subhead + .exp-entry { padding-top: 12px; }
+
 /* ── HIGHLIGHT STAT ── */
 .stat-row {
   display: flex; flex-wrap: wrap; gap: 16px;
@@ -367,12 +374,12 @@ section {
   display: flex; flex-direction: column; gap: 10px;
 }
 .cert-item {
-  display: flex; align-items: flex-start; gap: 14px;
+  display: flex; align-items: center; gap: 14px;
   padding: 14px 16px;
   background: var(--warm-white);
   border: 1px solid var(--rule); border-radius: 4px;
 }
-.cert-icon { font-size: 18px; flex-shrink: 0; padding-top: 2px; }
+.cert-icon { font-size: 18px; flex-shrink: 0; line-height: 1; }
 .cert-text { display: flex; flex-direction: column; gap: 4px; }
 .cert-name {
   font-size: clamp(13px, 1.5vw, 14.5px); font-weight: 600;
@@ -551,8 +558,199 @@ section {
 }
 .m-badge { background: var(--cream2); border: 1.5px solid var(--wood-mid); color: var(--text-mid); padding: 1px 5px; border-radius: 2px; }
 
+/* ── AI WORKFLOW CASE STUDIES ── */
+.section-intro {
+  font-size: clamp(14px, 1.7vw, 16px); line-height: 1.8;
+  color: var(--text-mid); margin-bottom: clamp(24px, 3.5vh, 32px);
+}
+.ai-case {
+  background: var(--warm-white);
+  border: 1px solid var(--rule); border-top: 3px solid var(--gold);
+  border-radius: 0 0 4px 4px;
+  padding: clamp(20px, 3vw, 32px);
+  margin-bottom: clamp(20px, 3vh, 28px);
+}
+.case-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.case-tag {
+  font-family: 'Press Start 2P', monospace; font-size: clamp(6px, 0.8vw, 7.5px);
+  letter-spacing: 0.5px; line-height: 1.6;
+  color: var(--wood-dark); background: var(--cream2);
+  border: 1px solid rgba(160,108,48,0.35); border-radius: 2px;
+  padding: 4px 7px;
+}
+.case-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(18px, 2.4vw, 24px); font-weight: 700;
+  color: var(--text-dark); margin-bottom: clamp(14px, 2vh, 20px);
+}
+.case-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: clamp(14px, 2.5vw, 28px); margin-bottom: clamp(20px, 3vh, 28px);
+}
+.case-label {
+  font-size: 10px; font-weight: 600; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--gold); margin-bottom: 6px;
+}
+.case-grid p {
+  font-size: clamp(13px, 1.5vw, 14.5px); line-height: 1.7; color: var(--text-mid);
+}
+.demo-label {
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 10px; font-weight: 600; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--text-light); margin-bottom: 8px;
+}
+.demo-label .live-dot {
+  display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+  background: #2A9D8F; margin-right: 7px; vertical-align: middle;
+  box-shadow: 0 0 0 3px rgba(42,157,143,0.2);
+}
+.demo-frame {
+  width: 100%; height: 760px; border: 1px solid var(--rule);
+  border-radius: 4px; background: #FAF8F5; display: block;
+  margin-bottom: clamp(20px, 3vh, 28px);
+}
+
+/* Code block — dark "cartridge" panel */
+.code-block {
+  border-radius: 4px; overflow: hidden;
+  border: 1px solid #3a2a14; background: #1a1209;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+}
+.code-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 9px 14px; background: #2a1d0e; border-bottom: 1px solid #3a2a14;
+}
+.code-file {
+  font-family: 'Press Start 2P', monospace; font-size: clamp(6.5px, 0.9vw, 8px);
+  color: var(--gold-lt); letter-spacing: 0.5px;
+}
+.code-actions { display: flex; gap: 8px; }
+.code-btn {
+  font-family: 'Press Start 2P', monospace; font-size: clamp(6px, 0.8vw, 7px);
+  color: rgba(240,192,64,0.85); background: transparent;
+  border: 1px solid rgba(240,192,64,0.4); border-radius: 2px;
+  padding: 5px 8px; cursor: pointer; text-decoration: none; letter-spacing: 0.5px;
+  transition: background 0.12s, color 0.12s;
+}
+.code-btn:hover { background: var(--gold-lt); color: #1a1209; }
+.code-block pre {
+  margin: 0; padding: 16px 18px; overflow-x: auto;
+  font-family: 'Inconsolata', 'Consolas', monospace;
+  font-size: clamp(12px, 1.4vw, 13.5px); line-height: 1.65;
+  color: #f0e8c0; tab-size: 2;
+}
+.code-block .k { color: #f0c040; }          /* keywords */
+.code-block .f { color: #7fc8f8; }          /* functions */
+.code-block .s { color: #a8d88a; }          /* strings */
+.code-block .n { color: #f59a6b; }          /* numbers */
+.code-block .c { color: #8a7a5a; font-style: italic; } /* comments */
+/* Demo tabs */
+.demo-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+.demo-tab {
+  font-family: 'DM Sans', sans-serif; font-size: clamp(12px, 1.4vw, 13.5px); font-weight: 600;
+  color: var(--text-mid); background: transparent;
+  border: 1.5px solid var(--rule); border-radius: 3px;
+  padding: 7px 14px; cursor: pointer;
+  transition: border-color 0.12s, color 0.12s, background 0.12s;
+}
+.demo-tab:hover { border-color: var(--wood-mid); color: var(--text-dark); }
+.demo-tab[aria-selected="true"] {
+  background: var(--text-dark); border-color: var(--text-dark); color: var(--gold-lt);
+}
+.demo-panel[hidden] { display: none; }
+.demo-blurb {
+  font-size: clamp(13px, 1.5vw, 14.5px); line-height: 1.7; color: var(--text-mid);
+  margin-bottom: 14px;
+}
+.case-status {
+  display: inline-block; margin-left: 10px; vertical-align: middle;
+  font-family: 'DM Sans', sans-serif; font-size: 10px; font-weight: 600;
+  letter-spacing: 0.15em; text-transform: uppercase;
+  color: #2A7F74; background: rgba(42,157,143,0.1);
+  border: 1px solid rgba(42,157,143,0.35); border-radius: 2px; padding: 3px 7px;
+}
+.case-sub {
+  font-size: 10px; font-weight: 600; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--text-light); margin: 0 0 10px;
+}
+.case-block { margin-bottom: clamp(20px, 3vh, 28px); }
+.case-block p {
+  font-size: clamp(13px, 1.5vw, 14.5px); line-height: 1.7; color: var(--text-mid);
+}
+
+/* Framework stage diagram */
+.fw-stages {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;
+  margin-bottom: 10px;
+}
+.fw-stage {
+  position: relative; text-align: left; cursor: pointer;
+  background: var(--cream); border: 1.5px solid var(--rule); border-radius: 4px;
+  padding: 12px 12px 11px; font-family: 'DM Sans', sans-serif;
+  transition: border-color 0.12s, background 0.12s, transform 0.12s;
+}
+.fw-stage:not(:last-child)::after {
+  content: '▶'; position: absolute; right: -12px; top: 50%;
+  transform: translateY(-50%); font-size: 9px; color: var(--gold); z-index: 1;
+}
+.fw-stage:hover { border-color: var(--wood-mid); transform: translateY(-1px); }
+.fw-stage[aria-selected="true"] { background: var(--text-dark); border-color: var(--text-dark); }
+.fw-num {
+  display: block; font-family: 'Press Start 2P', monospace; font-size: 7px;
+  color: var(--gold); letter-spacing: 0.5px; margin-bottom: 7px;
+}
+.fw-name {
+  display: block; font-size: clamp(13px, 1.5vw, 15px); font-weight: 700;
+  color: var(--text-dark); margin-bottom: 2px;
+}
+.fw-hint { display: block; font-size: 11.5px; color: var(--text-light); line-height: 1.4; }
+.fw-stage[aria-selected="true"] .fw-name { color: var(--gold-lt); }
+.fw-stage[aria-selected="true"] .fw-hint { color: rgba(247,242,232,0.65); }
+.fw-detail {
+  background: var(--cream); border-left: 3px solid var(--gold);
+  border-radius: 0 4px 4px 0; padding: 12px 16px;
+  font-size: clamp(13px, 1.5vw, 14.5px); line-height: 1.7; color: var(--text-mid);
+  margin-bottom: clamp(20px, 3vh, 28px); min-height: 3.4em;
+}
+.fw-shots {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 185px), 1fr));
+  gap: 12px; margin-bottom: clamp(20px, 3vh, 28px);
+}
+.fw-shots .gallery-img-wrap { background: #fff; border-bottom: 1px solid var(--rule); }
+.fw-shots .gallery-img-wrap img { object-position: top left; }
+.fw-shots.two-up { grid-template-columns: repeat(2, 1fr); }
+@media (max-width: 600px) { .fw-shots.two-up { grid-template-columns: 1fr; } }
+.next-module {
+  display: flex; gap: 14px; align-items: flex-start;
+  background: #1a1209; border: 1px solid #3a2a14; border-radius: 4px;
+  padding: 14px 16px; margin-top: 4px;
+}
+.next-module .nm-badge {
+  flex-shrink: 0; font-family: 'Press Start 2P', monospace; font-size: 7px;
+  color: #1a1209; background: var(--gold-lt); border-radius: 2px;
+  padding: 5px 7px; letter-spacing: 0.5px; line-height: 1.5;
+}
+.next-module strong { display: block; color: var(--gold-lt); font-size: clamp(13px, 1.5vw, 14.5px); margin-bottom: 3px; }
+.next-module p { font-size: clamp(12.5px, 1.4vw, 14px); line-height: 1.65; color: #e8dfc4; }
+.ref-list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.ref-list li {
+  padding-left: 18px; position: relative;
+  font-size: clamp(12.5px, 1.4vw, 14px); line-height: 1.6; color: var(--text-mid);
+}
+.ref-list li::before { content: '—'; position: absolute; left: 0; color: var(--gold); font-weight: 700; }
+
+@media (max-width: 600px) {
+  .fw-stages { grid-template-columns: repeat(2, 1fr); }
+  .fw-stage::after { display: none; }
+}
+.code-note {
+  font-size: clamp(11px, 1.2vw, 12.5px); color: var(--text-light);
+  margin-top: 10px; line-height: 1.6;
+}
+
 /* ── RESPONSIVE ── */
 @media (max-width: 600px) {
+  .demo-label span + span { display: none; }
   .hero-meta { gap: 16px; }
   .stat-row { flex-direction: column; }
   .stat-box { min-width: 0; }
@@ -633,6 +831,277 @@ section {
     </p>
   </section>
 
+  <!-- AI in My Training Workflow -->
+  <section id="ai-workflow">
+    <h2 class="section-title">AI in My Training Workflow</h2>
+    <p class="section-intro">
+      In early 2026 I began fully integrating generative AI (Claude and Microsoft Copilot) into how I
+      design and build training. The examples below come from equipment training. AI speeds up the
+      build, but the learning design and the technical accuracy stay with me.
+    </p>
+
+    <!-- CASE 2 — Training program development & evaluation framework -->
+    <article class="ai-case">
+      <div class="case-tags">
+        <span class="case-tag">CLAUDE</span>
+        <span class="case-tag">WORD · FILLABLE</span>
+        <span class="case-tag">EXCEL</span>
+        <span class="case-tag">CLAUDE SKILL</span>
+      </div>
+      <h3 class="case-title">Training Program Development &amp; Evaluation Framework <span class="case-status">In Pilot</span></h3>
+
+      <div class="case-grid">
+        <div>
+          <div class="case-label">Why I Built It</div>
+          <p>Training requests often arrive as a solution ("we need a course on X") before anyone has defined
+          the problem, and evaluation gets planned after delivery, if at all. I wanted one repeatable process
+          that makes the team confirm the real business problem, its root cause, and how success will be
+          measured before any design work begins.</p>
+        </div>
+        <div>
+          <div class="case-label">The Build</div>
+          <p>I developed the framework with Claude: a fillable Word form, with native checkboxes and text fields,
+          that takes a program from the first conversation to final results, plus an Excel tracker with
+          formulas and a dashboard that compares results across programs. I also built a Claude Skill that
+          guides a designer through the same process conversationally and produces a completed form and
+          tracker entry.</p>
+        </div>
+      </div>
+
+      <div class="case-sub">How it works — select a stage</div>
+      <div class="fw-stages" role="tablist" aria-label="Framework stages">
+        <button class="fw-stage" role="tab" aria-selected="true" data-detail="A discovery call, a kickoff meeting, and root-cause analysis for each behavior: is it a knowledge gap, or an environment or motivation issue that training alone won't fix? Built-in guardrails keep solutions off the table until the sponsor confirms the problem, the approach, and the evaluation method.">
+          <span class="fw-num">01</span><span class="fw-name">Discover</span><span class="fw-hint">Problem &amp; root cause</span>
+        </button>
+        <button class="fw-stage" role="tab" aria-selected="false" data-detail="The Six Disciplines (D1–D6) structure the design: business outcomes first, then the complete learning experience, delivery for application, learning transfer, and on-the-job performance support. The form also plans how leadership will visibly back the program, and names who owns reinforcement once the design team steps away.">
+          <span class="fw-num">02</span><span class="fw-name">Design</span><span class="fw-hint">Six Disciplines, D1–D6</span>
+        </button>
+        <button class="fw-stage" role="tab" aria-selected="false" data-detail="Results are documented against the method chosen at the start: Kirkpatrick Levels 1–4, Phillips ROI, or performance and proficiency tracking. Choosing the method before design means the right baseline data is collected from day one.">
+          <span class="fw-num">03</span><span class="fw-name">Evaluate</span><span class="fw-hint">Method chosen up front</span>
+        </button>
+        <button class="fw-stage" role="tab" aria-selected="false" data-detail="A portfolio tracker rolls up metrics, ROI, and proficiency results across every program, so the team can see patterns, not just one program at a time. It also flags non-training fixes (process, tools, incentives) so training isn't credited for results it didn't cause.">
+          <span class="fw-num">04</span><span class="fw-name">Track</span><span class="fw-hint">Results across programs</span>
+        </button>
+      </div>
+      <div class="fw-detail" id="fw-detail" aria-live="polite"></div>
+
+      <div class="case-block">
+        <div class="case-label">How I Tested It</div>
+        <p>Before using it on a live program, I stress-tested the framework against two mock scenarios. A
+        warehouse accuracy problem with mixed causes showed the need for a non-training actions tracker,
+        so results aren't attributed to training alone. A senior-leadership program with a history of failed
+        buy-in led to new sections on leadership endorsement and hand-off. The form is now in pilot, and the
+        next round of changes will come from real use.</p>
+      </div>
+
+      <div class="case-sub">A look inside — click to expand</div>
+      <div class="fw-shots">
+        <div class="gallery-item" onclick="openLightbox(this)">
+          <div class="gallery-img-wrap">
+            <img src="images/training-framework/form-step1-discovery.jpg" alt="Step 1 Discovery Call checklist with red 'do not' guardrails" loading="lazy">
+          </div>
+          <div class="gallery-caption"><strong>Step 1 — Discovery Call</strong>Checklist with "do not" guardrails: no solutions yet.</div>
+        </div>
+        <div class="gallery-item" onclick="openLightbox(this)">
+          <div class="gallery-img-wrap">
+            <img src="images/training-framework/form-step4-root-cause.jpg" alt="Step 4 Analyze and Confirm the Solution, with root-cause solution analysis table" loading="lazy">
+          </div>
+          <div class="gallery-caption"><strong>Step 4 — Analyze &amp; Confirm</strong>Root-cause analysis and sponsor sign-off before design.</div>
+        </div>
+        <div class="gallery-item" onclick="openLightbox(this)">
+          <div class="gallery-img-wrap">
+            <img src="images/training-framework/tracker-sample-row.jpg" alt="Metrics and ROI tracker showing a sample row from a mock pilot" loading="lazy">
+          </div>
+          <div class="gallery-caption"><strong>Metrics &amp; ROI Tracker</strong>Sample row from a mock pilot scenario.</div>
+        </div>
+      </div>
+
+      <div class="case-label">Grounded In</div>
+      <ul class="ref-list">
+        <li>Cathy Moore, <em>Map It: The Hands-On Guide to Strategic Training Design</em> (action mapping for discovery)</li>
+        <li>Wick, Pollock &amp; Jefferson, <em>The Six Disciplines of Breakthrough Learning</em> (program design &amp; evaluation)</li>
+        <li>Kirkpatrick's Four Levels of Training Evaluation</li>
+        <li>Phillips ROI Methodology</li>
+      </ul>
+    </article>
+
+    <!-- CASE 1 — Interactive rigging calculators -->
+    <article class="ai-case">
+      <div class="case-tags">
+        <span class="case-tag">CLAUDE</span>
+        <span class="case-tag">ARTICULATE RISE</span>
+        <span class="case-tag">HTML / JS</span>
+        <span class="case-tag">RIGGING</span>
+      </div>
+      <h3 class="case-title">Interactive Rigging Calculators</h3>
+
+      <div class="case-grid">
+        <div>
+          <div class="case-label">The Challenge</div>
+          <p>Basic rigging training is full of numbers learners have to apply correctly on the job: sling
+          angle factors, tension per leg, bearing stress on hardware. A formula on a slide states the
+          rule, but it doesn't show learners why the rule matters.</p>
+        </div>
+        <div>
+          <div class="case-label">The Build</div>
+          <p>I used Claude to build self-contained HTML/JavaScript calculators, then embedded each one in an
+          Articulate Rise lesson as a code block. Learners change the inputs and immediately see the
+          consequences: tension climbing as sling legs flatten, or a stress gauge turning red when the
+          hardware is too small for the load.</p>
+        </div>
+      </div>
+
+      <div class="demo-tabs" role="tablist" aria-label="Calculator demos">
+        <button class="demo-tab" role="tab" id="tab-angle" aria-controls="panel-angle" aria-selected="true">Sling Angle Capacity</button>
+        <button class="demo-tab" role="tab" id="tab-bearing" aria-controls="panel-bearing" aria-selected="false">Round Sling Bearing Stress</button>
+      </div>
+
+      <!-- Panel 1: Sling angle -->
+      <div class="demo-panel" role="tabpanel" id="panel-angle" aria-labelledby="tab-angle">
+        <p class="demo-blurb">Drag the angle and load sliders. The rigging diagram, per-leg tension, and remaining
+        sling capacity update in real time, with color cues as the angle approaches the 30° minimum.</p>
+        <div class="demo-label"><span><span class="live-dot"></span>Live demo — try it</span><span>As learners see it in Rise</span></div>
+        <iframe class="demo-frame" src="demos/sling-angle-calculator.html" title="Sling angle capacity calculator" loading="lazy"></iframe>
+
+        <div class="code-block">
+          <div class="code-head">
+            <span class="code-file">SLING-ANGLE.JS</span>
+            <div class="code-actions">
+              <button class="code-btn" data-copy-src="demos/sling-angle-calculator.html">COPY CODE</button>
+              <a class="code-btn" href="demos/sling-angle-calculator.html" target="_blank">FULL SOURCE ↗</a>
+            </div>
+          </div>
+<pre><code><span class="k">function</span> <span class="f">sacUpdate</span>() {
+  <span class="k">var</span> angle = <span class="f">parseInt</span>(document.<span class="f">getElementById</span>(<span class="s">'sac-angle'</span>).value);
+  <span class="k">var</span> load  = <span class="f">parseInt</span>(document.<span class="f">getElementById</span>(<span class="s">'sac-load'</span>).value);
+  <span class="k">var</span> rad   = angle * Math.PI / <span class="n">180</span>;
+
+  <span class="c">// Two-leg bridle: each leg carries half the load ÷ sin(angle)</span>
+  <span class="k">var</span> slingFactor = Math.<span class="f">sin</span>(rad);
+  <span class="k">var</span> factor      = <span class="n">1</span> / slingFactor;               <span class="c">// load angle factor</span>
+  <span class="k">var</span> perLeg      = (load / <span class="n">2</span>) / slingFactor;      <span class="c">// tension per leg (lbs)</span>
+  <span class="k">var</span> pct         = Math.<span class="f">round</span>(slingFactor * <span class="n">100</span>); <span class="c">// effective capacity %</span>
+
+  <span class="c">// Color cue: green → amber → red as capacity drops</span>
+  <span class="k">var</span> barColor = pct &gt; <span class="n">70</span> ? <span class="s">'#2A9D8F'</span> : pct &gt; <span class="n">45</span> ? <span class="s">'#DF8E1D'</span> : <span class="s">'#D20F39'</span>;
+  <span class="c">// …then redraws the SVG rigging diagram to match the new angle</span>
+}</code></pre>
+        </div>
+        <p class="code-note">Excerpt of the core calculation (comments added for readability). <strong>Copy Code</strong> copies the complete, self-contained file, ready to paste into a Rise code block.</p>
+      </div>
+
+      <!-- Panel 2: Round sling bearing stress -->
+      <div class="demo-panel" role="tabpanel" id="panel-bearing" aria-labelledby="tab-bearing" hidden>
+        <p class="demo-blurb">Choose the surface type, enter the sling width, hardware diameter, and applied force.
+        The calculator walks through each step of the formula and flags any connection that exceeds the
+        7,000 lbs./in² bearing-stress limit for polyester round slings. A built-in fraction chart helps
+        learners convert tape-measure readings to decimals.</p>
+        <div class="demo-label"><span><span class="live-dot"></span>Live demo — try it</span><span>As learners see it in Rise</span></div>
+        <iframe class="demo-frame" data-src="demos/round-sling-bearing-stress.html" title="Round sling connection size calculator"></iframe>
+
+        <div class="code-block">
+          <div class="code-head">
+            <span class="code-file">BEARING-STRESS.JS</span>
+            <div class="code-actions">
+              <button class="code-btn" data-copy-src="demos/round-sling-bearing-stress.html">COPY CODE</button>
+              <a class="code-btn" href="demos/round-sling-bearing-stress.html" target="_blank">FULL SOURCE ↗</a>
+            </div>
+          </div>
+<pre><code><span class="k">function</span> <span class="f">calc</span>() {
+  <span class="k">const</span> eiw = <span class="f">parseFloat</span>(document.<span class="f">getElementById</span>(<span class="s">'eiw'</span>).value); <span class="c">// inside width</span>
+  <span class="k">const</span> hd  = <span class="f">parseFloat</span>(document.<span class="f">getElementById</span>(<span class="s">'hd'</span>).value);  <span class="c">// hardware dia.</span>
+  <span class="k">const</span> af  = <span class="f">parseFloat</span>(document.<span class="f">getElementById</span>(<span class="s">'af'</span>).value);  <span class="c">// force (lbs)</span>
+
+  <span class="k">const</span> ecw = surfaceFactor * eiw;          <span class="c">// 1.00 straight · 0.75 curved</span>
+  <span class="k">const</span> lba = hd * ecw;                     <span class="c">// load bearing area (in²)</span>
+  <span class="k">const</span> bsv = lba &gt; <span class="n">0</span> ? af / lba : <span class="k">null</span>;    <span class="c">// bearing stress (lbs./in²)</span>
+
+  <span class="k">if</span> (bsv &gt; <span class="n">7000</span>) {
+    <span class="f">setStatus</span>(<span class="s">'warn'</span>, <span class="s">'Exceeds maximum — above the 7,000 lbs./in² limit'</span>);
+  } <span class="k">else</span> {
+    <span class="f">setStatus</span>(<span class="s">'ok'</span>, <span class="s">'Within limit'</span>);
+  }
+}</code></pre>
+        </div>
+        <p class="code-note">Simplified excerpt of the core calculation (comments added for readability). <strong>Copy Code</strong> copies the complete, self-contained file.</p>
+      </div>
+    </article>
+
+    <!-- CASE — Live training assessment app -->
+    <article class="ai-case">
+      <div class="case-tags">
+        <span class="case-tag">CLAUDE</span>
+        <span class="case-tag">REACT</span>
+        <span class="case-tag">FIREBASE</span>
+        <span class="case-tag">IPAD</span>
+      </div>
+      <h3 class="case-title">Live Training Assessment App</h3>
+
+      <div class="case-grid">
+        <div>
+          <div class="case-label">Why I Built It</div>
+          <p>In hands-on training, a paper quiz graded after class arrives too late to help. I wanted to see how
+          learners answer while they're still in the room, so I can catch a misunderstanding and reteach it
+          before the practical, and score their hands-on skills consistently instead of from memory.</p>
+        </div>
+        <div>
+          <div class="case-label">The Build</div>
+          <p>I built a web app with Claude that learners use on iPads. I start a session, learners join with a
+          5-character code, and their answers stream to my dashboard as they type. Multiple-choice and
+          fill-in-the-blank questions are graded automatically. I grade open answers, can override any score, and rate
+          hands-on skills against reusable rubrics. Results export to CSV or sync to a live Google Sheet.</p>
+        </div>
+      </div>
+
+      <div class="case-block">
+        <div class="case-label">What It Changes in Class</div>
+        <p>The per-question results show at a glance where the group is struggling. In the sample session below,
+        most learners calculated sling tension without applying the angle factor, a pattern I can address on the
+        spot. The "show only incorrect answers" filter turns that into a quick reteach list, and each
+        learner's skill evaluation is recorded on the same screen.</p>
+      </div>
+
+      <div class="case-sub">Inside the app — sample data, click to expand</div>
+      <div class="fw-shots two-up">
+        <div class="gallery-item" onclick="openLightbox(this)">
+          <div class="gallery-img-wrap">
+            <img src="images/assessment-app/instructor-class-summary.jpg" style="object-position:50% 100%" alt="Instructor dashboard showing learner progress and per-question results" loading="lazy">
+          </div>
+          <div class="gallery-caption"><strong>Live Class Summary</strong>Learner progress and per-question results, updating in real time.</div>
+        </div>
+        <div class="gallery-item" onclick="openLightbox(this)">
+          <div class="gallery-img-wrap">
+            <img src="images/assessment-app/answers-incorrect-filter.jpg" style="object-position:50% 85%" alt="Answers grouped by question, filtered to incorrect answers" loading="lazy">
+          </div>
+          <div class="gallery-caption"><strong>Reteach Triage</strong>Answers by question, filtered to incorrect responses.</div>
+        </div>
+        <div class="gallery-item" onclick="openLightbox(this)">
+          <div class="gallery-img-wrap">
+            <img src="images/assessment-app/skill-evaluation.jpg" style="object-position:50% 75%" alt="Skill evaluation form with a 1 to 5 competency scale" loading="lazy">
+          </div>
+          <div class="gallery-caption"><strong>Skill Evaluation</strong>Hands-on skills rated against a reusable rubric.</div>
+        </div>
+        <div class="gallery-item" onclick="openLightbox(this)">
+          <div class="gallery-img-wrap">
+            <img src="images/assessment-app/learner-ipad-quiz.jpg" style="object-position:50% 55%" alt="Learner quiz view on an iPad with load information and questions" loading="lazy">
+          </div>
+          <div class="gallery-caption"><strong>Learner View (iPad)</strong>A scenario-based quiz; answers save automatically.</div>
+        </div>
+      </div>
+
+      <div class="next-module">
+        <span class="nm-badge">NEXT</span>
+        <div>
+          <strong>In development: Gas Monitor Simulator</strong>
+          <p>A second module for confined space training. Learners see a realistic four-gas monitor on their
+          iPad, while I control the simulated O₂, CO, H₂S, and LEL readings from my device and trigger alarm
+          scenarios in real time, so learners practice reading and responding to alarms without real hazards.</p>
+        </div>
+      </div>
+    </article>
+
+  </section>
+
   <!-- Impact Stats -->
   <section>
     <h2 class="section-title">By the Numbers</h2>
@@ -681,6 +1150,10 @@ section {
         <div class="sk-text"><strong>Adult Learning Theory</strong>Scenario-based, hands-on, and goal-oriented training using evidence-based methods.</div>
       </div>
       <div class="skill-card">
+        <span class="sk-icon">🧭</span>
+        <div class="sk-text"><strong>Leadership Development</strong>Mentoring emerging leaders through their first leadership roles. Arbinger DIOM train-the-trainer.</div>
+      </div>
+      <div class="skill-card">
         <span class="sk-icon">📊</span>
         <div class="sk-text"><strong>Project Management</strong>End-to-end ownership from concept through implementation and evaluation.</div>
       </div>
@@ -706,11 +1179,11 @@ section {
       </div>
       <div class="exp-company">Redwood Materials · Reno, NV</div>
       <ul class="exp-list">
-        <li>Led LMS rollout — standardizing training methods, policies, and procedures company-wide.</li>
-        <li>Managed training projects from concept through implementation across cross-functional teams.</li>
-        <li>Continuously evaluated and applied evidence-based adult learning techniques: scenario-based training, hands-on skill development, and goal-oriented assessments.</li>
-        <li>Initiated a hands-on training program using repurposed equipment, generating approximately <strong>$200,000 in cost savings</strong>.</li>
-        <li>Facilitated improved communication and alignment across business units and teams.</li>
+        <li>Key contributor to the company-wide LMS rollout, helping standardize training methods, policies, and procedures.</li>
+        <li>Started a hands-on training program using repurposed equipment, saving approximately <strong>$200,000</strong>.</li>
+        <li>Design scenario-based, hands-on training and skills assessments for equipment and safety topics, including rigging, confined space entry, and Stop the Bleed.</li>
+        <li>Since early 2026, use generative AI (Claude, Copilot) to build interactive learning tools, a live assessment app, and a standardized framework for designing and evaluating training programs (<a href="#ai-workflow" style="color:var(--blue-accent);">see examples</a>).</li>
+        <li>Manage training projects from concept through evaluation with cross-functional teams.</li>
       </ul>
     </div>
 
@@ -721,10 +1194,24 @@ section {
       </div>
       <div class="exp-company">Fast Company · Reno, NV</div>
       <ul class="exp-list">
-        <li>Delivered post-sales SaaS training by documenting best practices and building a full online training program to increase customer satisfaction.</li>
-        <li>Provided direct support and training to <strong>40+ employees across 9 states</strong>.</li>
-        <li>Coordinated operations for 6 remote employees across 3 states through strong leadership and multitasking.</li>
-        <li>Continually developed leadership skills with a focus on communication and maximizing team performance.</li>
+        <li>Built a complete online post-sales training program for SaaS customers, later adopted nationally by the software vendor.</li>
+        <li>Led the company's LMS rollout.</li>
+        <li>Trained and supported <strong>40+ employees across 9 states</strong>, and coordinated 6 remote staff across 3 states.</li>
+      </ul>
+    </div>
+
+    <div class="exp-subhead">Volunteer Leadership</div>
+
+    <div class="exp-entry">
+      <div class="exp-header">
+        <span class="exp-role">Volunteer Program Director &amp; Coordinator</span>
+        <span class="exp-date">2006 — 2011</span>
+      </div>
+      <div class="exp-company">Community Service Organization · New York, NY &amp; Helena, MT</div>
+      <ul class="exp-list">
+        <li>Directed operations and coordinated multiple concurrent programs for a <strong>100+ member organization</strong> over five years, practicing servant leadership to develop and motivate individuals.</li>
+        <li>Mentored and developed emerging leaders through their first leadership roles — building confidence, capability, and peer-support networks.</li>
+        <li>Facilitated instruction and presentations to audiences from small teams to <strong>500+</strong>.</li>
       </ul>
     </div>
   </section>
@@ -734,7 +1221,6 @@ section {
     <h2 class="section-title">Sample Training Videos</h2>
     <p style="font-size:clamp(13px,1.5vw,15px);color:var(--text-light);margin-bottom:24px;line-height:1.65;">
       A selection of training videos produced, scripted, and edited by Andre.
-      Replace the placeholder cards below with your video URLs (YouTube, Vimeo, or direct embed).
     </p>
     <div class="video-grid">
 
@@ -774,75 +1260,6 @@ section {
     </div>
   </section>
 
-  <!-- Screenshot Gallery -->
-  <section>
-    <h2 class="section-title">Training Materials Gallery</h2>
-    <p style="font-size:clamp(13px,1.5vw,15px);color:var(--text-light);margin-bottom:24px;line-height:1.65;">
-      Screenshots of LMS courses, presentations, SOPs, and other materials.
-      Click any image to expand. Add your image paths in the <code style="font-size:0.9em;background:var(--cream2);padding:1px 5px;border-radius:2px;">src</code> attributes below.
-    </p>
-    <div class="gallery-grid">
-
-      <!-- GALLERY ITEM 1 — Replace src="YOUR_IMAGE.jpg" -->
-      <div class="gallery-item" onclick="openLightbox(this)">
-        <div class="gallery-img-wrap">
-          <!-- <img src="YOUR_IMAGE.jpg" alt="Articulate 360 course screenshot"> -->
-          <div class="img-placeholder">
-            <span class="ph-icon">🖼️</span>
-            <span>Add image here</span>
-          </div>
-        </div>
-        <div class="gallery-caption">
-          <strong>Articulate 360 Course</strong>
-          Module design for safety orientation program.
-        </div>
-      </div>
-
-      <!-- GALLERY ITEM 2 -->
-      <div class="gallery-item" onclick="openLightbox(this)">
-        <div class="gallery-img-wrap">
-          <div class="img-placeholder">
-            <span class="ph-icon">🖼️</span>
-            <span>Add image here</span>
-          </div>
-        </div>
-        <div class="gallery-caption">
-          <strong>Storyline 360 Scenario</strong>
-          Branching scenario for customer support training.
-        </div>
-      </div>
-
-      <!-- GALLERY ITEM 3 -->
-      <div class="gallery-item" onclick="openLightbox(this)">
-        <div class="gallery-img-wrap">
-          <div class="img-placeholder">
-            <span class="ph-icon">🖼️</span>
-            <span>Add image here</span>
-          </div>
-        </div>
-        <div class="gallery-caption">
-          <strong>SOP Documentation</strong>
-          Standard operating procedure template and example.
-        </div>
-      </div>
-
-      <!-- GALLERY ITEM 4 -->
-      <div class="gallery-item" onclick="openLightbox(this)">
-        <div class="gallery-img-wrap">
-          <div class="img-placeholder">
-            <span class="ph-icon">🖼️</span>
-            <span>Add image here</span>
-          </div>
-        </div>
-        <div class="gallery-caption">
-          <strong>Training Presentation</strong>
-          Slide deck used for live group training session.
-        </div>
-      </div>
-
-    </div>
-  </section>
-
   <!-- Certifications -->
   <section>
     <h2 class="section-title">Certifications &amp; Training</h2>
@@ -851,35 +1268,30 @@ section {
         <span class="cert-icon">🏅</span>
         <div class="cert-text">
           <span class="cert-name">AHA Certified CPR &amp; First Aid Instructor</span>
-          <span class="cert-desc">Add a description here.</span>
         </div>
       </div>
       <div class="cert-item">
         <span class="cert-icon">🦺</span>
         <div class="cert-text">
           <span class="cert-name">OSHA 30 — Construction</span>
-          <span class="cert-desc">Add a description here.</span>
         </div>
       </div>
       <div class="cert-item">
         <span class="cert-icon">🧗</span>
         <div class="cert-text">
           <span class="cert-name">SPRAT Rope Access Certification — Level 1</span>
-          <span class="cert-desc">Add a description here.</span>
         </div>
       </div>
       <div class="cert-item">
         <span class="cert-icon">📖</span>
         <div class="cert-text">
           <span class="cert-name">Arbinger DIOM Leadership Train-the-Trainer</span>
-          <span class="cert-desc">Add a description here.</span>
         </div>
       </div>
       <div class="cert-item">
         <span class="cert-icon">🎓</span>
         <div class="cert-text">
           <span class="cert-name">GED</span>
-          <span class="cert-desc">Add a description here.</span>
         </div>
       </div>
     </div>
@@ -1086,6 +1498,82 @@ function setCtrlHeight() {
 }
 window.addEventListener('resize', setCtrlHeight);
 setCtrlHeight();
+
+// ── AI WORKFLOW: demo tabs, auto-height iframes, copy buttons ──
+function fitFrame(f) {
+  try {
+    const doc = f.contentDocument;
+    if (!doc || !doc.body) return;
+    f.style.height = Math.ceil(doc.body.scrollHeight) + 2 + 'px';
+  } catch (e) { /* cross-origin (e.g. local file preview) — keep CSS height */ }
+}
+document.querySelectorAll('.demo-frame').forEach(f => {
+  f.addEventListener('load', () => {
+    fitFrame(f);
+    try { new ResizeObserver(() => fitFrame(f)).observe(f.contentDocument.body); } catch (e) {}
+  });
+  // Custom cursor can't track inside an iframe — hide it while hovering one
+  f.addEventListener('mouseenter', () => { const c = document.getElementById('cursor'); if (c) c.style.opacity = '0'; });
+  f.addEventListener('mouseleave', () => { const c = document.getElementById('cursor'); if (c) c.style.opacity = '1'; });
+});
+
+document.querySelectorAll('.demo-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    const list = tab.closest('[role="tablist"]');
+    const article = tab.closest('.ai-case');
+    list.querySelectorAll('.demo-tab').forEach(t => t.setAttribute('aria-selected', String(t === tab)));
+    article.querySelectorAll('.demo-panel').forEach(p => {
+      const show = p.id === tab.getAttribute('aria-controls');
+      p.hidden = !show;
+      if (show) {
+        const f = p.querySelector('.demo-frame');
+        if (f && f.dataset.src && !f.getAttribute('src')) f.setAttribute('src', f.dataset.src); // lazy-load
+        else if (f) fitFrame(f);
+      }
+    });
+  });
+});
+
+// Framework stage diagram
+(function () {
+  const stages = document.querySelectorAll('.fw-stage');
+  const detail = document.getElementById('fw-detail');
+  if (!stages.length || !detail) return;
+  const show = btn => {
+    stages.forEach(b => b.setAttribute('aria-selected', String(b === btn)));
+    detail.textContent = btn.dataset.detail;
+  };
+  stages.forEach(b => b.addEventListener('click', () => show(b)));
+  show(stages[0]);
+})();
+
+function copyText(text) {
+  if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(text);
+  return new Promise((res, rej) => {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy') ? res() : rej(); } catch (e) { rej(e); }
+    ta.remove();
+  });
+}
+document.querySelectorAll('.code-btn[data-copy-src]').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const label = btn.textContent;
+    let text;
+    try {
+      const r = await fetch(btn.dataset.copySrc);
+      if (!r.ok) throw 0;
+      text = await r.text();
+    } catch (e) {
+      // Fallback: copy the excerpt shown on the page
+      text = btn.closest('.code-block').querySelector('pre').innerText;
+    }
+    try { await copyText(text); btn.textContent = 'COPIED!'; }
+    catch (e) { btn.textContent = 'COPY FAILED'; }
+    setTimeout(() => { btn.textContent = label; }, 1600);
+  });
+});
 </script>
 </body>
 </html>
