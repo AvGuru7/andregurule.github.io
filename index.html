@@ -2,116 +2,261 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Andre Gurule — Portfolio World</title>
-<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Andre Gurule — Learning &amp; Development Strategist</title>
+<meta name="description" content="Andre Gurule — Learning &amp; Development Strategist. Developing people, strengthening organizations. View the training portfolio or explore the interactive portfolio.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-*{margin:0;padding:0;box-sizing:border-box;}
-:root{
-  --gold:#f0c040;
-  --ui-bg:#0d0a18;
-}
-body{
-  background:#000;
-  font-family:'Press Start 2P',monospace;
-  overflow:hidden;width:100vw;height:100vh;
-  -webkit-tap-highlight-color:transparent;
-}
-
-/* Full-screen background image */
-#splash-bg{
-  position:fixed;inset:0;
-  background-image:url('images/index-portal-hero.png');
-  background-size:cover;
-  background-position:center;
-  background-repeat:no-repeat;
-  background-color:#000;
-  z-index:0;
-}
-/* Dark scrim so overlaid text stays readable against the bright portal */
-#splash-scrim{
-  position:fixed;inset:0;
-  background:linear-gradient(180deg,
-    rgba(0,0,0,0.55) 0%,
-    rgba(0,0,0,0.15) 35%,
-    rgba(0,0,0,0.15) 60%,
-    rgba(0,0,0,0.70) 100%);
-  z-index:1;
-}
-
-/* Foreground content stack */
-#splash-content{
-  position:relative;z-index:2;
-  width:100%;height:100%;
-  display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
-  gap:18px;padding:clamp(24px,6vh,60px) 20px;
-  text-align:center;
-}
-
-#loading-title{
-  font-size:clamp(10px,3vw,22px);color:var(--gold);
-  text-align:center;line-height:2;
-  text-shadow:0 2px 8px rgba(0,0,0,0.9), 0 0 18px rgba(0,0,0,0.7);
-}
-#loading-sub{
-  font-family:'VT323',monospace;
-  font-size:clamp(24px,5.25vw,33px);
-  color:#FF7A1A;text-align:center;
-  text-shadow:0 2px 6px rgba(0,0,0,0.9);
-  margin-top:auto; margin-bottom:8vh;
-}
-
-/* Push PRESS START toward the bottom so the central portal stays clear */
-#press-start{
-  font-family:'Press Start 2P',monospace;
-  font-size:clamp(8px,1.8vw,12px);color:var(--gold);
-  border:3px solid var(--gold);
-  padding:clamp(10px,2vh,14px) clamp(16px,3vw,24px);
-  background:rgba(13,10,24,0.55);cursor:pointer;
-  margin-top:auto;
-  text-shadow:0 2px 6px rgba(0,0,0,0.9);
-  touch-action:manipulation;
-}
-#press-start:hover,#press-start:active{
-  background:rgba(240,192,64,0.18);
-}
-
-/* Portrait mobile: bias the single wide image toward Andre on the right */
-@media (max-aspect-ratio: 3/4){
-  #splash-bg{
-    background-position:51% center;
+  :root{
+    --ivory:#F5F0E6;
+    --forest:#293D32;
+    --charcoal:#51483D;
+    --gold:#B68A4C;
+    --gold-dk:#9c7338;
+    --gold-hi:#cfa968;
   }
-}
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    font-family:'Montserrat',system-ui,sans-serif;
+    background:var(--ivory);
+    color:var(--charcoal);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* ─────────────── HERO ─────────────── */
+  .hero{
+    position:relative;
+    width:100%;
+    background:var(--ivory);
+    overflow:hidden;
+  }
+  /* Sky-extension band: only visible on mobile. It continues the image's own
+     deep-blue top edge (#194D72) upward so the name/title have clear sky,
+     without cropping the tree or book. Blends into the image's top edge. */
+  .sky-ext{
+    display:none;
+    width:100%;
+    /* Ends in the exact image top-edge blue so band and photo meet seamlessly */
+    background:linear-gradient(to bottom, #0f3c60 0%, #164A70 52%, #184C73 85%, #194D72 100%);
+    line-height:0;
+    position:relative;
+  }
+  /* Feather at the joint: a short band of the edge-blue that overlaps onto the
+     top of the image, dissolving the hard line between band and photo. */
+  .sky-ext::after{
+    content:"";
+    position:absolute;
+    left:0; right:0; bottom:-18px;
+    height:36px;
+    z-index:2;
+    background:linear-gradient(to bottom, #194D72 0%, rgba(25,77,114,0) 100%);
+    pointer-events:none;
+  }
+  .hero-img-wrap{
+    position:relative;
+    width:100%;
+    line-height:0;
+  }
+  .hero-img-wrap img{
+    display:block;
+    width:100%;
+    height:auto;
+  }
+  /* The fade: a CSS gradient laid over the lower image, dissolving to ivory.
+     Starts very gently high up (behind the lower book) and reaches solid ivory
+     at the base so the rocky foreground melts into the page background. */
+  .hero-fade{
+    position:absolute;
+    left:0; right:0; bottom:0;
+    height:46%;
+    background:linear-gradient(
+      to bottom,
+      rgba(245,240,230,0) 0%,
+      rgba(245,240,230,0.04) 28%,
+      rgba(245,240,230,0.22) 52%,
+      rgba(245,240,230,0.62) 74%,
+      rgba(245,240,230,0.92) 90%,
+      #F5F0E6 100%
+    );
+    pointer-events:none;
+  }
+
+  /* Name + title over the deep-blue sky above the canopy */
+  .hero-head{
+    position:absolute;
+    top:clamp(10px,1.8vw,24px);
+    left:0; right:0;
+    text-align:center;
+    padding:0 20px;
+    pointer-events:none;
+  }
+  .hero-name{
+    font-family:'Cormorant Garamond',Georgia,serif;
+    font-weight:600;
+    color:var(--ivory);
+    font-size:clamp(34px,6.2vw,76px);
+    line-height:1.02;
+    letter-spacing:0.5px;
+    text-shadow:0 2px 14px rgba(18,28,40,0.45), 0 1px 3px rgba(18,28,40,0.35);
+  }
+  .hero-title{
+    font-family:'Montserrat',sans-serif;
+    font-weight:500;
+    color:var(--ivory);
+    font-size:clamp(10px,1.7vw,18px);
+    letter-spacing:clamp(2px,0.5vw,5px);
+    margin-top:clamp(8px,1.4vw,16px);
+    text-transform:uppercase;
+    text-shadow:0 1px 10px rgba(18,28,40,0.5);
+  }
+
+  /* ─────────────── INTRO (on ivory) ─────────────── */
+  .intro{
+    position:relative;
+    background:var(--ivory);
+    text-align:center;
+    padding:clamp(4px,1vw,10px) clamp(20px,5vw,40px) clamp(48px,7vh,76px);
+    margin-top:-2px; /* seamless meet with the fade */
+  }
+  .headline{
+    font-family:'Cormorant Garamond',Georgia,serif;
+    font-weight:600;
+    color:var(--forest);
+    font-size:clamp(26px,4.4vw,46px);
+    line-height:1.18;
+    letter-spacing:0.3px;
+    max-width:32ch;
+    margin:0 auto clamp(16px,2.4vh,22px);
+  }
+  /* Forced two-line break on desktop; on mobile it wraps naturally */
+  .hl-break{display:inline;}
+  .body-copy{
+    font-family:'Montserrat',sans-serif;
+    font-weight:500;
+    color:var(--charcoal);
+    font-size:clamp(15px,2vw,21px);
+    letter-spacing:0.4px;
+    margin-bottom:clamp(28px,4.4vh,40px);
+  }
+
+  /* ─────────────── BUTTONS (side by side) ─────────────── */
+  .cta-row{
+    display:flex;
+    justify-content:center;
+    align-items:stretch;
+    gap:clamp(12px,2vw,20px);
+    flex-wrap:wrap;
+  }
+  .btn{
+    font-family:'Montserrat',sans-serif;
+    font-weight:600;
+    font-size:clamp(12px,1.4vw,15px);
+    letter-spacing:1px;
+    text-transform:uppercase;
+    text-decoration:none;
+    padding:clamp(14px,1.8vh,18px) clamp(22px,3vw,34px);
+    border-radius:3px;
+    transition:transform .12s ease, box-shadow .12s ease, background .15s ease, color .15s ease;
+    display:inline-flex; align-items:center; gap:10px;
+    white-space:nowrap;
+  }
+  .btn .arrow{transition:transform .15s ease;}
+  .btn:hover .arrow{transform:translateX(4px);}
+
+  .btn-primary{
+    background:var(--gold);
+    color:var(--ivory);
+    border:2px solid var(--gold);
+    box-shadow:0 6px 18px rgba(182,138,76,0.32);
+  }
+  .btn-primary:hover{
+    background:var(--gold-dk);
+    border-color:var(--gold-dk);
+    transform:translateY(-2px);
+    box-shadow:0 9px 24px rgba(182,138,76,0.42);
+  }
+  .btn-primary:active{transform:translateY(0);}
+
+  .btn-secondary{
+    background:transparent;
+    color:var(--forest);
+    border:2px solid var(--gold);
+  }
+  .btn-secondary:hover{
+    background:var(--gold);
+    color:var(--ivory);
+    transform:translateY(-2px);
+    box-shadow:0 8px 20px rgba(182,138,76,0.3);
+  }
+  .btn-secondary:active{transform:translateY(0);}
+
+  footer{
+    text-align:center;
+    padding:0 20px clamp(26px,5vh,40px);
+    font-family:'Montserrat',sans-serif;
+    font-size:clamp(10px,1.2vw,12px);
+    letter-spacing:2px;
+    text-transform:uppercase;
+    color:var(--gold-dk);
+    opacity:0.7;
+  }
+
+  /* ── Mobile: extend the sky upward and move name/title into that band ── */
+  @media (max-width:860px){
+    .sky-ext{display:block; height:30vw; min-height:120px; max-height:220px;}
+    .hero-head{
+      /* anchor into the sky-extension band instead of over the image */
+      top:0;
+      height:30vw; min-height:120px; max-height:220px;
+      display:flex; flex-direction:column; justify-content:center;
+    }
+    .hero-name{font-size:clamp(32px,8.5vw,52px);}
+    .hero-title{font-size:clamp(10px,2.8vw,15px); letter-spacing:clamp(2px,1vw,4px);}
+    /* let the headline wrap on its own on narrow screens */
+    .hl-break{display:none;}
+    .headline{max-width:18ch;}
+  }
+  @media (max-width:520px){
+    .cta-row{flex-direction:column; align-items:center;}
+    .btn{width:100%; max-width:320px; justify-content:center;}
+  }
 </style>
 </head>
 <body>
 
-<div id="splash-bg"></div>
-<div id="splash-scrim"></div>
+  <section class="hero">
+    <div class="sky-ext" aria-hidden="true"></div>
+    <div class="hero-img-wrap">
+      <img src="images/hero-tree.png"
+           alt="Five professionals standing on an open book atop a hill, beneath a great tree glowing with sunrise light, a city skyline in the distance">
+      <div class="hero-fade" aria-hidden="true"></div>
+    </div>
 
-<div id="splash-content">
-  <div id="loading-title">ANDRE GURULE<br>PERSONAL WEBSITE</div>
-  <div id="loading-sub">Welcome to my<br>website.<br>Press start to<br>begin exploring.</div>
-  <button id="press-start" onclick="startGame()">▶ PRESS START</button>
-</div>
+    <div class="hero-head">
+      <div class="hero-name">Andre Gurule</div>
+      <div class="hero-title">Learning &amp; Development Strategist</div>
+    </div>
+  </section>
 
-<script>
-// Initialize fresh game state here — this is the only place state is born.
-// Values are passed to index.html (and all other pages) via URL query params.
-function startGame(){
-  const state = {
-    points: 0,
-    visited: '',   // comma-separated zone ids visited
-    unlocked: ''   // comma-separated unlocked secrets (e.g. 'g14')
-  };
-  const params = new URLSearchParams(state).toString();
-  window.location.href = 'world.html?' + params;
-}
+  <section class="intro">
+    <h1 class="headline">Where Learning Takes Root,<br class="hl-break"> and Potential Grows</h1>
+    <p class="body-copy">Developing People. Strengthening Organizations.</p>
 
-// Also allow keyboard ENTER / Space to start
-document.addEventListener('keydown', e => {
-  if(e.key === 'Enter' || e.key === ' ') startGame();
-});
-</script>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="https://www.andregurule.com/training-portfolio.html">
+        View Training Portfolio <span class="arrow">&rarr;</span>
+      </a>
+      <a class="btn btn-secondary" href="https://www.andregurule.com/world.html">
+        Explore the Game <span class="arrow">&rarr;</span>
+      </a>
+    </div>
+  </section>
+
+  <footer>Andre Gurule &middot; andregurule.com</footer>
+
 </body>
 </html>
