@@ -198,24 +198,30 @@
     text-align:center;
     padding:0 20px clamp(26px,5vh,40px);
     font-family:'Montserrat',sans-serif;
-    font-size:clamp(10px,1.2vw,12px);
-    letter-spacing:2px;
-    text-transform:uppercase;
+    font-size:clamp(11px,1.3vw,13px);
+    letter-spacing:0.5px;
     color:var(--gold-dk);
-    opacity:0.7;
+    opacity:0.75;
   }
 
-  /* ── Mobile: extend the sky upward and move name/title into that band ── */
+  /* ── Mobile (option 2): name + title over the image's painted sky, like desktop.
+     No CSS sky band. 150% sides-only zoom enlarges the tree and gives the text
+     more painted sky to sit on. ── */
   @media (max-width:860px){
-    .sky-ext{display:block; height:30vw; min-height:120px; max-height:220px;}
-    .hero-head{
-      /* anchor into the sky-extension band instead of over the image */
-      top:0;
-      height:30vw; min-height:120px; max-height:220px;
-      display:flex; flex-direction:column; justify-content:center;
+    .sky-ext{display:none;}            /* drop the color-fill band */
+    /* 150% sides-only zoom: full image kept top-to-bottom, sides spill + clip */
+    .hero-img-wrap{overflow:hidden;}
+    .hero-img-wrap img{
+      width:150%; max-width:none; height:auto;
+      margin-left:50%; transform:translateX(-50%);
     }
-    .hero-name{font-size:clamp(32px,8.5vw,52px);}
-    .hero-title{font-size:clamp(10px,2.8vw,15px); letter-spacing:clamp(2px,1vw,4px);}
+    /* name + title overlaid on the image sky (same model as desktop) */
+    /* center the name+title block vertically in the sky gap above the canopy.
+       Canopy top sits ~87vw down (~340px @390w); block (~90px tall) centers in that
+       gap when it starts ~32vw from the top. */
+    .hero-head{top:clamp(10px,2.5vw,22px);}
+    .hero-name{font-size:clamp(27px,6.6vw,40px);}
+    .hero-title{font-size:clamp(10px,2.3vw,14px); letter-spacing:clamp(2px,0.6vw,3px);}
     /* keep the forced break so the headline is two lines on mobile too */
     .hl-break{display:inline;}
     .headline{max-width:26ch; font-size:clamp(21px,5.6vw,34px);}
@@ -256,7 +262,7 @@
     </div>
   </section>
 
-  <footer>Andre Gurule &middot; andregurule.com</footer>
+  <footer>Designed by Andre Gurule, built with AI</footer>
 
 </body>
 </html>
