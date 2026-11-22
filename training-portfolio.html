@@ -1361,7 +1361,7 @@ section {
 <div id="menu-overlay" onclick="handleOverlayClick(event)">
   <div id="menu-box">
     <div id="menu-box-title">Navigation</div>
-    <a class="menu-item" href="index.html#spawn=projects">
+    <a class="menu-item" href="world.html#spawn=projects">
       <span class="mi-icon">🗺</span> WORLD MAP
     </a>
     <a class="menu-item" href="hall-of-records.html">
@@ -1387,27 +1387,21 @@ section {
 </div>
 
 <script>
-// ── GAMESTATE (no-op stubs — state lives in URL params) ──
+// ── GAMESTATE — raw passthrough ──
+// This page never changes game state, so it forwards the incoming query string
+// exactly as received (points, visited, items, unlocked AND log), with the query
+// placed before any #hash, per the project's state-persistence rules.
 const GameState = (function() {
-  const params = new URLSearchParams(window.location.search);
-  const parse  = k => (params.get(k)||'').split(',').filter(Boolean);
-  let points   = parseInt(params.get('points')||'0',10);
-  let visited  = parse('visited');
-  let items    = parse('items');
-  let unlocked = parse('unlocked');
-  function toParams() {
-    const p = new URLSearchParams();
-    if (points)   p.set('points',   points);
-    if (visited.length) p.set('visited', visited.join(','));
-    if (items.length)   p.set('items',   items.join(','));
-    if (unlocked.length)p.set('unlocked',unlocked.join(','));
-    return p.toString();
-  }
+  const qs = window.location.search.replace(/^\?/, '');
+  function toParams() { return qs; }
   function withState(href) {
-    const s = toParams(); if (!s) return href;
-    return href + (href.includes('?') ? '&' : '?') + s;
+    if (!qs) return href;
+    const hashAt = href.indexOf('#');
+    const base = hashAt === -1 ? href : href.slice(0, hashAt);
+    const hash = hashAt === -1 ? '' : href.slice(hashAt);
+    return base + (base.includes('?') ? '&' : '?') + qs + hash;
   }
-  return { points, visited, items, unlocked, toParams, withState };
+  return { toParams, withState };
 })();
 
 // Rewrite all local links to carry state

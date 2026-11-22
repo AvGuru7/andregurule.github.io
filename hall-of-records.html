@@ -326,6 +326,11 @@ html, body {
   50%    {box-shadow:3px 0 0 rgba(0,0,0,0.38),0 0 24px rgba(255,30,70,0.9),0 0 48px rgba(255,30,70,0.22)}
 }
 .book.locked { filter:saturate(0.45) brightness(0.72); }
+/* Controller / keyboard cursor on a book */
+.book.pad-focus {
+  transform:translateY(clamp(-30px,-4vh,-22px)) scale(1.04); z-index:30;
+  outline:3px solid #f0c040; outline-offset:3px;
+}
 
 /* ─── NPC ─── */
 #npc-wrap {
@@ -608,7 +613,9 @@ html, body {
 /* ── NES CONTROLLER ── */
 #nes-controller{
   position:fixed;bottom:clamp(10px,2.5vh,20px);left:50%;transform:translateX(-50%);
-  z-index:300;display:none;flex-direction:column;align-items:center;gap:8px;
+  z-index:550;display:none;flex-direction:column;align-items:center;gap:8px;
+  /* 550: above the dim overlay (400), menu (500) and dialog (500) so A/B/D-pad stay
+     tappable; below the book panel (600) and passphrase panel (700). */
 }
 @media(pointer:coarse){#nes-controller{display:flex;}}
 @media(max-width:600px){#nes-controller{display:flex;}}
@@ -1017,7 +1024,7 @@ function selectBook(proj) {
   }
   // Training Portfolio opens directly — no dialog
   if (proj.id === 'proj1' && proj.link && proj.link !== '#') {
-    window.location.href = proj.link;
+    window.location.href = GameState.withState(proj.link);
     return;
   }
   showBookPanel(proj);
@@ -1216,7 +1223,7 @@ document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeAll(); });
 let resizeTimer;
 window.addEventListener('resize',()=>{
   clearTimeout(resizeTimer);
-  resizeTimer = setTimeout(buildShelves, 250);
+  resizeTimer = setTimeout(function(){ buildShelves(); if (typeof libApplyBookFocus==='function') libApplyBookFocus(false); }, 250);
 });
 
 // ── INIT ──
@@ -1237,6 +1244,17 @@ function positionExitSign() {
   sign.style.top  = (rect.bottom - scene.top + 10) + 'px';
 }
 window.addEventListener('resize', positionExitSign);
+
+// Keep Dewey's dialog above the controller when the controller is showing
+function clearDialogForController() {
+  const ctrl = document.getElementById('nes-controller');
+  const dlg  = document.getElementById('dialog');
+  if (!ctrl || !dlg) return;
+  const shown = getComputedStyle(ctrl).display !== 'none';
+  dlg.style.bottom = shown ? (ctrl.offsetHeight + 24) + 'px' : '';
+}
+window.addEventListener('load', clearDialogForController);
+window.addEventListener('resize', clearDialogForController);
 </script>
 <!-- Library Menu Overlay -->
 <div id="lib-menu-overlay">
@@ -1308,7 +1326,7 @@ window.addEventListener('resize', positionExitSign);
       </div>
     </div>
   </div>
-  <div id="lib-ctrl-hint">A=OPEN BOOK · B=CLOSE · MENU=NAVIGATE</div>
+  <div id="lib-ctrl-hint">◀▶=CHOOSE BOOK · A=OPEN · B=CLOSE · MENU=NAVIGATE</div>
 </div>
 
 <script>
@@ -1374,6 +1392,43 @@ function libHandleA() {
   if (bookPanel.style.display === 'flex') { closeBookPanel(); return; }
   if (secretPanel.style.display === 'block') { checkSecret(); return; }
   if (dialog.style.display === 'block') { closeDialog(); return; }
+  // Nothing open: first press shows the book cursor, next press opens that book
+  if (libBookIdx < 0) { libMoveBook(0); return; }
+  const books = libBooks();
+  const el = books[libBookIdx];
+  const proj = el && PROJECTS.find(p => p.id === el.dataset.id);
+  if (proj) selectBook(proj);
+}
+
+// ── BOOK CURSOR (D-pad ◀ ▶ / arrow keys) ──
+let libBookIdx = -1;
+function libBooks() { return Array.from(document.querySelectorAll('#row1 .book:not(.filler)')); }
+function libApplyBookFocus(scroll) {
+  const books = libBooks();
+  books.forEach((b, i) => b.classList.toggle('pad-focus', i === libBookIdx));
+  const el = books[libBookIdx];
+  if (el && scroll !== false) el.scrollIntoView({ behavior:'smooth', inline:'center', block:'nearest' });
+}
+function libMoveBook(step) {
+  const n = libBooks().length; if (!n) return;
+  libBookIdx = libBookIdx < 0 ? 0 : Math.max(0, Math.min(n - 1, libBookIdx + step));
+  libApplyBookFocus(true);
+}
+function libPanelOpen() {
+  return document.getElementById('book-panel').style.display === 'flex' ||
+         document.getElementById('secret-panel').style.display === 'block' ||
+         document.getElementById('dialog').style.display === 'block';
+}
+// One D-pad step: menu cursor when the menu is open, otherwise the book cursor
+function libDpadStep(dir) {
+  if (libMenuOpen) {
+    if (dir === 'up')   libMenuIdx = Math.max(0, libMenuIdx - 1);
+    if (dir === 'down') libMenuIdx = Math.min(libMenuItems.length - 1, libMenuIdx + 1);
+    libUpdateMenuCursor(); return;
+  }
+  if (libPanelOpen()) return;
+  if (dir === 'left')  libMoveBook(-1);
+  if (dir === 'right') libMoveBook(1);
 }
 
 function libHandleB() {
@@ -1426,8 +1481,18 @@ const libDpadDirs = { up: false, down: false, left: false, right: false };
 
 document.querySelectorAll('.ldb').forEach(btn => {
   const dir = btn.dataset.dir;
-  const on = e => { e.preventDefault(); libDpadDirs[dir] = true; btn.classList.add('pressing'); };
-  const off = e => { e.preventDefault(); libDpadDirs[dir] = false; btn.classList.remove('pressing'); };
+  let repeat = null;
+  const on = e => {
+    e.preventDefault();
+    if (libDpadDirs[dir]) return;          // ignore duplicate touch+mouse events
+    libDpadDirs[dir] = true; btn.classList.add('pressing');
+    libDpadStep(dir);
+    repeat = setTimeout(function tick(){ libDpadStep(dir); repeat = setTimeout(tick, 180); }, 380);
+  };
+  const off = e => {
+    e.preventDefault(); libDpadDirs[dir] = false; btn.classList.remove('pressing');
+    clearTimeout(repeat); repeat = null;
+  };
   btn.addEventListener('touchstart', on, { passive: false });
   btn.addEventListener('touchend', off, { passive: false });
   btn.addEventListener('touchcancel', off, { passive: false });
@@ -1446,6 +1511,11 @@ document.addEventListener('keydown', e => {
     return;
   }
   if (e.key === 'm' || e.key === 'M') libToggleMenu();
+  if (document.activeElement && document.activeElement.tagName === 'INPUT') return;
+  if (libPanelOpen()) return;
+  if (e.key === 'ArrowLeft')  { libMoveBook(-1); e.preventDefault(); }
+  if (e.key === 'ArrowRight') { libMoveBook(1);  e.preventDefault(); }
+  if (e.key === 'Enter' && libBookIdx >= 0) { libHandleA(); e.preventDefault(); }
 });
 
 // Close menu on overlay background click
