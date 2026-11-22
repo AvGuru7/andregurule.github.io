@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sling Angle Capacity Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Bricolage+Grotesque:wght@700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  body {
+    margin: 0;
+    padding: 1.5rem 1rem;
+    background: #FAF8F5;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+  }
+  /* Small screens: label on its own line, slider + value share the next */
+  @media (max-width: 520px) {
+    .sac-row { flex-wrap: wrap; row-gap: 0.4rem !important; }
+    .sac-row label { min-width: 100% !important; }
+    .sac-row input[type=range] { min-width: 0; }
+  }
+</style>
+</head>
+<body>
+
+<div style="font-family:'DM Sans','Helvetica Neue',sans-serif; max-width:680px; width:100%; box-sizing:border-box; margin:0 auto;">
+
+  <!-- Title & intro -->
+  <h3 style="font-family:'Bricolage Grotesque',Georgia,serif; font-size:clamp(1.4rem,3vw,1.8rem); font-weight:800; color:#2D2A26; margin:0 0 0.5rem 0; line-height:1.2;">Sling angle capacity calculator</h3>
+  <p style="font-size:1rem; color:#5C574F; line-height:1.8; margin:0 0 1.5rem 0;">Adjust the sling angle and load weight to see how tension per leg and effective capacity change in real time.</p>
+
+  <!-- Main card -->
+  <div style="background:white; border-radius:16px; padding:2rem; box-shadow:0 4px 12px rgba(45,42,38,0.08); border:1px solid #E8E4DE;">
+
+    <!-- SVG visualizer -->
+    <div style="display:flex; justify-content:center; margin-bottom:1.5rem;">
+      <svg id="sac-svg" viewBox="0 0 480 260" style="max-width:480px; width:100%;" xmlns="http://www.w3.org/2000/svg">
+        <!-- Grid lines -->
+        <line x1="240" y1="10" x2="240" y2="250" stroke="#E8E4DE" stroke-width="1" stroke-dasharray="4,4"/>
+        <line x1="10"  y1="45" x2="470" y2="45"  stroke="#E8E4DE" stroke-width="1" stroke-dasharray="4,4"/>
+        <!-- Labels -->
+        <text x="244" y="20"  fill="#8A8479" font-size="9" font-family="monospace">vertical</text>
+        <text x="380" y="42"  fill="#8A8479" font-size="9" font-family="monospace">horizontal</text>
+        <!-- Hook -->
+        <circle cx="240" cy="38" r="8" fill="#2D2A26"/>
+        <path d="M236 38 Q236 47 240 47 Q244 47 244 38" fill="none" stroke="#2D2A26" stroke-width="2.5" stroke-linecap="round"/>
+        <!-- Sling legs -->
+        <line id="sac-left"  x1="240" y1="47" x2="85"  y2="202" stroke="#E8533F" stroke-width="3.5" stroke-linecap="round"/>
+        <line id="sac-right" x1="240" y1="47" x2="395" y2="202" stroke="#E8533F" stroke-width="3.5" stroke-linecap="round"/>
+        <!-- Angle arc -->
+        <path id="sac-arc" d="M214 45 A26 26 0 0 0 240 71" fill="none" stroke="#2A9D8F" stroke-width="1.5"/>
+        <!-- Angle label -->
+        <text id="sac-arc-label" x="196" y="74" fill="#2A9D8F" font-size="10" font-family="monospace" font-weight="600">90°</text>
+        <!-- Load block -->
+        <rect id="sac-block" x="80" y="202" width="320" height="36" rx="5" fill="#2D2A26"/>
+        <text id="sac-block-label" x="240" y="225" fill="white" font-size="9" font-family="monospace" text-anchor="middle">2,000 lbs</text>
+        <!-- Attachment circles -->
+        <circle id="sac-attach-l" cx="85"  cy="202" r="5" fill="#E8533F"/>
+        <circle id="sac-attach-r" cx="395" cy="202" r="5" fill="#E8533F"/>
+        <!-- Tension labels -->
+        <text id="sac-tension-l" x="162" y="124" fill="#2A9D8F" font-size="8" font-family="monospace" text-anchor="middle"></text>
+        <text id="sac-tension-r" x="318" y="124" fill="#2A9D8F" font-size="8" font-family="monospace" text-anchor="middle"></text>
+      </svg>
+    </div>
+
+    <!-- Angle slider -->
+    <div class="sac-row" style="display:flex; align-items:center; gap:1rem; margin-bottom:1rem;">
+      <label style="font-weight:600; font-size:0.875rem; color:#2D2A26; min-width:160px;">Sling angle from horizontal</label>
+      <input type="range" id="sac-angle" min="5" max="90" value="90" step="1" style="flex:1;" oninput="sacUpdate()">
+      <span id="sac-angle-val" style="font-family:'JetBrains Mono',monospace; font-size:0.875rem; font-weight:600; color:#E8533F; min-width:40px;">90°</span>
+    </div>
+
+    <!-- Load slider -->
+    <div class="sac-row" style="display:flex; align-items:center; gap:1rem; margin-bottom:1.5rem;">
+      <label style="font-weight:600; font-size:0.875rem; color:#2D2A26; min-width:160px;">Load weight (lbs)</label>
+      <input type="range" id="sac-load" min="500" max="5000" value="2000" step="100" style="flex:1;" oninput="sacUpdate()">
+      <span id="sac-load-val" style="font-family:'JetBrains Mono',monospace; font-size:0.875rem; font-weight:600; color:#E8533F; min-width:72px;">2,000 lbs</span>
+    </div>
+
+    <!-- Stats row -->
+    <div style="display:flex; gap:1.5rem; justify-content:center; margin-bottom:1.25rem; flex-wrap:wrap;">
+      <div style="text-align:center;">
+        <div id="sac-tension-val" style="font-family:'Bricolage Grotesque',Georgia,serif; font-size:clamp(1.4rem,4vw,2rem); font-weight:800; color:#2A9D8F;">1,000</div>
+        <div style="font-size:0.7rem; color:#8A8479; text-transform:uppercase; letter-spacing:0.05em;">lbs tension per leg</div>
+      </div>
+      <div style="text-align:center;">
+        <div id="sac-factor-val" style="font-family:'Bricolage Grotesque',Georgia,serif; font-size:clamp(1.4rem,4vw,2rem); font-weight:800; color:#2A9D8F;">1.00</div>
+        <div style="font-size:0.7rem; color:#8A8479; text-transform:uppercase; letter-spacing:0.05em;">load angle factor</div>
+      </div>
+      <div style="text-align:center;">
+        <div id="sac-pct-val" style="font-family:'Bricolage Grotesque',Georgia,serif; font-size:clamp(1.4rem,4vw,2rem); font-weight:800; color:#2A9D8F;">100%</div>
+        <div style="font-size:0.7rem; color:#8A8479; text-transform:uppercase; letter-spacing:0.05em;">effective sling capacity</div>
+      </div>
+    </div>
+
+    <!-- Capacity bar -->
+    <div style="margin-bottom:0.5rem;">
+      <div style="font-size:0.8rem; color:#5C574F; margin-bottom:0.4rem;">Effective sling capacity remaining</div>
+      <div style="background:#E8E4DE; border-radius:999px; height:16px; overflow:hidden;">
+        <div id="sac-bar" style="height:100%; width:100%; border-radius:999px; background:#2A9D8F; transition:width 200ms, background 200ms;"></div>
+      </div>
+    </div>
+    <p style="font-size:0.75rem; color:#8A8479; margin:0.75rem 0 0 0; line-height:1.6;">⚠ At 90° (vertical) capacity is 100%. Capacity decreases as the angle drops toward horizontal. ASME B30.9 recommends a minimum sling angle of 30° from horizontal.</p>
+
+  </div>
+
+</div>
+
+<script>
+(function () {
+  function sacUpdate() {
+    var angle  = parseInt(document.getElementById('sac-angle').value);
+    var load   = parseInt(document.getElementById('sac-load').value);
+    var rad    = angle * Math.PI / 180;
+    var slingFactor = Math.sin(rad);
+    var factor      = 1 / slingFactor;
+    var perLeg      = (load / 2) / slingFactor;
+    var pct         = Math.round(slingFactor * 100);
+
+    // Text readouts
+    document.getElementById('sac-angle-val').textContent   = angle + '°';
+    document.getElementById('sac-load-val').textContent    = load.toLocaleString() + ' lbs';
+    document.getElementById('sac-tension-val').textContent = Math.round(perLeg).toLocaleString();
+    document.getElementById('sac-factor-val').textContent  = factor.toFixed(3);
+    document.getElementById('sac-pct-val').textContent     = pct + '%';
+
+    // Capacity bar colour
+    var barColor = pct > 70 ? '#2A9D8F' : pct > 45 ? '#DF8E1D' : '#D20F39';
+    var bar = document.getElementById('sac-bar');
+    bar.style.width      = pct + '%';
+    bar.style.background = barColor;
+
+    // Stat readout colour matches bar
+    ['sac-tension-val','sac-factor-val','sac-pct-val'].forEach(function(id) {
+      document.getElementById(id).style.color = barColor;
+    });
+
+    // SVG geometry — fixed leg length, load rises as angle decreases
+    var hookX = 240, hookY = 47, LEG = 155, loadH = 36, loadW = 320;
+    var spreadX = LEG * Math.cos(rad);
+    var dropY   = LEG * Math.sin(rad);
+    var attachY = hookY + dropY;
+    var lx = hookX - spreadX, rx = hookX + spreadX;
+
+    // Sling legs
+    document.getElementById('sac-left').setAttribute('x2',  lx.toFixed(1));
+    document.getElementById('sac-left').setAttribute('y2',  attachY.toFixed(1));
+    document.getElementById('sac-right').setAttribute('x2', rx.toFixed(1));
+    document.getElementById('sac-right').setAttribute('y2', attachY.toFixed(1));
+
+    // Load block
+    var midX = (lx + rx) / 2;
+    document.getElementById('sac-block').setAttribute('x',      (midX - loadW / 2).toFixed(1));
+    document.getElementById('sac-block').setAttribute('y',      attachY.toFixed(1));
+    document.getElementById('sac-block').setAttribute('width',  loadW);
+    document.getElementById('sac-block').setAttribute('height', loadH);
+    document.getElementById('sac-block-label').setAttribute('x', midX.toFixed(1));
+    document.getElementById('sac-block-label').setAttribute('y', (attachY + loadH * 0.65).toFixed(1));
+    document.getElementById('sac-block-label').textContent = load.toLocaleString() + ' lbs';
+
+    // Attachment dots
+    document.getElementById('sac-attach-l').setAttribute('cx', lx.toFixed(1));
+    document.getElementById('sac-attach-l').setAttribute('cy', attachY.toFixed(1));
+    document.getElementById('sac-attach-r').setAttribute('cx', rx.toFixed(1));
+    document.getElementById('sac-attach-r').setAttribute('cy', attachY.toFixed(1));
+
+    // Angle arc
+    var arcR  = 26;
+    var arcSx = hookX - arcR, arcSy = hookY;
+    var arcEx = hookX - arcR * Math.cos(rad);
+    var arcEy = hookY  - arcR * Math.sin(rad);
+    if (angle > 2) {
+      document.getElementById('sac-arc').setAttribute('d',
+        'M ' + arcSx.toFixed(1) + ' ' + arcSy.toFixed(1) +
+        ' A ' + arcR + ' ' + arcR + ' 0 0 0 ' +
+        arcEx.toFixed(1) + ' ' + arcEy.toFixed(1));
+    }
+
+    // Arc label
+    var midAng = rad / 2;
+    var lDist  = 38;
+    var lx2    = hookX - Math.cos(midAng) * lDist - 6;
+    var ly2    = hookY - Math.sin(midAng) * lDist + 4;
+    document.getElementById('sac-arc-label').setAttribute('x', lx2.toFixed(1));
+    document.getElementById('sac-arc-label').setAttribute('y', ly2.toFixed(1));
+    document.getElementById('sac-arc-label').textContent = angle + '°';
+
+    // Tension labels on sling legs
+    var lMidX = (hookX + lx) / 2, lMidY = (hookY + attachY) / 2;
+    var rMidX = (hookX + rx) / 2, rMidY = (hookY + attachY) / 2;
+    var tLabel = Math.round(perLeg).toLocaleString() + ' lbs';
+    var tilt   = 90 - angle;
+    var tl = document.getElementById('sac-tension-l');
+    var tr = document.getElementById('sac-tension-r');
+    tl.setAttribute('x',         lMidX.toFixed(1));
+    tl.setAttribute('y',         lMidY.toFixed(1));
+    tl.setAttribute('transform', 'rotate(' + (-tilt) + ',' + lMidX.toFixed(1) + ',' + lMidY.toFixed(1) + ')');
+    tl.setAttribute('fill',      barColor);
+    tl.textContent = tLabel;
+    tr.setAttribute('x',         rMidX.toFixed(1));
+    tr.setAttribute('y',         rMidY.toFixed(1));
+    tr.setAttribute('transform', 'rotate(' + tilt + ',' + rMidX.toFixed(1) + ',' + rMidY.toFixed(1) + ')');
+    tr.setAttribute('fill',      barColor);
+    tr.textContent = tLabel;
+  }
+
+  window.sacUpdate = sacUpdate;
+  sacUpdate();
+})();
+</script>
+
+</body>
+</html>

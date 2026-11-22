@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Polyester Round Sling Connection Size Calculator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-page:        #F4F3EF;
+      --bg-primary:     #FFFFFF;
+      --bg-secondary:   #F1EFE8;
+      --bg-success:     #EAF3DE;
+      --bg-danger:      #FCEBEB;
+      --bg-info:        #E6F1FB;
+      --text-primary:   #1A1A18;
+      --text-secondary: #5F5E5A;
+      --text-tertiary:  #888780;
+      --text-success:   #27500A;
+      --text-danger:    #791F1F;
+      --text-info:      #0C447C;
+      --border:         rgba(0,0,0,0.12);
+      --border-md:      rgba(0,0,0,0.22);
+      --radius-md:      8px;
+      --radius-lg:      12px;
+      --green-bg:       #EAF3DE;
+      --green-border:   #639922;
+      --green-text:     #27500A;
+      --gauge-green:    #1D9E75;
+      --gauge-red:      #E24B4A;
+      --font:           'IBM Plex Sans', system-ui, sans-serif;
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg-page);
+      color: var(--text-primary);
+      padding: 1.5rem 1rem 1.5rem;
+    }
+
+    .page-wrap {
+      max-width: 680px;
+      margin: 0 auto;
+    }
+
+    .page-header {
+      margin-bottom: 1.75rem;
+    }
+
+    .page-header h1 {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+
+    .page-header p {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .calc-card {
+      background: var(--bg-primary);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 12px;
+    }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .field-row-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 12px;
+      margin-bottom: 4px;
+      align-items: end;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .field label {
+      font-size: 13px;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .field input {
+      width: 100%;
+      padding: 8px 10px;
+      border: 0.5px solid var(--border-md);
+      border-radius: var(--radius-md);
+      font-family: var(--font);
+      font-size: 14px;
+      color: var(--text-primary);
+      background: var(--bg-primary);
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .field input:focus {
+      border-color: #378ADD;
+      box-shadow: 0 0 0 3px rgba(55,138,221,0.15);
+    }
+
+    .field .unit {
+      font-size: 11px;
+      color: var(--text-tertiary);
+    }
+
+    .surface-toggle {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 1.25rem;
+    }
+
+    .surf-btn {
+      flex: 1;
+      padding: 10px 12px;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      font-size: 13px;
+      font-family: var(--font);
+      transition: background 0.15s, color 0.15s, border 0.15s;
+    }
+
+    .ref-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      border: 0.5px solid var(--border-md);
+      border-radius: var(--radius-md);
+      background: var(--bg-primary);
+      cursor: pointer;
+      font-size: 13px;
+      font-family: var(--font);
+      color: var(--text-secondary);
+      white-space: nowrap;
+      transition: background 0.15s;
+    }
+
+    .ref-btn:hover { background: var(--bg-secondary); }
+
+    .ref-btn svg { flex-shrink: 0; }
+
+    .formula-box {
+      background: var(--bg-secondary);
+      border-radius: var(--radius-md);
+      padding: 1rem 1.25rem;
+      margin-bottom: 1rem;
+    }
+
+    .formula-box:last-child { margin-bottom: 0; }
+
+    .formula-line {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+
+    .formula-line:last-child { margin-bottom: 0; }
+
+    .fval {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-primary);
+      min-width: 60px;
+    }
+
+    .fval.computed { color: #185FA5; }
+
+    .fop { color: var(--text-tertiary); font-size: 15px; }
+
+    .flabel { font-size: 13px; color: var(--text-secondary); font-style: italic; }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 1rem;
+    }
+
+    .metric-card {
+      background: var(--bg-secondary);
+      border-radius: var(--radius-md);
+      padding: 1rem;
+    }
+
+    .metric-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 6px;
+    }
+
+    .metric-value {
+      font-size: 22px;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    .metric-unit {
+      font-size: 11px;
+      color: var(--text-tertiary);
+      margin-top: 3px;
+    }
+
+    .span-2 { grid-column: span 2; }
+
+    .status-bar {
+      border-radius: var(--radius-md);
+      padding: 0.75rem 1rem;
+      font-size: 14px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-na   { background: var(--bg-secondary); color: var(--text-secondary); }
+    .status-ok   { background: var(--bg-success);   color: var(--green-text); }
+    .status-warn { background: var(--bg-danger);     color: var(--text-danger); }
+
+    .gauge-wrap { margin: 10px 0 0; }
+
+    .gauge-track {
+      height: 8px;
+      border-radius: 4px;
+      background: rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+
+    .gauge-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.35s ease, background 0.35s;
+      background: var(--gauge-green);
+      width: 0%;
+    }
+
+    .gauge-fill.warn { background: var(--gauge-red); }
+
+    .gauge-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--text-tertiary);
+      margin-top: 4px;
+    }
+
+    .step-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--bg-info);
+      color: var(--text-info);
+      font-size: 11px;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    /* Overlay */
+    .overlay-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .overlay-backdrop.open { display: flex; }
+
+    .overlay-panel {
+      background: var(--bg-primary);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem 1.5rem;
+      width: 340px;
+      max-height: 82vh;
+      overflow-y: auto;
+    }
+
+    .overlay-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+
+    .overlay-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .close-btn {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      color: var(--text-secondary);
+      font-size: 20px;
+      line-height: 1;
+      padding: 4px 6px;
+      border-radius: var(--radius-md);
+      font-family: var(--font);
+    }
+
+    .close-btn:hover { background: var(--bg-secondary); }
+
+    .frac-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .frac-table th {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 6px 8px;
+      border-bottom: 0.5px solid var(--border);
+      text-align: left;
+    }
+
+    .frac-table td {
+      padding: 6px 8px;
+      border-bottom: 0.5px solid var(--border);
+      color: var(--text-primary);
+    }
+
+    .frac-table tr:last-child td { border-bottom: none; }
+    .frac-table tr:nth-child(even) td { background: var(--bg-secondary); }
+
+    @media (max-width: 480px) {
+      .field-row, .field-row-3 { grid-template-columns: 1fr; }
+      .result-grid { grid-template-columns: 1fr; }
+      .span-2 { grid-column: span 1; }
+      .surface-toggle { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-wrap">
+
+    <div class="page-header">
+      <h1>Round Sling Connection Size Calculator</h1>
+      <p>Polyester round sling bearing stress calculator — max 7,000 lbs./in²</p>
+    </div>
+
+    <!-- Overlay -->
+    <div class="overlay-backdrop" id="overlay">
+      <div class="overlay-panel" role="dialog" aria-modal="true" aria-labelledby="overlay-heading">
+        <div class="overlay-header">
+          <span class="overlay-title" id="overlay-heading">Inch fractions to decimals</span>
+          <button class="close-btn" onclick="closeOverlay()" aria-label="Close">&#x2715;</button>
+        </div>
+        <table class="frac-table">
+          <thead>
+            <tr><th>Fraction</th><th>Decimal (in)</th></tr>
+          </thead>
+          <tbody id="frac-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Step 1 -->
+    <div class="calc-card">
+      <div class="section-label">Step 1 — Surface type</div>
+      <div class="surface-toggle">
+        <button class="surf-btn" id="btn-straight" onclick="setSurface('straight')">
+          Straight surface &nbsp;<span style="font-size:12px;opacity:0.75;">factor = 1.00</span>
+        </button>
+        <button class="surf-btn" id="btn-curved" onclick="setSurface('curved')">
+          Curved surface &nbsp;<span style="font-size:12px;opacity:0.75;">factor = 0.75</span>
+        </button>
+      </div>
+
+      <div class="section-label">Step 2 — Input values</div>
+      <div class="field-row">
+        <div class="field">
+          <label for="eiw">Effective inside width</label>
+          <input type="number" id="eiw" min="0" step="0.01" placeholder="0.00" oninput="calc()" />
+          <span class="unit">inches</span>
+        </div>
+        <div class="field">
+          <label for="hd">Hardware diameter</label>
+          <input type="number" id="hd" min="0" step="0.01" placeholder="0.00" oninput="calc()" />
+          <span class="unit">inches</span>
+        </div>
+      </div>
+      <div class="field-row-3">
+        <div class="field">
+          <label for="af">Applied force</label>
+          <input type="number" id="af" min="0" step="1" placeholder="0" oninput="calc()" />
+          <span class="unit">pounds</span>
+        </div>
+        <div></div>
+        <div style="padding-bottom:18px;">
+          <button class="ref-btn" onclick="openOverlay()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 3h18"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M3 21h18"/>
+            </svg>
+            Fraction chart
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div class="calc-card">
+      <div class="section-label">Results summary</div>
+      <div class="result-grid">
+        <div class="metric-card">
+          <div class="metric-label">Effective contact width</div>
+          <div class="metric-value" id="r-ecw">—</div>
+          <div class="metric-unit">inches</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Load bearing area</div>
+          <div class="metric-value" id="r-lba">—</div>
+          <div class="metric-unit">in²</div>
+        </div>
+        <div class="metric-card span-2">
+          <div class="metric-label">Bearing stress value</div>
+          <div class="metric-value" id="r-bsv">—</div>
+          <div class="metric-unit">lbs./in² &nbsp;(max 7,000)</div>
+          <div class="gauge-wrap">
+            <div class="gauge-track"><div class="gauge-fill" id="gauge"></div></div>
+            <div class="gauge-labels"><span>0</span><span>3,500</span><span>7,000</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="status-bar status-na" id="status-bar">
+        <span id="status-icon">ℹ</span>
+        <span id="status-text">Enter values above to check bearing stress</span>
+      </div>
+    </div>
+
+    <!-- Formula -->
+    <div class="calc-card">
+      <div class="section-label">Full formula breakdown</div>
+
+      <div class="formula-box">
+        <div class="formula-line">
+          <span class="step-num">1</span>
+          <span class="flabel">Surface factor</span>
+          <span class="fop">×</span>
+          <span class="flabel">Effective inside width</span>
+          <span class="fop">=</span>
+          <span class="flabel">Effective contact width</span>
+        </div>
+        <div class="formula-line" style="padding-left:28px;">
+          <span class="fval" id="f-sf">0.75</span>
+          <span class="fop">×</span>
+          <span class="fval" id="f-eiw">—</span>
+          <span class="fop">=</span>
+          <span class="fval computed" id="f-ecw">—</span>
+          <span style="font-size:12px;color:#888780;">in</span>
+        </div>
+      </div>
+
+      <div class="formula-box">
+        <div class="formula-line">
+          <span class="step-num">2</span>
+          <span class="flabel">Hardware diameter</span>
+          <span class="fop">×</span>
+          <span class="flabel">Effective contact width</span>
+          <span class="fop">=</span>
+          <span class="flabel">Load bearing area</span>
+        </div>
+        <div class="formula-line" style="padding-left:28px;">
+          <span class="fval" id="f-hd">—</span>
+          <span class="fop">×</span>
+          <span class="fval" id="f-ecw2">—</span>
+          <span class="fop">=</span>
+          <span class="fval computed" id="f-lba">—</span>
+          <span style="font-size:12px;color:#888780;">in²</span>
+        </div>
+      </div>
+
+      <div class="formula-box">
+        <div class="formula-line">
+          <span class="step-num">3</span>
+          <span class="flabel">Applied force</span>
+          <span class="fop">÷</span>
+          <span class="flabel">Load bearing area</span>
+          <span class="fop">=</span>
+          <span class="flabel">Bearing stress value</span>
+        </div>
+        <div class="formula-line" style="padding-left:28px;">
+          <span class="fval" id="f-af">—</span>
+          <span class="fop">÷</span>
+          <span class="fval" id="f-lba2">—</span>
+          <span class="fop">=</span>
+          <span class="fval computed" id="f-bsv">—</span>
+          <span style="font-size:12px;color:#888780;">lbs./in²</span>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /page-wrap -->
+
+  <script>
+    const INACTIVE = { background: 'transparent', border: '0.5px solid #888780', color: '#5F5E5A', fontWeight: '400' };
+    const ACTIVE   = { background: '#EAF3DE',     border: '2px solid #639922',   color: '#27500A', fontWeight: '500' };
+
+    let surfaceFactor = 0.75;
+
+    function applyStyle(el, s) {
+      el.style.background = s.background;
+      el.style.border     = s.border;
+      el.style.color      = s.color;
+      el.style.fontWeight = s.fontWeight;
+    }
+
+    function setSurface(type) {
+      surfaceFactor = type === 'straight' ? 1.0 : 0.75;
+      const sBtn = document.getElementById('btn-straight');
+      const cBtn = document.getElementById('btn-curved');
+      applyStyle(sBtn, type === 'straight' ? ACTIVE : INACTIVE);
+      applyStyle(cBtn, type === 'curved'   ? ACTIVE : INACTIVE);
+      sBtn.innerHTML = (type === 'straight' ? '&#10003; ' : '') +
+        'Straight surface &nbsp;<span style="font-size:12px;opacity:0.75;">factor = 1.00</span>';
+      cBtn.innerHTML = (type === 'curved' ? '&#10003; ' : '') +
+        'Curved surface &nbsp;<span style="font-size:12px;opacity:0.75;">factor = 0.75</span>';
+      calc();
+    }
+
+    function fmt(n, dec) {
+      if (n === null || isNaN(n)) return '—';
+      return n.toLocaleString(undefined, { minimumFractionDigits: dec, maximumFractionDigits: dec });
+    }
+
+    function calc() {
+      const eiw = parseFloat(document.getElementById('eiw').value);
+      const hd  = parseFloat(document.getElementById('hd').value);
+      const af  = parseFloat(document.getElementById('af').value);
+
+      document.getElementById('f-sf').textContent  = surfaceFactor === 1.0 ? '1.00' : '0.75';
+      document.getElementById('f-eiw').textContent = isNaN(eiw) ? '—' : fmt(eiw, 2) + ' in';
+      document.getElementById('f-hd').textContent  = isNaN(hd)  ? '—' : fmt(hd,  2) + ' in';
+      document.getElementById('f-af').textContent  = isNaN(af)  ? '—' : fmt(af,  0) + ' lbs';
+
+      if (isNaN(eiw) || isNaN(hd) || isNaN(af)) {
+        ['f-ecw','f-ecw2','f-lba','f-lba2','f-bsv','r-ecw','r-lba','r-bsv'].forEach(id => {
+          document.getElementById(id).textContent = '—';
+        });
+        document.getElementById('gauge').style.width = '0%';
+        document.getElementById('gauge').classList.remove('warn');
+        setStatus('na', 'Enter all values above to check bearing stress');
+        return;
+      }
+
+      const ecw = surfaceFactor * eiw;
+      const lba = hd * ecw;
+      const bsv = lba > 0 ? af / lba : null;
+
+      const ecwStr = fmt(ecw, 4);
+      const lbaStr = fmt(lba, 4);
+      const bsvStr = bsv !== null ? fmt(bsv, 1) : '—';
+
+      document.getElementById('f-ecw').textContent  = ecwStr;
+      document.getElementById('f-ecw2').textContent = ecwStr + ' in';
+      document.getElementById('f-lba').textContent  = lbaStr;
+      document.getElementById('f-lba2').textContent = lbaStr + ' in²';
+      document.getElementById('f-bsv').textContent  = bsvStr;
+      document.getElementById('r-ecw').textContent  = ecwStr;
+      document.getElementById('r-lba').textContent  = lbaStr;
+      document.getElementById('r-bsv').textContent  = bsv !== null ? bsvStr : '—';
+
+      if (bsv !== null) {
+        const pct = Math.min((bsv / 7000) * 100, 100);
+        document.getElementById('gauge').style.width = pct.toFixed(1) + '%';
+        const over = bsv > 7000;
+        document.getElementById('gauge').classList.toggle('warn', over);
+        if (over) {
+          setStatus('warn', 'Exceeds maximum — bearing stress of ' + bsvStr + ' lbs./in² is above the 7,000 lbs./in² limit');
+        } else {
+          setStatus('ok', 'Within limit — ' + fmt(7000 - bsv, 1) + ' lbs./in² of margin remaining');
+        }
+      } else {
+        setStatus('na', 'Load bearing area cannot be zero');
+      }
+    }
+
+    function setStatus(type, msg) {
+      const bar  = document.getElementById('status-bar');
+      const icon = document.getElementById('status-icon');
+      const text = document.getElementById('status-text');
+      bar.className = 'status-bar status-' + type;
+      icon.textContent = type === 'ok' ? '✓' : type === 'warn' ? '⚠' : 'ℹ';
+      text.textContent = msg;
+    }
+
+    // 16ths only: 1/16 through 16/16
+    const fractions = [
+      [1,16],[2,16],[3,16],[4,16],[5,16],[6,16],[7,16],[8,16],
+      [9,16],[10,16],[11,16],[12,16],[13,16],[14,16],[15,16],[16,16]
+    ];
+
+    function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
+
+    function fracLabel(n, d) {
+      if (n === d) return '1"';
+      const g = gcd(n, d);
+      return (n/g) + '/' + (d/g) + '"';
+    }
+
+    function buildFracTable() {
+      const tbody = document.getElementById('frac-tbody');
+      tbody.innerHTML = fractions.map(function([n, d]) {
+        const dec = n / d;
+        return '<tr><td><strong>' + fracLabel(n, d) + '</strong></td><td>' + dec.toFixed(4) + '</td></tr>';
+      }).join('');
+    }
+
+    function openOverlay() {
+      buildFracTable();
+      document.getElementById('overlay').classList.add('open');
+    }
+
+    function closeOverlay() {
+      document.getElementById('overlay').classList.remove('open');
+    }
+
+    document.getElementById('overlay').addEventListener('click', function(e) {
+      if (e.target === this) closeOverlay();
+    });
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') closeOverlay();
+    });
+
+    setSurface('curved');
+  </script>
+</body>
+</html>
