@@ -216,9 +216,9 @@
     }
     .hero-name{font-size:clamp(32px,8.5vw,52px);}
     .hero-title{font-size:clamp(10px,2.8vw,15px); letter-spacing:clamp(2px,1vw,4px);}
-    /* let the headline wrap on its own on narrow screens */
-    .hl-break{display:none;}
-    .headline{max-width:18ch;}
+    /* keep the forced break so the headline is two lines on mobile too */
+    .hl-break{display:inline;}
+    .headline{max-width:26ch; font-size:clamp(21px,5.6vw,34px);}
   }
   @media (max-width:520px){
     .cta-row{flex-direction:column; align-items:center;}
