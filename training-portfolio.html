@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Training Portfolio — Andre Gurule</title>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&family=VT323&family=Inconsolata:wght@400;600&display=swap" rel="stylesheet">
 <style>
@@ -16,6 +16,7 @@
   --wood-dark:   #7a4e1e;
   --gold:        #c89828;
   --gold-lt:     #f0c040;
+  --gold-text:   #7f6212; /* gold for small TEXT: 5.1:1 on cream (bright gold is 2.4:1, borders/rules only) */
   --text-dark:   #1e140a;
   --text-mid:    #4a3520;
   --text-light:  #8a6840;
@@ -27,6 +28,21 @@
 }
 
 html { scroll-behavior: smooth; }
+
+/* Keyboard focus — visible gold ring on every interactive element */
+:focus-visible { outline: 2.5px solid var(--gold-text); outline-offset: 3px; border-radius: 3px; }
+.code-block :focus-visible, #lightbox :focus-visible { outline-color: var(--gold-lt); }
+
+/* Respect reduced-motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+  .gallery-item:hover, .fw-stage:hover { transform: none; }
+}
+
+#skip-link:focus { position:fixed; left:12px; top:60px; width:auto; height:auto; clip:auto; margin:0; padding:8px 14px; z-index:1000; background:var(--warm-white); color:var(--text-dark); border:2px solid var(--gold-text); border-radius:3px; font-weight:600; }
+/* Screen-reader-only text */
+.sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
 
 body {
   background: var(--cream);
@@ -107,7 +123,7 @@ main {
   font-family: 'DM Sans', sans-serif;
   font-size: clamp(9px, 1.1vw, 11px);
   font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase;
-  color: var(--gold); margin-bottom: 16px;
+  color: var(--gold-text); margin-bottom: 16px;
   display: flex; align-items: center; gap: 12px;
 }
 .eyebrow::after {
@@ -216,7 +232,7 @@ section {
 
 .exp-subhead {
   font-size: 10px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase;
-  color: var(--gold); margin-top: clamp(20px, 3vh, 28px);
+  color: var(--gold-text); margin-top: clamp(20px, 3vh, 28px);
   padding-top: clamp(4px, 1vh, 8px);
 }
 .exp-subhead + .exp-entry { padding-top: 12px; }
@@ -588,7 +604,7 @@ section {
 }
 .case-label {
   font-size: 10px; font-weight: 600; letter-spacing: 0.18em;
-  text-transform: uppercase; color: var(--gold); margin-bottom: 6px;
+  text-transform: uppercase; color: var(--gold-text); margin-bottom: 6px;
 }
 .case-grid p {
   font-size: clamp(13px, 1.5vw, 14.5px); line-height: 1.7; color: var(--text-mid);
@@ -606,7 +622,7 @@ section {
 .demo-frame {
   width: 100%; height: 760px; border: 1px solid var(--rule);
   border-radius: 4px; background: #FAF8F5; display: block;
-  margin-bottom: clamp(20px, 3vh, 28px);
+  margin-bottom: 18px;
 }
 
 /* Code block — dark "cartridge" panel */
@@ -642,7 +658,7 @@ section {
 .code-block .f { color: #7fc8f8; }          /* functions */
 .code-block .s { color: #a8d88a; }          /* strings */
 .code-block .n { color: #f59a6b; }          /* numbers */
-.code-block .c { color: #8a7a5a; font-style: italic; } /* comments */
+.code-block .c { color: #a3916b; font-style: italic; } /* comments */
 /* Demo tabs */
 .demo-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
 .demo-tab {
@@ -693,18 +709,19 @@ section {
   transform: translateY(-50%); font-size: 9px; color: var(--gold); z-index: 1;
 }
 .fw-stage:hover { border-color: var(--wood-mid); transform: translateY(-1px); }
-.fw-stage[aria-selected="true"] { background: var(--text-dark); border-color: var(--text-dark); }
+.fw-stage[aria-pressed="true"] { background: var(--text-dark); border-color: var(--text-dark); }
 .fw-num {
   display: block; font-family: 'Press Start 2P', monospace; font-size: 7px;
-  color: var(--gold); letter-spacing: 0.5px; margin-bottom: 7px;
+  color: var(--gold-text); letter-spacing: 0.5px; margin-bottom: 7px;
 }
+.fw-stage[aria-pressed="true"] .fw-num { color: var(--gold-lt); }
 .fw-name {
   display: block; font-size: clamp(13px, 1.5vw, 15px); font-weight: 700;
   color: var(--text-dark); margin-bottom: 2px;
 }
 .fw-hint { display: block; font-size: 11.5px; color: var(--text-light); line-height: 1.4; }
-.fw-stage[aria-selected="true"] .fw-name { color: var(--gold-lt); }
-.fw-stage[aria-selected="true"] .fw-hint { color: rgba(247,242,232,0.65); }
+.fw-stage[aria-pressed="true"] .fw-name { color: var(--gold-lt); }
+.fw-stage[aria-pressed="true"] .fw-hint { color: rgba(247,242,232,0.65); }
 .fw-detail {
   background: var(--cream); border-left: 3px solid var(--gold);
   border-radius: 0 4px 4px 0; padding: 12px 16px;
@@ -742,6 +759,10 @@ section {
   .fw-stages { grid-template-columns: repeat(2, 1fr); }
   .fw-stage::after { display: none; }
 }
+.demo-credit {
+  font-size: clamp(12px, 1.3vw, 13px); color: var(--text-mid); font-style: italic;
+  margin: -10px 0 clamp(18px, 2.6vh, 24px); padding-left: 10px; border-left: 2px solid var(--gold);
+}
 .code-note {
   font-size: clamp(11px, 1.2vw, 12.5px); color: var(--text-light);
   margin-top: 10px; line-height: 1.6;
@@ -758,19 +779,20 @@ section {
 </head>
 <body>
 
-<div id="cursor"></div>
+<div id="cursor" aria-hidden="true"></div>
+<a class="sr-only" href="#main" style="" id="skip-link">Skip to main content</a>
 
 <!-- Back Banner -->
 <header id="back-banner">
   <a id="back-link" href="hall-of-records.html">
-    <span class="arrow">←</span> Hall of Records
+    <span class="arrow" aria-hidden="true">←</span> Hall of Records
   </a>
   <span id="banner-title">Andre Gurule · Portfolio</span>
-  <a id="contact-link" href="https://linkedin.com/in/andregurule" target="_blank">Connect</a>
+  <a id="contact-link" href="https://linkedin.com/in/andregurule" target="_blank" rel="noopener">Connect<span class="sr-only"> (opens in a new tab)</span></a>
 </header>
 
 <!-- Main Content -->
-<main>
+<main id="main">
 
   <!-- Hero -->
   <section id="hero">
@@ -868,17 +890,17 @@ section {
       </div>
 
       <div class="case-sub">How it works — select a stage</div>
-      <div class="fw-stages" role="tablist" aria-label="Framework stages">
-        <button class="fw-stage" role="tab" aria-selected="true" data-detail="A discovery call, a kickoff meeting, and root-cause analysis for each behavior: is it a knowledge gap, or an environment or motivation issue that training alone won't fix? Built-in guardrails keep solutions off the table until the sponsor confirms the problem, the approach, and the evaluation method.">
+      <div class="fw-stages" role="group" aria-label="Framework stages">
+        <button class="fw-stage" aria-pressed="true" aria-controls="fw-detail" data-detail="A discovery call, a kickoff meeting, and root-cause analysis for each behavior: is it a knowledge gap, or an environment or motivation issue that training alone won't fix? Built-in guardrails keep solutions off the table until the sponsor confirms the problem, the approach, and the evaluation method.">
           <span class="fw-num">01</span><span class="fw-name">Discover</span><span class="fw-hint">Problem &amp; root cause</span>
         </button>
-        <button class="fw-stage" role="tab" aria-selected="false" data-detail="The Six Disciplines (D1–D6) structure the design: business outcomes first, then the complete learning experience, delivery for application, learning transfer, and on-the-job performance support. The form also plans how leadership will visibly back the program, and names who owns reinforcement once the design team steps away.">
+        <button class="fw-stage" aria-pressed="false" aria-controls="fw-detail" data-detail="The Six Disciplines (D1–D6) structure the design: business outcomes first, then the complete learning experience, delivery for application, learning transfer, and on-the-job performance support. The form also plans how leadership will visibly back the program, and names who owns reinforcement once the design team steps away.">
           <span class="fw-num">02</span><span class="fw-name">Design</span><span class="fw-hint">Six Disciplines, D1–D6</span>
         </button>
-        <button class="fw-stage" role="tab" aria-selected="false" data-detail="Results are documented against the method chosen at the start: Kirkpatrick Levels 1–4, Phillips ROI, or performance and proficiency tracking. Choosing the method before design means the right baseline data is collected from day one.">
+        <button class="fw-stage" aria-pressed="false" aria-controls="fw-detail" data-detail="Results are documented against the method chosen at the start: Kirkpatrick Levels 1–4, Phillips ROI, or performance and proficiency tracking. Choosing the method before design means the right baseline data is collected from day one.">
           <span class="fw-num">03</span><span class="fw-name">Evaluate</span><span class="fw-hint">Method chosen up front</span>
         </button>
-        <button class="fw-stage" role="tab" aria-selected="false" data-detail="A portfolio tracker rolls up metrics, ROI, and proficiency results across every program, so the team can see patterns, not just one program at a time. It also flags non-training fixes (process, tools, incentives) so training isn't credited for results it didn't cause.">
+        <button class="fw-stage" aria-pressed="false" aria-controls="fw-detail" data-detail="A portfolio tracker rolls up metrics, ROI, and proficiency results across every program, so the team can see patterns, not just one program at a time. It also flags non-training fixes (process, tools, incentives) so training isn't credited for results it didn't cause.">
           <span class="fw-num">04</span><span class="fw-name">Track</span><span class="fw-hint">Results across programs</span>
         </button>
       </div>
@@ -895,19 +917,19 @@ section {
 
       <div class="case-sub">A look inside — click to expand</div>
       <div class="fw-shots">
-        <div class="gallery-item" onclick="openLightbox(this)">
+        <div class="gallery-item" onclick="openLightbox(this)" role="button" tabindex="0">
           <div class="gallery-img-wrap">
             <img src="images/training-framework/form-step1-discovery.jpg" alt="Step 1 Discovery Call checklist with red 'do not' guardrails" loading="lazy">
           </div>
           <div class="gallery-caption"><strong>Step 1 — Discovery Call</strong>Checklist with "do not" guardrails: no solutions yet.</div>
         </div>
-        <div class="gallery-item" onclick="openLightbox(this)">
+        <div class="gallery-item" onclick="openLightbox(this)" role="button" tabindex="0">
           <div class="gallery-img-wrap">
             <img src="images/training-framework/form-step4-root-cause.jpg" alt="Step 4 Analyze and Confirm the Solution, with root-cause solution analysis table" loading="lazy">
           </div>
           <div class="gallery-caption"><strong>Step 4 — Analyze &amp; Confirm</strong>Root-cause analysis and sponsor sign-off before design.</div>
         </div>
-        <div class="gallery-item" onclick="openLightbox(this)">
+        <div class="gallery-item" onclick="openLightbox(this)" role="button" tabindex="0">
           <div class="gallery-img-wrap">
             <img src="images/training-framework/tracker-sample-row.jpg" alt="Metrics and ROI tracker showing a sample row from a mock pilot" loading="lazy">
           </div>
@@ -952,22 +974,23 @@ section {
 
       <div class="demo-tabs" role="tablist" aria-label="Calculator demos">
         <button class="demo-tab" role="tab" id="tab-angle" aria-controls="panel-angle" aria-selected="true">Sling Angle Capacity</button>
-        <button class="demo-tab" role="tab" id="tab-bearing" aria-controls="panel-bearing" aria-selected="false">Round Sling Bearing Stress</button>
+        <button class="demo-tab" role="tab" id="tab-bearing" aria-controls="panel-bearing" aria-selected="false" tabindex="-1">Round Sling Bearing Stress</button>
       </div>
 
       <!-- Panel 1: Sling angle -->
       <div class="demo-panel" role="tabpanel" id="panel-angle" aria-labelledby="tab-angle">
         <p class="demo-blurb">Drag the angle and load sliders. The rigging diagram, per-leg tension, and remaining
         sling capacity update in real time, with color cues as the angle approaches the 30° minimum.</p>
-        <div class="demo-label"><span><span class="live-dot"></span>Live demo — try it</span><span>As learners see it in Rise</span></div>
+        <div class="demo-label"><span><span class="live-dot" aria-hidden="true"></span>Live demo — try it</span><span>As learners see it in Rise</span></div>
         <iframe class="demo-frame" src="demos/sling-angle-calculator.html" title="Sling angle capacity calculator" loading="lazy"></iframe>
+        <p class="demo-credit">Original interactive learning object, designed and built by me for the basic rigging training I developed.</p>
 
         <div class="code-block">
           <div class="code-head">
             <span class="code-file">SLING-ANGLE.JS</span>
             <div class="code-actions">
               <button class="code-btn" data-copy-src="demos/sling-angle-calculator.html">COPY CODE</button>
-              <a class="code-btn" href="demos/sling-angle-calculator.html" target="_blank">FULL SOURCE ↗</a>
+              <a class="code-btn" href="demos/sling-angle-calculator.html" target="_blank" rel="noopener">FULL SOURCE ↗<span class="sr-only"> (opens in a new tab)</span></a>
             </div>
           </div>
 <pre><code><span class="k">function</span> <span class="f">sacUpdate</span>() {
@@ -995,15 +1018,16 @@ section {
         The calculator walks through each step of the formula and flags any connection that exceeds the
         7,000 lbs./in² bearing-stress limit for polyester round slings. A built-in fraction chart helps
         learners convert tape-measure readings to decimals.</p>
-        <div class="demo-label"><span><span class="live-dot"></span>Live demo — try it</span><span>As learners see it in Rise</span></div>
+        <div class="demo-label"><span><span class="live-dot" aria-hidden="true"></span>Live demo — try it</span><span>As learners see it in Rise</span></div>
         <iframe class="demo-frame" data-src="demos/round-sling-bearing-stress.html" title="Round sling connection size calculator"></iframe>
+        <p class="demo-credit">Original interactive learning object, designed and built by me for the basic rigging training I developed.</p>
 
         <div class="code-block">
           <div class="code-head">
             <span class="code-file">BEARING-STRESS.JS</span>
             <div class="code-actions">
               <button class="code-btn" data-copy-src="demos/round-sling-bearing-stress.html">COPY CODE</button>
-              <a class="code-btn" href="demos/round-sling-bearing-stress.html" target="_blank">FULL SOURCE ↗</a>
+              <a class="code-btn" href="demos/round-sling-bearing-stress.html" target="_blank" rel="noopener">FULL SOURCE ↗<span class="sr-only"> (opens in a new tab)</span></a>
             </div>
           </div>
 <pre><code><span class="k">function</span> <span class="f">calc</span>() {
@@ -1062,25 +1086,25 @@ section {
 
       <div class="case-sub">Inside the app — sample data, click to expand</div>
       <div class="fw-shots two-up">
-        <div class="gallery-item" onclick="openLightbox(this)">
+        <div class="gallery-item" onclick="openLightbox(this)" role="button" tabindex="0">
           <div class="gallery-img-wrap">
             <img src="images/assessment-app/instructor-class-summary.jpg" style="object-position:50% 100%" alt="Instructor dashboard showing learner progress and per-question results" loading="lazy">
           </div>
           <div class="gallery-caption"><strong>Live Class Summary</strong>Learner progress and per-question results, updating in real time.</div>
         </div>
-        <div class="gallery-item" onclick="openLightbox(this)">
+        <div class="gallery-item" onclick="openLightbox(this)" role="button" tabindex="0">
           <div class="gallery-img-wrap">
             <img src="images/assessment-app/answers-incorrect-filter.jpg" style="object-position:50% 85%" alt="Answers grouped by question, filtered to incorrect answers" loading="lazy">
           </div>
           <div class="gallery-caption"><strong>Reteach Triage</strong>Answers by question, filtered to incorrect responses.</div>
         </div>
-        <div class="gallery-item" onclick="openLightbox(this)">
+        <div class="gallery-item" onclick="openLightbox(this)" role="button" tabindex="0">
           <div class="gallery-img-wrap">
             <img src="images/assessment-app/skill-evaluation.jpg" style="object-position:50% 75%" alt="Skill evaluation form with a 1 to 5 competency scale" loading="lazy">
           </div>
           <div class="gallery-caption"><strong>Skill Evaluation</strong>Hands-on skills rated against a reusable rubric.</div>
         </div>
-        <div class="gallery-item" onclick="openLightbox(this)">
+        <div class="gallery-item" onclick="openLightbox(this)" role="button" tabindex="0">
           <div class="gallery-img-wrap">
             <img src="images/assessment-app/learner-ipad-quiz.jpg" style="object-position:50% 55%" alt="Learner quiz view on an iPad with load information and questions" loading="lazy">
           </div>
@@ -1129,39 +1153,39 @@ section {
     <h2 class="section-title">Core Competencies</h2>
     <div class="skills-grid">
       <div class="skill-card">
-        <span class="sk-icon">🎓</span>
+        <span class="sk-icon" aria-hidden="true">🎓</span>
         <div class="sk-text"><strong>LMS Development</strong>Articulate 360, Storyline 360 — full course design from storyboard to launch.</div>
       </div>
       <div class="skill-card">
-        <span class="sk-icon">🎙️</span>
+        <span class="sk-icon" aria-hidden="true">🎙️</span>
         <div class="sk-text"><strong>Public Speaking</strong>Comfortable in front of 10 to 1,000+ — from safety briefings to all-hands presentations.</div>
       </div>
       <div class="skill-card">
-        <span class="sk-icon">🎬</span>
+        <span class="sk-icon" aria-hidden="true">🎬</span>
         <div class="sk-text"><strong>Video Production</strong>Final Cut Pro X and DaVinci Resolve — scripting, filming, and editing training videos.</div>
       </div>
       <div class="skill-card">
-        <span class="sk-icon">📋</span>
+        <span class="sk-icon" aria-hidden="true">📋</span>
         <div class="sk-text"><strong>SOP &amp; Documentation</strong>Technical writing, process documentation, and policy development.</div>
       </div>
       <div class="skill-card">
-        <span class="sk-icon">🧠</span>
+        <span class="sk-icon" aria-hidden="true">🧠</span>
         <div class="sk-text"><strong>Adult Learning Theory</strong>Scenario-based, hands-on, and goal-oriented training using evidence-based methods.</div>
       </div>
       <div class="skill-card">
-        <span class="sk-icon">🧭</span>
+        <span class="sk-icon" aria-hidden="true">🧭</span>
         <div class="sk-text"><strong>Leadership Development</strong>Mentoring emerging leaders through their first leadership roles. Arbinger DIOM train-the-trainer.</div>
       </div>
       <div class="skill-card">
-        <span class="sk-icon">📊</span>
+        <span class="sk-icon" aria-hidden="true">📊</span>
         <div class="sk-text"><strong>Project Management</strong>End-to-end ownership from concept through implementation and evaluation.</div>
       </div>
       <div class="skill-card">
-        <span class="sk-icon">🖥️</span>
+        <span class="sk-icon" aria-hidden="true">🖥️</span>
         <div class="sk-text"><strong>SaaS Training</strong>Post-sales customer onboarding, support training, and online program development.</div>
       </div>
       <div class="skill-card">
-        <span class="sk-icon">🤖</span>
+        <span class="sk-icon" aria-hidden="true">🤖</span>
         <div class="sk-text"><strong>AI</strong>Reimagining training content and workflows.</div>
       </div>
     </div>
@@ -1226,10 +1250,10 @@ section {
       <!-- VIDEO CARD 1 -->
       <div class="video-card">
         <div class="video-embed">
-          <iframe src="https://www.youtube.com/embed/i3vll2M186c" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+          <iframe src="https://www.youtube.com/embed/i3vll2M186c" title="Automotive Video Framing Tutorial (YouTube video)" loading="lazy" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
         </div>
         <div class="video-info">
-          <div class="v-title">Training Video 1</div>
+          <div class="v-title">Automotive Video Framing Tutorial</div>
           <div class="v-desc">This video was part of a national training program that I developed for an automotive digital marketing company.</div>
         </div>
       </div>
@@ -1237,10 +1261,10 @@ section {
       <!-- VIDEO CARD 2 -->
       <div class="video-card">
         <div class="video-embed">
-          <iframe src="https://www.youtube.com/embed/AtmmXMmwhoc" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+          <iframe src="https://www.youtube.com/embed/AtmmXMmwhoc" title="Automotive Video Lighting Tutorial (YouTube video)" loading="lazy" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
         </div>
         <div class="video-info">
-          <div class="v-title">Training Video 2</div>
+          <div class="v-title">Automotive Video Lighting Tutorial</div>
           <div class="v-desc">I created content for these videos, including writing the scripts, shooting videos and photos, recording the voiceover, and editing the videos.</div>
         </div>
       </div>
@@ -1248,7 +1272,7 @@ section {
       <!-- VIDEO CARD 3 -->
       <div class="video-card">
         <div class="video-embed">
-          <iframe src="https://www.youtube.com/embed/RvxPo2MP_PY" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+          <iframe src="https://www.youtube.com/embed/RvxPo2MP_PY" title="Product Video for Live Event Stream Automotive (YouTube video)" loading="lazy" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
         </div>
         <div class="video-info">
           <div class="v-title">Product Video</div>
@@ -1264,31 +1288,31 @@ section {
     <h2 class="section-title">Certifications &amp; Training</h2>
     <div class="cert-list">
       <div class="cert-item">
-        <span class="cert-icon">🏅</span>
+        <span class="cert-icon" aria-hidden="true">🏅</span>
         <div class="cert-text">
           <span class="cert-name">AHA Certified CPR &amp; First Aid Instructor</span>
         </div>
       </div>
       <div class="cert-item">
-        <span class="cert-icon">🦺</span>
+        <span class="cert-icon" aria-hidden="true">🦺</span>
         <div class="cert-text">
           <span class="cert-name">OSHA 30 — Construction</span>
         </div>
       </div>
       <div class="cert-item">
-        <span class="cert-icon">🧗</span>
+        <span class="cert-icon" aria-hidden="true">🧗</span>
         <div class="cert-text">
           <span class="cert-name">SPRAT Rope Access Certification — Level 1</span>
         </div>
       </div>
       <div class="cert-item">
-        <span class="cert-icon">📖</span>
+        <span class="cert-icon" aria-hidden="true">📖</span>
         <div class="cert-text">
           <span class="cert-name">Arbinger DIOM Leadership Train-the-Trainer</span>
         </div>
       </div>
       <div class="cert-item">
-        <span class="cert-icon">🎓</span>
+        <span class="cert-icon" aria-hidden="true">🎓</span>
         <div class="cert-text">
           <span class="cert-name">GED</span>
         </div>
@@ -1301,7 +1325,7 @@ section {
     <h3>Ready to talk training?</h3>
     <p>If you're looking for someone who can build programs from scratch, develop your team, and make learning stick — let's connect.</p>
     <div class="cta-links">
-      <a class="cta-btn primary" href="https://linkedin.com/in/andregurule" target="_blank">View LinkedIn Profile</a>
+      <a class="cta-btn primary" href="https://linkedin.com/in/andregurule" target="_blank" rel="noopener">View LinkedIn Profile<span class="sr-only"> (opens in a new tab)</span></a>
       <a class="cta-btn secondary" href="mailto:andregurule@gmail.com">Send an Email</a>
       <a class="cta-btn secondary" href="hall-of-records.html">← Back to Hall of Records</a>
     </div>
@@ -1310,14 +1334,14 @@ section {
 </main>
 
 <!-- Lightbox -->
-<div id="lightbox" onclick="closeLightbox()">
-  <button id="lb-close" onclick="closeLightbox()">✕ Close</button>
+<div id="lightbox" onclick="closeLightbox()" role="dialog" aria-modal="true" aria-label="Expanded screenshot">
+  <button id="lb-close" onclick="closeLightbox()"><span aria-hidden="true">✕</span> Close</button>
   <img id="lb-img" src="" alt="">
   <div id="lb-caption"></div>
 </div>
 
 <!-- NES Controller -->
-<div id="nes-controller">
+<div id="nes-controller" aria-hidden="true">
   <div id="ctrl-body">
     <div id="ctrl-dpad">
       <div class="dh"></div><div class="dv"></div><div class="dc"></div>
@@ -1362,23 +1386,23 @@ section {
   <div id="menu-box">
     <div id="menu-box-title">Navigation</div>
     <a class="menu-item" href="world.html#spawn=projects">
-      <span class="mi-icon">🗺</span> WORLD MAP
+      <span class="mi-icon" aria-hidden="true">🗺</span> WORLD MAP
     </a>
     <a class="menu-item" href="hall-of-records.html">
-      <span class="mi-icon">⚔</span> HALL OF RECORDS
+      <span class="mi-icon" aria-hidden="true">⚔</span> HALL OF RECORDS
     </a>
     <a class="menu-item selected" href="training-portfolio.html">
-      <span class="mi-icon">🎓</span> TRAINING PORTFOLIO
+      <span class="mi-icon" aria-hidden="true">🎓</span> TRAINING PORTFOLIO
     </a>
     <a class="menu-item" href="castle-anthrax.html">
-      <span class="mi-icon">📖</span> CASTLE ANTHRAX
+      <span class="mi-icon" aria-hidden="true">📖</span> CASTLE ANTHRAX
     </a>
     <div id="menu-divider"></div>
-    <a class="menu-item" href="https://linkedin.com/in/andregurule" target="_blank">
-      <span class="mi-icon">💼</span> LINKEDIN
-    </a>
+    <a class="menu-item" href="https://linkedin.com/in/andregurule" target="_blank" rel="noopener">
+      <span class="mi-icon" aria-hidden="true">💼</span> LINKEDIN
+    <span class="sr-only"> (opens in a new tab)</span></a>
     <a class="menu-item" href="mailto:andregurule@gmail.com">
-      <span class="mi-icon">💌</span> EMAIL
+      <span class="mi-icon" aria-hidden="true">💌</span> EMAIL
     </a>
     <div id="menu-hint">
       <span class="m-badge">B</span> or <span class="m-badge">ESC</span> to close
@@ -1444,18 +1468,36 @@ document.addEventListener('keydown', e => {
 });
 
 // ── LIGHTBOX ──
+let lbReturnFocus = null;
 function openLightbox(card) {
   const img = card.querySelector('img');
+  lbReturnFocus = card;
   if (!img) return; // placeholder — no image yet
   const caption = card.querySelector('.gallery-caption')?.textContent || '';
   document.getElementById('lb-img').src = img.src;
   document.getElementById('lb-img').alt = img.alt;
   document.getElementById('lb-caption').textContent = caption;
   document.getElementById('lightbox').classList.add('open');
+  document.getElementById('lb-close').focus();
 }
 function closeLightbox() {
-  document.getElementById('lightbox').classList.remove('open');
+  const lb = document.getElementById('lightbox');
+  if (!lb.classList.contains('open')) return;
+  lb.classList.remove('open');
+  if (lbReturnFocus) lbReturnFocus.focus();
 }
+// Enter / Space opens a screenshot card from the keyboard
+document.querySelectorAll('.gallery-item[role="button"]').forEach(card => {
+  card.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openLightbox(card); }
+  });
+});
+// Keep Tab inside the open lightbox (only one control: Close)
+document.addEventListener('keydown', e => {
+  if (e.key === 'Tab' && document.getElementById('lightbox').classList.contains('open')) {
+    e.preventDefault(); document.getElementById('lb-close').focus();
+  }
+});
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
 
 // ── D-PAD SCROLLING (mobile) ──
@@ -1514,7 +1556,7 @@ document.querySelectorAll('.demo-tab').forEach(tab => {
   tab.addEventListener('click', () => {
     const list = tab.closest('[role="tablist"]');
     const article = tab.closest('.ai-case');
-    list.querySelectorAll('.demo-tab').forEach(t => t.setAttribute('aria-selected', String(t === tab)));
+    list.querySelectorAll('.demo-tab').forEach(t => { t.setAttribute('aria-selected', String(t === tab)); t.tabIndex = t === tab ? 0 : -1; });
     article.querySelectorAll('.demo-panel').forEach(p => {
       const show = p.id === tab.getAttribute('aria-controls');
       p.hidden = !show;
@@ -1527,13 +1569,24 @@ document.querySelectorAll('.demo-tab').forEach(tab => {
   });
 });
 
+// Arrow keys move between demo tabs (WAI-ARIA tabs pattern)
+document.querySelectorAll('.demo-tabs').forEach(list => {
+  list.addEventListener('keydown', e => {
+    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+    const tabs = Array.from(list.querySelectorAll('.demo-tab'));
+    const i = tabs.indexOf(document.activeElement); if (i < 0) return;
+    const next = tabs[(i + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length];
+    next.focus(); next.click(); e.preventDefault();
+  });
+});
+
 // Framework stage diagram
 (function () {
   const stages = document.querySelectorAll('.fw-stage');
   const detail = document.getElementById('fw-detail');
   if (!stages.length || !detail) return;
   const show = btn => {
-    stages.forEach(b => b.setAttribute('aria-selected', String(b === btn)));
+    stages.forEach(b => b.setAttribute('aria-pressed', String(b === btn)));
     detail.textContent = btn.dataset.detail;
   };
   stages.forEach(b => b.addEventListener('click', () => show(b)));
