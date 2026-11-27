@@ -27,7 +27,7 @@
   --ctrl-h: 0px; /* updated by JS */
 }
 
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; scroll-padding-top: 72px; }
 
 /* Keyboard focus — visible gold ring on every interactive element */
 :focus-visible { outline: 2.5px solid var(--gold-text); outline-offset: 3px; border-radius: 3px; }
@@ -173,23 +173,50 @@ section {
   margin-bottom: clamp(48px, 8vh, 80px);
 }
 
-/* ── SKILLS GRID ── */
-.skills-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 12px;
+/* ── CORE COMPETENCIES — skill explorer with Caleb ── */
+.comp-hint { font-size:10px; font-weight:600; letter-spacing:.18em; text-transform:uppercase; color:var(--text-light); margin-bottom:10px; }
+.comp-tiles { display:grid; grid-template-columns:repeat(9,1fr); gap:8px; margin-bottom:14px; }
+.comp-tile {
+  display:flex; flex-direction:column; align-items:center; gap:6px; padding:12px 4px 10px;
+  background:var(--warm-white); border:1.5px solid var(--rule); border-radius:6px; cursor:pointer;
+  font-family:'DM Sans',sans-serif; font-size:10.5px; font-weight:600; line-height:1.2; color:var(--text-mid); text-align:center;
+  transition:border-color .15s, background .15s, transform .15s, color .15s;
 }
-
-.skill-card {
-  background: var(--warm-white);
-  border: 1px solid var(--rule);
-  border-radius: 4px;
-  padding: 14px 16px;
-  display: flex; align-items: flex-start; gap: 10px;
+.comp-tile svg { width:26px; height:26px; stroke:var(--wood-mid); fill:none; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; transition:stroke .15s; }
+.comp-tile:hover { border-color:var(--wood-mid); transform:translateY(-2px); }
+.comp-tile[aria-selected="true"] { background:var(--text-dark); border-color:var(--text-dark); color:var(--gold-lt); }
+.comp-tile[aria-selected="true"] svg { stroke:var(--gold-lt); }
+.comp-stage {
+  position:relative; display:grid; grid-template-columns:170px 1fr; gap:clamp(12px,3vw,28px); align-items:end;
+  background:var(--warm-white); border:1px solid var(--rule); border-top:3px solid var(--gold); border-radius:0 0 6px 6px;
+  padding:clamp(18px,3vw,28px) clamp(18px,3vw,32px) 0; min-height:250px; overflow:hidden;
 }
-.skill-card .sk-icon { font-size: 18px; flex-shrink: 0; line-height: 1.2; }
-.skill-card .sk-text { font-size: clamp(12px, 1.4vw, 13.5px); line-height: 1.5; color: var(--text-mid); }
-.skill-card .sk-text strong { display: block; color: var(--text-dark); font-weight: 600; margin-bottom: 2px; font-size: clamp(12px, 1.3vw, 13px); }
+.comp-caleb-wrap { position:relative; align-self:end; width:170px; height:200px; }
+.comp-caleb {
+  position:absolute; left:0; right:0; bottom:-6px; margin:auto; max-width:100%; max-height:100%;
+  filter:drop-shadow(0 8px 14px rgba(30,20,10,.15)); transition:opacity .25s ease, transform .25s ease;
+}
+.comp-caleb.out { opacity:0; transform:translateY(8px); }
+.comp-body { align-self:center; padding-bottom:clamp(18px,3vw,26px); }
+.comp-count { font-size:10px; font-weight:600; letter-spacing:.18em; text-transform:uppercase; color:var(--gold-text); margin-bottom:6px; }
+.comp-title { font-family:'Playfair Display',serif; font-size:clamp(20px,2.6vw,26px); font-weight:700; color:var(--text-dark); margin-bottom:8px; }
+.comp-desc { font-size:clamp(14px,1.6vw,15.5px); line-height:1.7; color:var(--text-mid); margin-bottom:14px; }
+.comp-proof { display:inline-flex; align-items:center; gap:6px; font-size:13px; font-weight:600; color:var(--blue-accent); text-decoration:none; border-bottom:1.5px solid transparent; }
+.comp-proof:hover { border-bottom-color:currentColor; }
+.comp-nav { position:absolute; top:14px; right:16px; display:flex; gap:6px; }
+.comp-nav button { width:30px; height:30px; border-radius:50%; border:1.5px solid var(--rule); background:var(--cream); color:var(--text-mid); cursor:pointer; font-size:12px; }
+.comp-nav button:hover { border-color:var(--wood-mid); color:var(--text-dark); }
+.comp-body.swap { animation:compSwap .28s ease; }
+@keyframes compSwap { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+@media (max-width:700px) {
+  .comp-tiles { grid-template-columns:repeat(3,1fr); }
+  /* Phones: Caleb sits beside the top of the text, so no empty space below the link */
+  .comp-stage { grid-template-columns:96px 1fr; align-items:start; min-height:0; padding-top:52px; padding-bottom:18px; }
+  .comp-caleb-wrap { align-self:start; width:96px; height:116px; }
+  .comp-caleb { bottom:0; }
+  .comp-body { align-self:start; padding-bottom:0; }
+}
+@media (prefers-reduced-motion:reduce) { .comp-body.swap { animation:none; } .comp-tile:hover { transform:none; } .comp-caleb { transition:none; } }
 
 /* ── EXPERIENCE ── */
 .exp-entry {
@@ -824,7 +851,7 @@ section {
   </section>
 
   <!-- Philosophy -->
-  <section>
+  <section id="philosophy">
     <h2 class="section-title">My Philosophy on Company Training</h2>
     <p style="font-size:clamp(14px,1.7vw,17px);line-height:1.85;color:var(--text-mid);margin-bottom:20px;">
       My approach is grounded in the work of Cathy Moore (<em>Map It: The Hands-On Guide to Strategic Training Design</em>)
@@ -1126,7 +1153,7 @@ section {
   </section>
 
   <!-- Impact Stats -->
-  <section>
+  <section id="numbers">
     <h2 class="section-title">By the Numbers</h2>
     <div class="stat-row">
       <div class="stat-box">
@@ -1151,48 +1178,23 @@ section {
   <!-- Core Skills -->
   <section>
     <h2 class="section-title">Core Competencies</h2>
-    <div class="skills-grid">
-      <div class="skill-card">
-        <span class="sk-icon" aria-hidden="true">🎓</span>
-        <div class="sk-text"><strong>LMS Development</strong>Articulate 360, Storyline 360 — full course design from storyboard to launch.</div>
+    <div class="comp-hint" id="comp-hint">Select a skill to see where it shows up in my work</div>
+    <div class="comp-tiles" role="tablist" aria-label="Core competencies" aria-describedby="comp-hint"></div>
+    <div class="comp-stage" role="tabpanel" id="comp-panel">
+      <div class="comp-caleb-wrap" aria-hidden="true"><img class="comp-caleb" src="images/caleb/caleb-laptop.webp" alt=""></div>
+      <div class="comp-body" aria-live="polite">
+        <div class="comp-count"></div>
+        <h3 class="comp-title"></h3>
+        <p class="comp-desc"></p>
+        <a class="comp-proof" href="#ai-workflow"></a>
       </div>
-      <div class="skill-card">
-        <span class="sk-icon" aria-hidden="true">🎙️</span>
-        <div class="sk-text"><strong>Public Speaking</strong>Comfortable in front of 10 to 1,000+ — from safety briefings to all-hands presentations.</div>
-      </div>
-      <div class="skill-card">
-        <span class="sk-icon" aria-hidden="true">🎬</span>
-        <div class="sk-text"><strong>Video Production</strong>Final Cut Pro X and DaVinci Resolve — scripting, filming, and editing training videos.</div>
-      </div>
-      <div class="skill-card">
-        <span class="sk-icon" aria-hidden="true">📋</span>
-        <div class="sk-text"><strong>SOP &amp; Documentation</strong>Technical writing, process documentation, and policy development.</div>
-      </div>
-      <div class="skill-card">
-        <span class="sk-icon" aria-hidden="true">🧠</span>
-        <div class="sk-text"><strong>Adult Learning Theory</strong>Scenario-based, hands-on, and goal-oriented training using evidence-based methods.</div>
-      </div>
-      <div class="skill-card">
-        <span class="sk-icon" aria-hidden="true">🧭</span>
-        <div class="sk-text"><strong>Leadership Development</strong>Mentoring emerging leaders through their first leadership roles. Arbinger DIOM train-the-trainer.</div>
-      </div>
-      <div class="skill-card">
-        <span class="sk-icon" aria-hidden="true">📊</span>
-        <div class="sk-text"><strong>Project Management</strong>End-to-end ownership from concept through implementation and evaluation.</div>
-      </div>
-      <div class="skill-card">
-        <span class="sk-icon" aria-hidden="true">🖥️</span>
-        <div class="sk-text"><strong>SaaS Training</strong>Post-sales customer onboarding, support training, and online program development.</div>
-      </div>
-      <div class="skill-card">
-        <span class="sk-icon" aria-hidden="true">🤖</span>
-        <div class="sk-text"><strong>AI</strong>Reimagining training content and workflows.</div>
-      </div>
+      <div class="comp-nav"><button type="button" data-step="-1" aria-label="Previous skill">◀</button><button type="button" data-step="1" aria-label="Next skill">▶</button></div>
     </div>
+    <noscript><p class="comp-desc">LMS Development · Public Speaking · Video Production · SOP &amp; Documentation · Adult Learning Theory · Leadership Development · Project Management · SaaS Training · AI</p></noscript>
   </section>
 
   <!-- Experience -->
-  <section>
+  <section id="experience">
     <h2 class="section-title">Professional Experience</h2>
 
     <div class="exp-entry">
@@ -1240,7 +1242,7 @@ section {
   </section>
 
   <!-- Sample Videos -->
-  <section>
+  <section id="videos">
     <h2 class="section-title">Sample Training Videos</h2>
     <p style="font-size:clamp(13px,1.5vw,15px);color:var(--text-light);margin-bottom:24px;line-height:1.65;">
       A selection of training videos produced, scripted, and edited by Andre.
@@ -1579,6 +1581,76 @@ document.querySelectorAll('.demo-tabs').forEach(list => {
     next.focus(); next.click(); e.preventDefault();
   });
 });
+
+// ── CORE COMPETENCIES explorer ──
+(function () {
+  const tiles = document.querySelector('.comp-tiles');
+  if (!tiles) return;
+  // One line-icon family: 24×24, stroke only, round caps
+  const ICON = {
+    lms:   '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M10 8l4 2-4 2z"/><path d="M8 20h8M12 16v4"/>',
+    speak: '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M8 21h8"/>',
+    video: '<rect x="3" y="7" width="13" height="11" rx="2"/><path d="M16 11l5-3v9l-5-3z"/>',
+    sop:   '<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M9 10h6M9 14h6M9 18h3"/>',
+    adult: '<path d="M2 6h6a4 4 0 0 1 4 4v10a3 3 0 0 0-3-3H2z"/><path d="M22 6h-6a4 4 0 0 0-4 4v10a3 3 0 0 1 3-3h7z"/>',
+    lead:  '<circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/>',
+    pm:    '<path d="M4 4v16h16"/><path d="M8 8h6M10 12h7M8 16h4"/>',
+    saas:  '<path d="M7 18a4 4 0 0 1-.6-8A6 6 0 0 1 18 9a4.5 4.5 0 0 1-.5 9z"/>',
+    ai:    '<rect x="6" y="6" width="12" height="12" rx="2"/><path d="M10 10h4v4h-4zM9 3v3M15 3v3M9 18v3M15 18v3M3 9h3M3 15h3M18 9h3M18 15h3"/>'
+  };
+  // Caleb pose per skill: change the pose name to swap (files in images/caleb/)
+  const SKILLS = [
+    {k:'lms',   pose:'laptop',   name:'LMS Development',        short:'LMS',            desc:'Articulate 360, Storyline 360 — full course design from storyboard to launch.', proof:['See the Rise calculators','#ai-workflow']},
+    {k:'speak', pose:'mic'     , name:'Public Speaking',        short:'Speaking',       desc:'Comfortable in front of 10 to 1,000+ — from safety briefings to all-hands presentations.', proof:['See the numbers','#numbers']},
+    {k:'video', pose:'camera'  , name:'Video Production',       short:'Video',          desc:'Final Cut Pro X and DaVinci Resolve — scripting, filming, and editing training videos.', proof:['Watch sample videos','#videos']},
+    {k:'sop',   pose:'reading',  name:'SOP & Documentation',    short:'SOPs',           desc:'Technical writing, process documentation, and policy development.', proof:['See the framework form','#ai-workflow']},
+    {k:'adult', pose:'idea',     name:'Adult Learning Theory',  short:'Adult Learning', desc:'Scenario-based, hands-on, and goal-oriented training using evidence-based methods.', proof:['Read my philosophy','#philosophy']},
+    {k:'lead',  pose:'thumbsup', name:'Leadership Development', short:'Leadership',     desc:'Mentoring emerging leaders through their first leadership roles. Arbinger DIOM train-the-trainer.', proof:['See volunteer leadership','#experience']},
+    {k:'pm',    pose:'pointing', name:'Project Management',     short:'Projects',       desc:'End-to-end ownership from concept through implementation and evaluation.', proof:['See the framework','#ai-workflow']},
+    {k:'saas',  pose:'laptop',   name:'SaaS Training',          short:'SaaS',           desc:'Post-sales customer onboarding, support training, and online program development.', proof:['See experience','#experience']},
+    {k:'ai',    pose:'hologram', name:'AI',                     short:'AI',             desc:'Reimagining training content and workflows.', proof:['See AI in my workflow','#ai-workflow']},
+  ];
+  const poseSrc = p => 'images/caleb/caleb-' + p + '.webp';
+  [...new Set(SKILLS.map(s => s.pose))].forEach(p => { const i = new Image(); i.src = poseSrc(p); }); // preload
+  SKILLS.forEach((s, i) => {
+    const b = document.createElement('button');
+    b.className = 'comp-tile'; b.type = 'button'; b.id = 'comp-tab-' + i;
+    b.setAttribute('role', 'tab'); b.setAttribute('aria-controls', 'comp-panel');
+    b.setAttribute('aria-label', s.name);
+    b.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + ICON[s.k] + '</svg><span aria-hidden="true">' + s.short + '</span>';
+    b.addEventListener('click', () => show(i));
+    tiles.appendChild(b);
+  });
+  const panel = document.getElementById('comp-panel');
+  const body  = panel.querySelector('.comp-body');
+  const caleb = panel.querySelector('.comp-caleb');
+  let cur = 0;
+  function show(i) {
+    cur = (i + SKILLS.length) % SKILLS.length;
+    const s = SKILLS[cur];
+    tiles.querySelectorAll('.comp-tile').forEach((t, j) => { t.setAttribute('aria-selected', String(j === cur)); t.tabIndex = j === cur ? 0 : -1; });
+    panel.setAttribute('aria-labelledby', 'comp-tab-' + cur);
+    body.classList.remove('swap'); void body.offsetWidth; body.classList.add('swap');
+    body.querySelector('.comp-count').textContent = (cur + 1) + ' of ' + SKILLS.length;
+    body.querySelector('.comp-title').textContent = s.name;
+    body.querySelector('.comp-desc').textContent  = s.desc;
+    const a = body.querySelector('.comp-proof'); a.textContent = s.proof[0] + ' →'; a.href = s.proof[1];
+    const src = poseSrc(s.pose);
+    if (!caleb.src.endsWith(src)) {
+      caleb.classList.add('out');
+      setTimeout(() => { caleb.src = src; caleb.classList.remove('out'); }, 180);
+    }
+  }
+  panel.querySelectorAll('.comp-nav button').forEach(b => b.addEventListener('click', () => show(cur + Number(b.dataset.step))));
+  tiles.addEventListener('keydown', e => {
+    let n = null;
+    if (e.key === 'ArrowRight') n = cur + 1; else if (e.key === 'ArrowLeft') n = cur - 1;
+    else if (e.key === 'Home') n = 0; else if (e.key === 'End') n = SKILLS.length - 1;
+    if (n === null) return;
+    show(n); tiles.children[cur].focus(); e.preventDefault();
+  });
+  show(0);
+})();
 
 // Framework stage diagram
 (function () {
