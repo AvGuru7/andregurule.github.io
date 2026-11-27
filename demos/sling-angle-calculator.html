@@ -36,7 +36,7 @@
 
     <!-- SVG visualizer -->
     <div style="display:flex; justify-content:center; margin-bottom:1.5rem;">
-      <svg id="sac-svg" viewBox="0 0 480 260" style="max-width:480px; width:100%;" xmlns="http://www.w3.org/2000/svg">
+      <svg id="sac-svg" role="img" aria-label="Diagram of a two-leg sling lifting a load; the legs flatten as the angle decreases" viewBox="0 0 480 260" style="max-width:480px; width:100%;" xmlns="http://www.w3.org/2000/svg">
         <!-- Grid lines -->
         <line x1="240" y1="10" x2="240" y2="250" stroke="#E8E4DE" stroke-width="1" stroke-dasharray="4,4"/>
         <line x1="10"  y1="45" x2="470" y2="45"  stroke="#E8E4DE" stroke-width="1" stroke-dasharray="4,4"/>
@@ -67,20 +67,20 @@
 
     <!-- Angle slider -->
     <div class="sac-row" style="display:flex; align-items:center; gap:1rem; margin-bottom:1rem;">
-      <label style="font-weight:600; font-size:0.875rem; color:#2D2A26; min-width:160px;">Sling angle from horizontal</label>
+      <label for="sac-angle" style="font-weight:600; font-size:0.875rem; color:#2D2A26; min-width:160px;">Sling angle from horizontal</label>
       <input type="range" id="sac-angle" min="5" max="90" value="90" step="1" style="flex:1;" oninput="sacUpdate()">
       <span id="sac-angle-val" style="font-family:'JetBrains Mono',monospace; font-size:0.875rem; font-weight:600; color:#E8533F; min-width:40px;">90°</span>
     </div>
 
     <!-- Load slider -->
     <div class="sac-row" style="display:flex; align-items:center; gap:1rem; margin-bottom:1.5rem;">
-      <label style="font-weight:600; font-size:0.875rem; color:#2D2A26; min-width:160px;">Load weight (lbs)</label>
+      <label for="sac-load" style="font-weight:600; font-size:0.875rem; color:#2D2A26; min-width:160px;">Load weight (lbs)</label>
       <input type="range" id="sac-load" min="500" max="5000" value="2000" step="100" style="flex:1;" oninput="sacUpdate()">
       <span id="sac-load-val" style="font-family:'JetBrains Mono',monospace; font-size:0.875rem; font-weight:600; color:#E8533F; min-width:72px;">2,000 lbs</span>
     </div>
 
     <!-- Stats row -->
-    <div style="display:flex; gap:1.5rem; justify-content:center; margin-bottom:1.25rem; flex-wrap:wrap;">
+    <div aria-live="polite" style="display:flex; gap:1.5rem; justify-content:center; margin-bottom:1.25rem; flex-wrap:wrap;">
       <div style="text-align:center;">
         <div id="sac-tension-val" style="font-family:'Bricolage Grotesque',Georgia,serif; font-size:clamp(1.4rem,4vw,2rem); font-weight:800; color:#2A9D8F;">1,000</div>
         <div style="font-size:0.7rem; color:#8A8479; text-transform:uppercase; letter-spacing:0.05em;">lbs tension per leg</div>
@@ -121,6 +121,8 @@
 
     // Text readouts
     document.getElementById('sac-angle-val').textContent   = angle + '°';
+    document.getElementById('sac-angle').setAttribute('aria-valuetext', angle + ' degrees');
+    document.getElementById('sac-load').setAttribute('aria-valuetext', load.toLocaleString() + ' pounds');
     document.getElementById('sac-load-val').textContent    = load.toLocaleString() + ' lbs';
     document.getElementById('sac-tension-val').textContent = Math.round(perLeg).toLocaleString();
     document.getElementById('sac-factor-val').textContent  = factor.toFixed(3);

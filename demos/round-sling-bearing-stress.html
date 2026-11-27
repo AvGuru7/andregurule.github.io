@@ -431,8 +431,8 @@
         </div>
         <div></div>
         <div style="padding-bottom:18px;">
-          <button class="ref-btn" onclick="openOverlay()">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <button class="ref-btn" onclick="openOverlay()" aria-haspopup="dialog">
+            <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
               <path d="M3 3h18"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M3 21h18"/>
             </svg>
             Fraction chart
@@ -465,8 +465,8 @@
           </div>
         </div>
       </div>
-      <div class="status-bar status-na" id="status-bar">
-        <span id="status-icon">ℹ</span>
+      <div class="status-bar status-na" id="status-bar" role="status" aria-live="polite">
+        <span id="status-icon" aria-hidden="true">ℹ</span>
         <span id="status-text">Enter values above to check bearing stress</span>
       </div>
     </div>
@@ -554,6 +554,8 @@
       const cBtn = document.getElementById('btn-curved');
       applyStyle(sBtn, type === 'straight' ? ACTIVE : INACTIVE);
       applyStyle(cBtn, type === 'curved'   ? ACTIVE : INACTIVE);
+      sBtn.setAttribute('aria-pressed', String(type === 'straight'));
+      cBtn.setAttribute('aria-pressed', String(type === 'curved'));
       sBtn.innerHTML = (type === 'straight' ? '&#10003; ' : '') +
         'Straight surface &nbsp;<span style="font-size:12px;opacity:0.75;">factor = 1.00</span>';
       cBtn.innerHTML = (type === 'curved' ? '&#10003; ' : '') +
