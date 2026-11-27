@@ -216,6 +216,50 @@ section {
   .comp-caleb { bottom:0; }
   .comp-body { align-self:start; padding-bottom:0; }
 }
+/* ── Philosophy: pull quote, decision flow, principle cards ── */
+.phil-lead { font-size:clamp(14px,1.7vw,17px); line-height:1.85; color:var(--text-mid); margin-bottom:22px; }
+.phil-quote { display:grid; grid-template-columns:150px 1fr; gap:clamp(16px,3vw,32px); align-items:center; margin:0 0 30px; padding:clamp(18px,3vw,26px) clamp(18px,3vw,32px); background:var(--warm-white); border:1px solid var(--rule); border-left:4px solid var(--gold); border-radius:0 6px 6px 0; }
+.phil-caleb { width:150px; height:auto; filter:drop-shadow(0 8px 14px rgba(30,20,10,.15)); }
+.phil-quote blockquote { margin:0; }
+.phil-quote blockquote p { font-family:'DM Sans',system-ui,sans-serif; font-size:clamp(18px,2.2vw,22px); font-weight:500; line-height:1.55; color:var(--text-dark); font-style:normal; }
+.phil-block { margin-bottom:30px; }
+.phil-h3 { font-family:'Playfair Display',serif; font-size:clamp(17px,2vw,20px); font-weight:700; color:var(--text-dark); margin-bottom:14px; }
+.phil-flow { list-style:none; margin:0 0 14px; padding:0; display:grid; grid-template-columns:1fr 1fr 1.3fr; gap:28px; }
+.phil-step { position:relative; display:flex; gap:12px; align-items:flex-start; background:var(--warm-white); border:1px solid var(--rule); border-radius:6px; padding:16px; font-size:14.5px; line-height:1.55; color:var(--text-mid); }
+.phil-step strong { display:block; color:var(--text-dark); font-size:15px; margin-bottom:3px; }
+.phil-step:not(:last-child)::after { content:""; position:absolute; right:-21px; top:50%; width:14px; height:14px; border-top:2px solid var(--gold); border-right:2px solid var(--gold); transform:translateY(-50%) rotate(45deg); }
+.phil-step-num { flex:none; width:28px; height:28px; border-radius:50%; background:var(--text-dark); color:var(--gold-lt); font-weight:700; font-size:13px; display:grid; place-items:center; }
+.phil-outcomes { list-style:none; margin:6px 0 0; padding:0; display:flex; flex-direction:column; gap:6px; }
+.phil-outcomes li { font-size:13.5px; color:var(--text-dark); }
+.phil-outcomes label { display:flex; align-items:center; gap:9px; min-height:36px; padding:6px 12px; border:1.5px solid var(--rule); border-radius:8px; background:var(--cream); cursor:pointer; transition:background .15s, border-color .15s; }
+.phil-outcomes label:hover { border-color:var(--wood-mid); }
+.phil-outcomes input { flex:none; width:18px; height:18px; margin:0; accent-color:#3f7a48; cursor:pointer; }
+.phil-outcomes label:has(input:checked) { background:#e3f1e1; border-color:#3f7a48; font-weight:600; }
+.phil-sub { font-weight:400; color:var(--text-mid); font-size:13px; }
+.phil-note { font-size:clamp(14px,1.6vw,15.5px); line-height:1.7; color:var(--text-mid); }
+.phil-cards { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+.phil-card { background:var(--warm-white); border:1px solid var(--rule); border-top:3px solid var(--gold); border-radius:0 0 6px 6px; padding:clamp(18px,2.6vw,24px); }
+.phil-card p { font-size:clamp(14px,1.6vw,15.5px); line-height:1.75; color:var(--text-mid); }
+/* ── Footer CTA with Caleb ── */
+body #footer-cta { display:grid; grid-template-columns:170px 1fr; gap:clamp(16px,3vw,36px); align-items:center; text-align:left; }
+body #footer-cta p { margin:0 0 24px; }
+#footer-cta .cta-links { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); max-width:442px; gap:12px; }
+#footer-cta .cta-btn { text-align:center; padding-left:12px; padding-right:12px; white-space:nowrap; }
+.cta-caleb { position:relative; width:170px; }
+.cta-caleb img { width:100%; height:auto; display:block; filter:drop-shadow(0 8px 14px rgba(30,20,10,.15)); }
+.cta-sign { position:absolute; left:19%; width:63.5%; top:43.9%; height:20.5%; display:flex; align-items:center; justify-content:center; text-align:center; font-family:'Playfair Display',serif; font-weight:700; font-size:17px; line-height:1.1; color:var(--text-dark); }
+@media (max-width:700px) {
+  .phil-quote { grid-template-columns:84px 1fr; padding:16px; }
+  .phil-caleb { width:84px; }
+  .phil-flow { grid-template-columns:1fr; gap:24px; }
+  .phil-step:not(:last-child)::after { right:auto; left:50%; top:auto; bottom:-19px; transform:translateX(-50%) rotate(135deg); }
+  .phil-cards { grid-template-columns:1fr; }
+  body #footer-cta { grid-template-columns:1fr; text-align:center; justify-items:center; gap:10px; }
+  body #footer-cta p { margin:0 auto 24px; }
+  #footer-cta .cta-links { grid-template-columns:1fr; width:100%; max-width:260px; margin:0 auto; }
+  .cta-caleb { width:130px; }
+  .cta-sign { font-size:13px; }
+}
 @media (prefers-reduced-motion:reduce) { .comp-body.swap { animation:none; } .comp-tile:hover { transform:none; } .comp-caleb { transition:none; } }
 
 /* ── EXPERIENCE ── */
@@ -871,30 +915,55 @@ section {
   <!-- Philosophy -->
   <section id="philosophy">
     <h2 class="section-title">My Philosophy on Company Training</h2>
-    <p style="font-size:clamp(14px,1.7vw,17px);line-height:1.85;color:var(--text-mid);margin-bottom:20px;">
+    <p class="phil-lead">
       My approach is grounded in the work of Cathy Moore (<em>Map It: The Hands-On Guide to Strategic Training Design</em>)
-      and Ruth Clark (<em>Evidence-Based Training Methods</em>). Corporate training is less about transferring general
-      knowledge and more about targeting the right information to drive a specific, measurable result.
+      and Ruth Clark (<em>Evidence-Based Training Methods</em>).
     </p>
-    <p style="font-size:clamp(14px,1.7vw,17px);line-height:1.85;color:var(--text-mid);margin-bottom:20px;">
-      It starts with clearly understanding the goal — and then honestly asking whether training is even the right
-      solution. Sometimes the answer is a process adjustment. Sometimes it's a single well-designed job aid.
-      Jumping straight to a course when neither is needed wastes time and erodes trust in the training function.
-    </p>
-    <p style="font-size:clamp(14px,1.7vw,17px);line-height:1.85;color:var(--text-mid);margin-bottom:20px;">
-      Adults also come to training with widely different skill levels, and effective programs account for that.
-      Content needs to meet novices where they are without boring experienced practitioners — and those practitioners
-      should be brought into the conversation. When skilled employees share what they know, everyone benefits,
-      including the instructor.
-    </p>
-    <p style="font-size:clamp(14px,1.7vw,17px);line-height:1.85;color:var(--text-mid);">
-      The rise of AI puts corporate training — and how we work in general — at a fascinating and somewhat unsettling
-      crossroads. I used AI to help build this website, and it is a genuinely remarkable tool. But I believe it
-      needs to be approached with care. In the context of training, AI opens a real opportunity to cultivate new
-      talent, if organizations are willing to invest the time to do it right. It should not replace entry-level
-      workers. It should be used to accelerate their development — ensuring that we are building a strong,
-      capable workforce for the future, not hollowing one out.
-    </p>
+
+    <figure class="phil-quote">
+      <img class="phil-caleb" src="images/caleb/caleb-idea.webp" alt="" aria-hidden="true" width="466" height="620" loading="lazy">
+      <blockquote>
+        <p>Corporate training is less about transferring general knowledge and more about targeting the right information to drive a specific, measurable result.</p>
+      </blockquote>
+    </figure>
+
+    <div class="phil-block">
+      <h3 class="phil-h3">Start with the goal, then ask if training is the answer</h3>
+      <ol class="phil-flow">
+        <li class="phil-step"><span class="phil-step-num" aria-hidden="true">1</span><span><strong>Understand the goal</strong>What specific, measurable result does the business need?</span></li>
+        <li class="phil-step"><span class="phil-step-num" aria-hidden="true">2</span><span><strong>Ask honestly</strong>Is training even the right solution?</span></li>
+        <li class="phil-step phil-step-out"><span class="phil-step-num" aria-hidden="true">3</span><span><strong id="phil-fix-label">Pick the right fix <span class="phil-sub">(select all that apply)</span></strong>
+          <ul class="phil-outcomes" role="group" aria-labelledby="phil-fix-label">
+            <li><label><input type="checkbox"> A process adjustment</label></li>
+            <li><label><input type="checkbox"> A single well-designed job aid</label></li>
+            <li><label><input type="checkbox"> A training program</label></li>
+          </ul></span>
+        </li>
+      </ol>
+      <p class="phil-note">Jumping straight to a course when it isn't needed wastes time and erodes trust in the training function.</p>
+    </div>
+
+    <div class="phil-cards">
+      <div class="phil-card">
+        <h3 class="phil-h3">Meet every skill level</h3>
+        <p>
+          Adults come to training with widely different skill levels, and effective programs account for that.
+          Content needs to meet novices where they are without boring experienced practitioners, and those practitioners
+          should be brought into the conversation. When skilled employees share what they know, everyone benefits,
+          including the instructor.
+        </p>
+      </div>
+      <div class="phil-card">
+        <h3 class="phil-h3">Use AI to grow people, not replace them</h3>
+        <p>
+          The rise of AI puts corporate training, and how we work in general, at a fascinating and somewhat unsettling
+          crossroads. I used AI to help build this website, and it is a genuinely remarkable tool. But I believe it
+          needs to be approached with care. AI opens a real opportunity to cultivate new talent, if organizations are
+          willing to invest the time to do it right. It should not replace entry-level workers. It should be used to
+          accelerate their development, building a strong, capable workforce for the future, not hollowing one out.
+        </p>
+      </div>
+    </div>
   </section>
 
   <!-- AI in My Training Workflow -->
@@ -1324,12 +1393,18 @@ section {
 
   <!-- CTA Footer -->
   <div id="footer-cta">
+    <div class="cta-caleb" aria-hidden="true">
+      <img src="images/caleb/caleb-sign.webp" alt="" width="456" height="620" loading="lazy">
+      <span class="cta-sign">Let's<br>connect!</span>
+    </div>
+    <div class="cta-body">
     <h3>Ready to talk training?</h3>
     <p>If you're looking for someone who can build programs from scratch, develop your team, and make learning stick — let's connect.</p>
     <div class="cta-links">
       <a class="cta-btn primary" href="https://linkedin.com/in/andregurule" target="_blank" rel="noopener">View LinkedIn Profile<span class="sr-only"> (opens in a new tab)</span></a>
       <a class="cta-btn secondary" href="mailto:andregurule@gmail.com">Send an Email</a>
       <a class="cta-btn secondary" href="hall-of-records.html">← Back to Hall of Records</a>
+    </div>
     </div>
   </div>
 
