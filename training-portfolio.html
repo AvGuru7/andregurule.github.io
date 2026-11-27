@@ -191,9 +191,9 @@ section {
   background:var(--warm-white); border:1px solid var(--rule); border-top:3px solid var(--gold); border-radius:0 0 6px 6px;
   padding:clamp(18px,3vw,28px) clamp(18px,3vw,32px) 0; min-height:250px; overflow:hidden;
 }
-.comp-caleb-wrap { position:relative; align-self:end; width:170px; height:200px; }
+.comp-caleb-wrap { position:relative; align-self:end; width:170px; height:200px; margin-bottom:18px; }
 .comp-caleb {
-  position:absolute; left:0; right:0; bottom:-6px; margin:auto; max-width:100%; max-height:100%;
+  position:absolute; left:0; right:0; bottom:0; margin:auto; max-width:100%; max-height:100%;
   filter:drop-shadow(0 8px 14px rgba(30,20,10,.15)); transition:opacity .25s ease, transform .25s ease;
 }
 .comp-caleb.out { opacity:0; transform:translateY(8px); }
@@ -212,7 +212,7 @@ section {
   .comp-tiles { grid-template-columns:repeat(3,1fr); }
   /* Phones: Caleb sits beside the top of the text, so no empty space below the link */
   .comp-stage { grid-template-columns:96px 1fr; align-items:start; min-height:0; padding-top:52px; padding-bottom:18px; }
-  .comp-caleb-wrap { align-self:start; width:96px; height:116px; }
+  .comp-caleb-wrap { align-self:start; width:96px; height:116px; margin-bottom:0; }
   .comp-caleb { bottom:0; }
   .comp-body { align-self:start; padding-bottom:0; }
 }
