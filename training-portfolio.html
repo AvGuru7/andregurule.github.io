@@ -850,6 +850,24 @@ section {
     </div>
   </section>
 
+  <!-- Core Skills -->
+  <section id="competencies">
+    <h2 class="section-title">Core Competencies</h2>
+    <div class="comp-hint" id="comp-hint">Select a skill to see where it shows up in my work</div>
+    <div class="comp-tiles" role="tablist" aria-label="Core competencies" aria-describedby="comp-hint"></div>
+    <div class="comp-stage" role="tabpanel" id="comp-panel">
+      <div class="comp-caleb-wrap" aria-hidden="true"><img class="comp-caleb" src="images/caleb/caleb-laptop.webp" alt=""></div>
+      <div class="comp-body" aria-live="polite">
+        <div class="comp-count"></div>
+        <h3 class="comp-title"></h3>
+        <p class="comp-desc"></p>
+        <a class="comp-proof" href="#ai-workflow"></a>
+      </div>
+      <div class="comp-nav"><button type="button" data-step="-1" aria-label="Previous skill">◀</button><button type="button" data-step="1" aria-label="Next skill">▶</button></div>
+    </div>
+    <noscript><p class="comp-desc">LMS Development · Public Speaking · Video Production · SOP &amp; Documentation · Adult Learning Theory · Leadership Development · Project Management · SaaS Training · AI</p></noscript>
+  </section>
+
   <!-- Philosophy -->
   <section id="philosophy">
     <h2 class="section-title">My Philosophy on Company Training</h2>
@@ -1173,24 +1191,6 @@ section {
         <div class="stat-label">Employees Supported Across 9 States</div>
       </div>
     </div>
-  </section>
-
-  <!-- Core Skills -->
-  <section>
-    <h2 class="section-title">Core Competencies</h2>
-    <div class="comp-hint" id="comp-hint">Select a skill to see where it shows up in my work</div>
-    <div class="comp-tiles" role="tablist" aria-label="Core competencies" aria-describedby="comp-hint"></div>
-    <div class="comp-stage" role="tabpanel" id="comp-panel">
-      <div class="comp-caleb-wrap" aria-hidden="true"><img class="comp-caleb" src="images/caleb/caleb-laptop.webp" alt=""></div>
-      <div class="comp-body" aria-live="polite">
-        <div class="comp-count"></div>
-        <h3 class="comp-title"></h3>
-        <p class="comp-desc"></p>
-        <a class="comp-proof" href="#ai-workflow"></a>
-      </div>
-      <div class="comp-nav"><button type="button" data-step="-1" aria-label="Previous skill">◀</button><button type="button" data-step="1" aria-label="Next skill">▶</button></div>
-    </div>
-    <noscript><p class="comp-desc">LMS Development · Public Speaking · Video Production · SOP &amp; Documentation · Adult Learning Theory · Leadership Development · Project Management · SaaS Training · AI</p></noscript>
   </section>
 
   <!-- Experience -->
@@ -1606,7 +1606,7 @@ document.querySelectorAll('.demo-tabs').forEach(list => {
     {k:'sop',   pose:'reading',  name:'SOP & Documentation',    short:'SOPs',           desc:'Technical writing, process documentation, and policy development.', proof:['See the framework form','#ai-workflow']},
     {k:'adult', pose:'idea',     name:'Adult Learning Theory',  short:'Adult Learning', desc:'Scenario-based, hands-on, and goal-oriented training using evidence-based methods.', proof:['Read my philosophy','#philosophy']},
     {k:'lead',  pose:'thumbsup', name:'Leadership Development', short:'Leadership',     desc:'Mentoring emerging leaders through their first leadership roles. Arbinger DIOM train-the-trainer.', proof:['See volunteer leadership','#experience']},
-    {k:'pm',    pose:'pointing', name:'Project Management',     short:'Projects',       desc:'End-to-end ownership from concept through implementation and evaluation.', proof:['See the framework','#ai-workflow']},
+    {k:'pm',    pose:'clipboard', name:'Project Management',     short:'Projects',       desc:'End-to-end ownership from concept through implementation and evaluation.', proof:['See the framework','#ai-workflow']},
     {k:'saas',  pose:'laptop',   name:'SaaS Training',          short:'SaaS',           desc:'Post-sales customer onboarding, support training, and online program development.', proof:['See experience','#experience']},
     {k:'ai',    pose:'hologram', name:'AI',                     short:'AI',             desc:'Reimagining training content and workflows.', proof:['See AI in my workflow','#ai-workflow']},
   ];
